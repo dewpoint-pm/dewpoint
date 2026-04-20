@@ -788,3 +788,69 @@ html, body {
   -webkit-box-shadow: 0 4px 20px rgba(124,111,255,.4);
           box-shadow: 0 4px 20px rgba(124,111,255,.4);
 }
+
+/* ── Búsqueda cliente en venta ── */
+.lbl-cli-sel {
+  font-size: var(--fs-sm);
+  color: var(--t2);
+  padding: 6px 0 8px 0;
+  min-height: 20px;
+  font-weight: 500;
+  transition: color .2s;
+}
+.lbl-cli-ok {
+  color: var(--grn);
+  font-weight: 600;
+}
+.cli-search-wrap {
+  position: relative;
+}
+.cli-dropdown {
+  position: absolute;
+  left: 0; right: 0;
+  top: calc(100% + 4px);
+  background: var(--bg-card, #1e1e2e);
+  border: 1px solid rgba(124,111,255,.25);
+  border-radius: 10px;
+  z-index: 200;
+  box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  overflow: hidden;
+}
+.cli-row {
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.cli-row:hover {
+  background: rgba(124,111,255,.12);
+}
+.cli-row + .cli-row {
+  border-top: 1px solid rgba(255,255,255,.05);
+}
+.cli-nombre {
+  font-size: var(--fs);
+  font-weight: 700;
+  color: var(--t1);
+}
+.cli-sub {
+  font-size: var(--fs-sm);
+  color: var(--t2);
+  margin-top: 2px;
+}
+.cli-empty {
+  color: var(--t2);
+  font-size: var(--fs-sm);
+  text-align: center;
+  cursor: default;
+}
+.cli-btns {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.btn-sm {
+  font-size: var(--fs-sm) !important;
+  height: 32px !important;
+  padding: 0 12px !important;
+  flex: 1;
+}
