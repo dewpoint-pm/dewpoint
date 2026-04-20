@@ -90,13 +90,13 @@ def err(msg, status=400):
 @app.route("/")
 def index():
     """Sirve la PWA directamente desde Flask."""
-    return send_from_directory("dewpoint-pwa", "index.html")
+    return send_from_directory(".", "index.html")
 
 
 @app.route("/<path:filename>")
 def static_files(filename):
     """Sirve CSS, JS, iconos, manifest, sw.js, etc."""
-    return send_from_directory("dewpoint-pwa", filename)
+    return send_from_directory(".", filename)
 
 
 # ════════════════════════════════════════════════════════════════════════════
