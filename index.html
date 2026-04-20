@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="theme-color" content="#7C6FFF">
+  <meta name="description" content="Sistema POS para perfumes – Dew Point Technology Solutions">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="DewPoint">
+  <meta name="msapplication-TileColor" content="#7C6FFF">
+  <meta name="msapplication-TileImage" content="icons/icon-144.png">
+
+  <title>Dew Point POS</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<!-- ═══ BANNER OFFLINE ═══════════════════════════════════════ -->
+<div id="offline-banner">Sin conexión a internet</div>
+
+<!-- ═══ APP SHELL ════════════════════════════════════════════ -->
+<div id="app">
+
+  <!-- ── LOGIN ─────────────────────────────────────────────── -->
+  <div id="login-screen">
+    <div class="login-logo">DP</div>
+    <div class="login-title">Dew Point POS</div>
+    <div class="login-sub">Technology Solutions</div>
+    <div class="login-form">
+      <label class="fl" for="lu">Usuario</label>
+      <input class="fi" id="lu" type="text" placeholder="Ingresa tu usuario"
+             autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false"/>
+      <label class="fl" for="lp">Contraseña</label>
+      <input class="fi" id="lp" type="password" placeholder="••••••••"
+             autocomplete="current-password"/>
+      <button class="btn bp" onclick="doLogin()">Iniciar sesión</button>
+      <div class="err" id="le"></div>
+    </div>
+  </div>
+
+  <!-- ── TOPBAR ─────────────────────────────────────────────── -->
+  <header class="topbar">
+    <div class="tb-logo">
+      <div class="logo-circle">DP</div>
+      <div>
+        <div class="tb-name">Dew Point POS</div>
+        <div class="tb-sub" id="tbu">—</div>
+      </div>
+    </div>
+    <div class="tb-right">
+      <span class="badge" id="badge-alertas">3</span>
+      <div class="avatar" id="tba">U</div>
+    </div>
+  </header>
+
+  <!-- ── CONTENIDO ─────────────────────────────────────────── -->
+  <main class="content" role="main">
+
+    <!-- DASHBOARD -->
+    <section class="page active" id="page-home" role="region" aria-label="Dashboard">
+      <div class="ph"><h2>Dashboard</h2><p>Resumen del negocio hoy</p></div>
+      <div class="sg">
+        <div class="sc"><div class="sc-label">Ventas hoy</div><div class="sc-val v-g" id="stat-ventas">—</div><div class="sc-delta" id="stat-ventas-d">cargando...</div></div>
+        <div class="sc"><div class="sc-label">Órdenes</div><div class="sc-val v-p" id="stat-ordenes">—</div><div class="sc-delta" id="stat-ord-d">hoy</div></div>
+        <div class="sc"><div class="sc-label">Por cobrar</div><div class="sc-val v-a" id="stat-cobrar">—</div><div class="sc-delta">pendientes</div></div>
+        <div class="sc"><div class="sc-label">Perfumes</div><div class="sc-val v-p" id="stat-perfumes">—</div><div class="sc-delta" id="stat-perf-d">activos</div></div>
+      </div>
+      <div class="card">
+        <div class="ct">Ventas últimos 7 días</div>
+        <div class="mini-chart" id="chart-barras">
+          <div class="bar" style="height:40%"></div>
+          <div class="bar" style="height:62%"></div>
+          <div class="bar" style="height:34%"></div>
+          <div class="bar" style="height:78%"></div>
+          <div class="bar" style="height:55%"></div>
+          <div class="bar" style="height:70%"></div>
+          <div class="bar on" style="height:90%"></div>
+        </div>
+        <div class="chart-lbls">
+          <span class="chart-lbl">L</span><span class="chart-lbl">M</span>
+          <span class="chart-lbl">X</span><span class="chart-lbl">J</span>
+          <span class="chart-lbl">V</span><span class="chart-lbl">S</span>
+          <span class="chart-lbl">D</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ct">Alertas de stock</div>
+        <div id="alertas-stock">
+          <div class="lr">
+            <div class="lr-l"><div class="ri" style="background:rgba(240,160,64,.15);color:var(--gold)">!</div><div><div class="rname">Chanel N°5</div><div class="rsub">Solo 12 ml disponibles</div></div></div>
+            <span class="chip ca">Bajo</span>
+          </div>
+          <div class="lr">
+            <div class="lr-l"><div class="ri" style="background:rgba(232,88,88,.15);color:var(--red)">X</div><div><div class="rname">Dior Sauvage</div><div class="rsub">Sin stock</div></div></div>
+            <span class="chip cr">Agotado</span>
+          </div>
+          <div class="lr">
+            <div class="lr-l"><div class="ri" style="background:rgba(240,160,64,.15);color:var(--gold)">!</div><div><div class="rname">Frascos 5ml</div><div class="rsub">Stock: 4 unidades</div></div></div>
+            <span class="chip ca">Bajo</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NUEVA VENTA -->
+    <section class="page" id="page-venta" role="region" aria-label="Nueva venta">
+      <div class="ph"><h2>Nueva venta</h2><p>Agrega productos al carrito</p></div>
+      <div class="card">
+        <div class="ct">Cliente</div>
+        <div class="srch" style="margin-bottom:0">
+          <span class="srch-ic" aria-hidden="true">&#x1F464;</span>
+          <input type="search" placeholder="Buscar cliente..." id="buscar-cliente"
+                 autocomplete="off" inputmode="search"/>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ct">Producto</div>
+        <div class="fr">
+          <div>
+            <label class="fl" for="sel-perfume">Perfume</label>
+            <select class="fi" id="sel-perfume">
+              <option value="">Seleccionar...</option>
+              <option>Chanel N°5</option>
+              <option>Tom Ford Black</option>
+              <option>YSL Libre</option>
+            </select>
+          </div>
+          <div>
+            <label class="fl" for="sel-formato">Formato</label>
+            <select class="fi" id="sel-formato">
+              <option value="Decant">Decant</option>
+              <option value="2ml">2 ml</option>
+              <option value="5ml">5 ml</option>
+              <option value="10ml">10 ml</option>
+            </select>
+          </div>
+        </div>
+        <div class="fr">
+          <div>
+            <label class="fl" for="inp-cantidad">Cantidad</label>
+            <input class="fi" id="inp-cantidad" type="number" value="1" min="1" inputmode="numeric"/>
+          </div>
+          <div>
+            <label class="fl" for="inp-precio">Precio unit. ($)</label>
+            <input class="fi" id="inp-precio" type="number" placeholder="0" inputmode="numeric"/>
+          </div>
+        </div>
+        <div class="chips-row">
+          <span class="chip cp" id="precio-sugerido">Sug. —</span>
+          <span class="chip cg" id="stock-disponible">Stock: —</span>
+        </div>
+        <button class="btn bs" onclick="agregarAlCarrito()">+ Agregar al carrito</button>
+      </div>
+      <div class="card">
+        <div class="ct" id="ct-carrito">Carrito (0 items)</div>
+        <div id="carrito-items"><p style="color:var(--t2);font-size:var(--fs-sm);padding:10px 0">Carrito vacío</p></div>
+      </div>
+      <div class="card">
+        <div class="ct">Pago y entrega</div>
+        <div class="fr">
+          <div>
+            <label class="fl" for="sel-metodo">Método</label>
+            <select class="fi" id="sel-metodo">
+              <option>Efectivo</option>
+              <option>Transferencia</option>
+              <option>Tarjeta</option>
+            </select>
+          </div>
+          <div>
+            <label class="fl" for="sel-estado">Estado</label>
+            <select class="fi" id="sel-estado">
+              <option>Pagado</option>
+              <option>Pendiente</option>
+              <option>Parcial</option>
+            </select>
+          </div>
+        </div>
+        <div class="fr">
+          <div>
+            <label class="fl" for="inp-descuento">Descuento ($)</label>
+            <input class="fi" id="inp-descuento" type="number" placeholder="0" inputmode="numeric"/>
+          </div>
+          <div>
+            <label class="fl" for="inp-envio">Envío ($)</label>
+            <input class="fi" id="inp-envio" type="number" placeholder="0" inputmode="numeric"/>
+          </div>
+        </div>
+        <label class="fl" for="sel-entrega">Tipo de entrega</label>
+        <select class="fi" id="sel-entrega">
+          <option>Retiro en tienda</option>
+          <option>Despacho</option>
+        </select>
+      </div>
+      <div class="tb-total">
+        <div><div class="tb-lbl">Total a pagar</div><div class="tb-v" id="total-venta">$0</div></div>
+        <span class="chip cg" id="margen-est">Margen —</span>
+      </div>
+      <button class="btn bp" onclick="guardarVenta()">Guardar venta</button>
+      <button class="btn bd" onclick="limpiarCarrito()">Limpiar carrito</button>
+    </section>
+
+    <!-- PERFUMES -->
+    <section class="page" id="page-perfumes" role="region" aria-label="Perfumes">
+      <div class="ph"><h2>Perfumes</h2><p>Inventario de decants y botellas</p></div>
+      <div class="sg">
+        <div class="sc"><div class="sc-label">Total</div><div class="sc-val v-p" id="p-total">—</div></div>
+        <div class="sc"><div class="sc-label">Bajo stock</div><div class="sc-val v-a" id="p-bajo">—</div></div>
+        <div class="sc"><div class="sc-label">Sin stock</div><div class="sc-val v-r" id="p-sin">—</div></div>
+        <div class="sc"><div class="sc-label">ml totales</div><div class="sc-val v-g" id="p-ml">—</div></div>
+      </div>
+      <div class="chips-row">
+        <span class="chip cp" onclick="filtrarPerfumes('todos',this)">Todos</span>
+        <span class="chip cn" onclick="filtrarPerfumes('decants',this)">Decants</span>
+        <span class="chip cn" onclick="filtrarPerfumes('botellas',this)">Botellas</span>
+      </div>
+      <div class="srch">
+        <span class="srch-ic" aria-hidden="true">&#x1F50D;</span>
+        <input type="search" placeholder="Buscar perfume o marca..." id="buscar-perfume" inputmode="search"/>
+      </div>
+      <div class="card" id="lista-perfumes">
+        <div class="lr"><div class="lr-l"><div class="ri" style="background:var(--pdim)">P</div><div><div class="rname">Chanel N°5</div><div class="rsub">Chanel · Decant</div></div></div><div class="lr-r"><div class="rv v-g">48 ml</div><div class="rv2">$4.200/5ml</div></div></div>
+        <div class="lr"><div class="lr-l"><div class="ri" style="background:var(--pdim)">P</div><div><div class="rname">Tom Ford Black</div><div class="rsub">Tom Ford · Botella</div></div></div><div class="lr-r"><div class="rv v-p">250 ml</div><div class="rv2">$8.500 bot.</div></div></div>
+        <div class="lr"><div class="lr-l"><div class="ri" style="background:rgba(240,160,64,.15);color:var(--gold)">!</div><div><div class="rname">Dior Sauvage</div><div class="rsub">Dior · Decant</div></div></div><div class="lr-r"><div class="rv v-a">12 ml</div><div class="rv2">Bajo stock</div></div></div>
+        <div class="lr"><div class="lr-l"><div class="ri" style="background:rgba(232,88,88,.15);color:var(--red)">X</div><div><div class="rname">Baccarat Rouge</div><div class="rsub">Maison · Decant</div></div></div><div class="lr-r"><div class="rv v-r">0 ml</div><div class="rv2">Sin stock</div></div></div>
+        <div class="lr"><div class="lr-l"><div class="ri" style="background:var(--pdim)">P</div><div><div class="rname">YSL Libre</div><div class="rsub">YSL · Decant</div></div></div><div class="lr-r"><div class="rv v-g">85 ml</div><div class="rv2">$2.800/2ml</div></div></div>
+      </div>
+      <button class="btn bp">+ Nuevo perfume</button>
+    </section>
+
+    <!-- CLIENTES -->
+    <section class="page" id="page-clientes" role="region" aria-label="Clientes">
+      <div class="ph"><h2>Clientes</h2><p>Gestión de clientes</p></div>
+      <div class="sg">
+        <div class="sc"><div class="sc-label">Total</div><div class="sc-val v-p" id="c-total">—</div></div>
+        <div class="sc"><div class="sc-label">Con deuda</div><div class="sc-val v-r" id="c-deuda">—</div></div>
+      </div>
+      <div class="srch">
+        <span class="srch-ic" aria-hidden="true">&#x1F50D;</span>
+        <input type="search" placeholder="Buscar cliente..." id="buscar-cliente2" inputmode="search"/>
+      </div>
+      <div class="card" id="lista-clientes">
+        <div class="lr"><div class="lr-l"><div class="avatar" style="width:36px;height:36px;font-size:var(--fs-sm)">MP</div><div><div class="rname">María Pérez</div><div class="rsub">+56 9 8712 3456</div></div></div><div class="lr-r"><div class="rv v-g">$145.000</div><div class="rv2">14 órdenes</div></div></div>
+        <div class="lr"><div class="lr-l"><div class="avatar av-gold" style="width:36px;height:36px;font-size:var(--fs-sm)">JG</div><div><div class="rname">Juan González</div><div class="rsub">+56 9 6543 7890</div></div></div><div class="lr-r"><div class="rv v-a">$12.000</div><div class="rv2">Debe $12.000</div></div></div>
+        <div class="lr"><div class="lr-l"><div class="avatar av-grn" style="width:36px;height:36px;font-size:var(--fs-sm)">CL</div><div><div class="rname">Carla López</div><div class="rsub">+56 9 9234 5678</div></div></div><div class="lr-r"><div class="rv v-g">$88.500</div><div class="rv2">7 órdenes</div></div></div>
+        <div class="lr"><div class="lr-l"><div class="avatar" style="width:36px;height:36px;font-size:var(--fs-sm)">AT</div><div><div class="rname">Andrés Torres</div><div class="rsub">+56 9 7890 1234</div></div></div><div class="lr-r"><div class="rv v-g">$32.000</div><div class="rv2">3 órdenes</div></div></div>
+      </div>
+      <button class="btn bp">+ Nuevo cliente</button>
+    </section>
+
+    <!-- HISTORIAL -->
+    <section class="page" id="page-historial" role="region" aria-label="Historial de ventas">
+      <div class="ph"><h2>Historial</h2><p>Todas las ventas</p></div>
+      <div class="chips-row">
+        <span class="chip cp" onclick="filtrarHistorial('Todos',this)">Todos</span>
+        <span class="chip cn" onclick="filtrarHistorial('Pagado',this)">Pagado</span>
+        <span class="chip ca" onclick="filtrarHistorial('Pendiente',this)">Pendiente</span>
+        <span class="chip cr" onclick="filtrarHistorial('Parcial',this)">Parcial</span>
+      </div>
+      <div class="srch">
+        <span class="srch-ic" aria-hidden="true">&#x1F50D;</span>
+        <input type="search" placeholder="Buscar por cliente o producto..." id="buscar-historial" inputmode="search"/>
+      </div>
+      <div class="card" id="lista-historial">
+        <div class="lr"><div class="lr-l"><div class="ri" style="background:rgba(80,200,120,.12);color:var(--grn);font-size:var(--fs-sm)">#42</div><div><div class="rname">María Pérez</div><div class="rsub">Hoy 14:32 · Transferencia</div></div></div><div class="lr-r"><div class="rv v-g">$11.200</div><span class="chip cg">Pagado</span></div></div>
+        <div class="lr"><div class="lr-l"><div class="ri" style="background:rgba(240,160,64,.12);color:var(--gold);font-size:var(--fs-sm)">#41</div><div><div class="rname">Juan González</div><div class="rsub">Hoy 11:05 · Efectivo</div></div></div><div class="lr-r"><div class="rv v-a">$12.000</div><span class="chip ca">Pendiente</span></div></div>
+        <div class="lr"><div class="lr-l"><div class="ri" style="background:var(--pdim);color:var(--p);font-size:var(--fs-sm)">#40</div><div><div class="rname">Carla López</div><div class="rsub">Ayer 18:20 · Tarjeta</div></div></div><div class="lr-r"><div class="rv v-g">$28.400</div><span class="chip cg">Pagado</span></div></div>
+        <div class="lr"><div class="lr-l"><div class="ri" style="background:rgba(232,88,88,.12);color:var(--red);font-size:var(--fs-sm)">#39</div><div><div class="rname">Pedro Soto</div><div class="rsub">Ayer 10:15 · Efectivo</div></div></div><div class="lr-r"><div class="rv v-r">$6.800</div><span class="chip cr">Parcial</span></div></div>
+      </div>
+    </section>
+
+    <!-- INSUMOS -->
+    <section class="page" id="page-insumos" role="region" aria-label="Insumos">
+      <div class="ph"><h2>Insumos</h2><p>Packaging y materiales</p></div>
+      <div class="sg">
+        <div class="sc"><div class="sc-label">Total</div><div class="sc-val v-p" id="i-total">—</div></div>
+        <div class="sc"><div class="sc-label">Valor inv.</div><div class="sc-val v-g" id="i-valor">—</div></div>
+        <div class="sc"><div class="sc-label">Bajo stock</div><div class="sc-val v-a" id="i-bajo">—</div></div>
+        <div class="sc"><div class="sc-label">Sin stock</div><div class="sc-val v-r" id="i-sin">—</div></div>
+      </div>
+      <div class="card" id="lista-insumos">
+        <div class="lr"><div class="lr-l"><div class="ri" style="background:var(--pdim)">I</div><div><div class="rname">Frascos 5ml atomizador</div><div class="rsub">Packaging · Stock: 45</div></div></div><div class="lr-r"><div class="rv v-g">$350</div><div class="rv2">c/u</div></div></div>
+        <div class="lr"><div class="lr-l"><div class="ri" style="background:rgba(240,160,64,.15);color:var(--gold)">!</div><div><div class="rname">Frascos 2ml</div><div class="rsub">Packaging · Stock: 4</div></div></div><div class="lr-r"><div class="rv v-a">$180</div><div class="rv2">Bajo stock</div></div></div>
+        <div class="lr"><div class="lr-l"><div class="ri" style="background:var(--pdim)">I</div><div><div class="rname">Cajas kraft pequeñas</div><div class="rsub">Embalaje · Stock: 120</div></div></div><div class="lr-r"><div class="rv v-g">$220</div><div class="rv2">c/u</div></div></div>
+        <div class="lr"><div class="lr-l"><div class="ri" style="background:var(--pdim)">I</div><div><div class="rname">Etiquetas adhesivas</div><div class="rsub">Branding · Stock: 200</div></div></div><div class="lr-r"><div class="rv v-g">$45</div><div class="rv2">c/u</div></div></div>
+      </div>
+      <button class="btn bp">+ Nuevo insumo</button>
+    </section>
+
+    <!-- REPORTES / COSTOS -->
+    <section class="page" id="page-costos" role="region" aria-label="Reportes y costos">
+      <div class="ph"><h2>Reportes</h2><p>Análisis financiero del período</p></div>
+      <div class="sg">
+        <div class="sc"><div class="sc-label">Ingresos mes</div><div class="sc-val v-g" id="r-ingresos">—</div></div>
+        <div class="sc"><div class="sc-label">Costos totales</div><div class="sc-val v-r" id="r-costos">—</div></div>
+        <div class="sc"><div class="sc-label">Utilidad</div><div class="sc-val v-p" id="r-utilidad">—</div></div>
+        <div class="sc"><div class="sc-label">Margen real</div><div class="sc-val v-g" id="r-margen">—</div></div>
+      </div>
+      <div class="card">
+        <div class="ct">Rentabilidad por perfume</div>
+        <div class="lr"><div class="lr-l"><div><div class="rname">Tom Ford Black</div><div class="rsub">Costo/ml $1.420 c/IVA</div></div></div><div class="lr-r"><div class="rv v-g">68%</div></div></div>
+        <div class="lr"><div class="lr-l"><div><div class="rname">Chanel N°5</div><div class="rsub">Costo/ml $980 c/IVA</div></div></div><div class="lr-r"><div class="rv v-g">62%</div></div></div>
+        <div class="lr"><div class="lr-l"><div><div class="rname">YSL Libre</div><div class="rsub">Costo/ml $1.100 c/IVA</div></div></div><div class="lr-r"><div class="rv v-a">48%</div></div></div>
+      </div>
+      <div class="card">
+        <div class="ct">Desglose costos perfumes</div>
+        <div class="lr"><div>Costo con IVA</div><div class="rv v-r" id="r-costo-iva">—</div></div>
+        <div class="lr"><div>Neto sin IVA</div><div class="rv v-p" id="r-neto">—</div></div>
+        <div class="lr"><div>IVA 19%</div><div class="rv v-a" id="r-iva">—</div></div>
+        <div class="lr"><div>Costo prom./ml</div><div class="rv v-g" id="r-ml">—</div></div>
+        <div class="lr"><div>Valor insumos</div><div class="rv v-p" id="r-insumos">—</div></div>
+      </div>
+      <div class="card">
+        <div class="ct">Exportar datos</div>
+        <div style="display:flex;gap:var(--gap)">
+          <button class="btn bs" style="font-size:var(--fs-sm)">Excel ventas</button>
+          <button class="btn bs" style="font-size:var(--fs-sm)">Excel clientes</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONFIGURACIÓN -->
+    <section class="page" id="page-config" role="region" aria-label="Configuración">
+      <div class="ph"><h2>Configuración</h2><p>Preferencias del sistema</p></div>
+      <div class="card">
+        <div class="ct">Interfaz</div>
+        <div class="sw-row"><div><h4>Modo oscuro</h4><p>Tema de la aplicación</p></div><label class="tog"><input type="checkbox" id="sw-dark" checked onchange="toggleDark(this)"><span class="sl"></span></label></div>
+        <div class="sw-row"><div><h4>Notificaciones</h4><p>Alertas de stock y pagos</p></div><label class="tog"><input type="checkbox" id="sw-notif" checked><span class="sl"></span></label></div>
+        <div class="sw-row"><div><h4>Auto-limpiar carrito</h4><p>Al guardar la venta</p></div><label class="tog"><input type="checkbox" id="sw-auto-clear" checked><span class="sl"></span></label></div>
+        <div class="sw-row"><div><h4>Confirmar al guardar</h4><p>Pide confirmación</p></div><label class="tog"><input type="checkbox" id="sw-confirm"><span class="sl"></span></label></div>
+      </div>
+      <div class="card">
+        <div class="ct">Umbral stock bajo</div>
+        <div class="chips-row" id="umbral-chips">
+          <span class="chip cn" onclick="setUmbral(10,this)">10%</span>
+          <span class="chip cn" onclick="setUmbral(15,this)">15%</span>
+          <span class="chip cp" onclick="setUmbral(20,this)">20%</span>
+          <span class="chip cn" onclick="setUmbral(25,this)">25%</span>
+          <span class="chip cn" onclick="setUmbral(30,this)">30%</span>
+        </div>
+        <p style="font-size:var(--fs-sm);color:var(--t2)">Alerta cuando el stock baja de este porcentaje</p>
+      </div>
+      <div class="card">
+        <div class="ct">Acerca de</div>
+        <div style="margin-bottom:var(--gap)">
+          <div style="font-size:var(--fs);font-weight:700" id="cfg-user">—</div>
+          <div style="font-size:var(--fs-sm);color:var(--t2)">Dew Point Technology Solutions</div>
+          <div style="font-size:var(--fs-sm);color:var(--t2);margin-top:4px">Versión 1.0 PWA</div>
+        </div>
+        <button class="btn bd" onclick="doLogout()">Cerrar sesión</button>
+      </div>
+      <div class="card" id="card-instalar" style="display:none">
+        <div class="ct">Instalar app</div>
+        <p style="font-size:var(--fs-sm);color:var(--t2);margin-bottom:var(--gap)">Instala Dew Point POS en tu pantalla de inicio para usarla sin abrir el navegador.</p>
+        <button class="btn bp" onclick="installPWA()">Instalar en este dispositivo</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── NAVEGACIÓN INFERIOR ──────────────────────────────── -->
+  <nav class="nav" role="navigation" aria-label="Navegación principal">
+    <div class="ni active" id="ni-home" onclick="navigate('home',this)" role="button" aria-label="Inicio" tabindex="0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--p)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/></svg>
+      <span>Inicio</span>
+    </div>
+    <div class="ni" id="ni-venta" onclick="navigate('venta',this)" role="button" aria-label="Nueva venta" tabindex="0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <span>Venta</span>
+    </div>
+    <div class="ni" id="ni-perfumes" onclick="navigate('perfumes',this)" role="button" aria-label="Perfumes" tabindex="0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      <span>Perfumes</span>
+    </div>
+    <div class="ni" id="ni-clientes" onclick="navigate('clientes',this)" role="button" aria-label="Clientes" tabindex="0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Clientes</span>
+    </div>
+    <div class="ni" id="ni-more" onclick="toggleMore()" role="button" aria-label="Más opciones" tabindex="0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
+      <span>Más</span>
+    </div>
+  </nav>
+
+  <!-- ── MENÚ MÁS ───────────────────────────────────────────── -->
+  <div id="more-menu" role="menu">
+    <div class="mm-item" role="menuitem" onclick="navigate('historial');closeMore()">Historial de ventas</div>
+    <div class="mm-item" role="menuitem" onclick="navigate('insumos');closeMore()">Insumos y packaging</div>
+    <div class="mm-item" role="menuitem" onclick="navigate('costos');closeMore()">Reportes y costos</div>
+    <div class="mm-item" role="menuitem" onclick="navigate('config');closeMore()">Configuración</div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- ── TOAST ──────────────────────────────────────────────── -->
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- ── BOTÓN INSTALAR PWA ─────────────────────────────────── -->
+<button id="install-btn" onclick="installPWA()">Instalar app</button>
+
+<!-- ── SCRIPTS ─────────────────────────────────────────────── -->
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
+<script>
+/* Funciones adicionales de UI */
+
+function filtrarPerfumes(tipo, el) {
+  document.querySelectorAll('#page-perfumes .chips-row .chip').forEach(function(c){
+    c.className = 'chip cn';
+  });
+  if (el) el.className = 'chip cp';
+}
+
+function filtrarHistorial(estado, el) {
+  document.querySelectorAll('#page-historial .chips-row .chip').forEach(function(c){
+    c.className = c.textContent.trim() === 'Todos' ? 'chip cp' : 'chip cn';
+  });
+  if (el) {
+    var cls = { 'Pagado':'cg','Pendiente':'ca','Parcial':'cr','Todos':'cp' };
+    el.className = 'chip ' + (cls[estado] || 'cp');
+  }
+}
+
+function setUmbral(val, el) {
+  document.querySelectorAll('#umbral-chips .chip').forEach(function(c){ c.className='chip cn'; });
+  if (el) el.className = 'chip cp';
+  DB.saveSetting('umbral', val);
+  showToast('Umbral: ' + val + '%');
+}
+
+function toggleDark(el) {
+  DB.saveSetting('dark_mode', el.checked);
+}
+
+/* Mostrar botón instalar en config si hay prompt disponible */
+window.addEventListener('beforeinstallprompt', function() {
+  var card = document.getElementById('card-instalar');
+  if (card) card.style.display = 'block';
+});
+</script>
+</body>
+</html>
