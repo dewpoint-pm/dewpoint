@@ -32,7 +32,7 @@ from datetime import datetime, date
 # ════════════════════════════════════════════════════════════════════════════
 #  CONFIGURACIÓN
 # ════════════════════════════════════════════════════════════════════════════
-app = Flask(__name__, static_folder="dewpoint-pwa", static_url_path="")
+app = Flask(__name__, static_folder=".", static_url_path="")
 CORS(app)  # Permite peticiones desde cualquier origen (el celular)
 
 # Sesiones activas: { token: { "username": str, "tenant_url": str } }
