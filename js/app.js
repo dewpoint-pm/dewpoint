@@ -15,6 +15,7 @@ var APP = {
   deferredPrompt: null,
   perfumes: [],
   clientes: [],
+  clienteSel: null,   // cliente seleccionado en venta
 };
 
 var PAGES = ['home','venta','perfumes','clientes','historial','insumos','costos','config'];
@@ -68,9 +69,18 @@ function closeMore() {
   if (m) m.style.display = 'none';
 }
 document.addEventListener('click', function(e) {
+  // Cerrar dropdown de cliente al hacer clic afuera
+  var cliWrap = document.getElementById('cli-search-wrap');
+  if (cliWrap && !cliWrap.contains(e.target)) {
+    var drop = document.getElementById('cli-dropdown');
+    if (drop) { drop.innerHTML = ''; drop.style.display = 'none'; }
+  }
   if (!e.target.closest('#more-menu') && !e.target.closest('#ni-more')) closeMore();
 });
 
+// ══════════════════════════════════════════════════
+// LOGIN / LOGOUT
+// ══════════════════════════════════════════════════
 function doLogin() {
   var u = document.getElementById('lu');
   var p = document.getElementById('lp');
@@ -110,6 +120,7 @@ function doLogout() {
   APP.carrito = [];
   APP.perfumes = [];
   APP.clientes = [];
+  APP.clienteSel = null;
   try { sessionStorage.removeItem('dp_page'); } catch(e) {}
   DB.logout();
   var ls = document.getElementById('login-screen');
@@ -130,6 +141,9 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
+// ══════════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════════
 function loadDashboard() {
   DB.getStats(function(data) {
     if (!data) return;
@@ -159,6 +173,9 @@ function loadDashboard() {
   });
 }
 
+// ══════════════════════════════════════════════════
+// PERFUMES
+// ══════════════════════════════════════════════════
 function loadPerfumes(query) {
   query = query || '';
   var cont = document.getElementById('lista-perfumes');
@@ -192,6 +209,9 @@ function loadPerfumes(query) {
   });
 }
 
+// ══════════════════════════════════════════════════
+// CLIENTES
+// ══════════════════════════════════════════════════
 function loadClientes(query) {
   query = query || '';
   var cont = document.getElementById('lista-clientes');
@@ -216,6 +236,9 @@ function loadClientes(query) {
   });
 }
 
+// ══════════════════════════════════════════════════
+// HISTORIAL
+// ══════════════════════════════════════════════════
 var _historialEstado = 'Todos';
 function filtrarHistorial(estado, el) {
   _historialEstado = estado;
@@ -242,6 +265,9 @@ function loadHistorial(query) {
   });
 }
 
+// ══════════════════════════════════════════════════
+// INSUMOS
+// ══════════════════════════════════════════════════
 function loadInsumos() {
   var cont = document.getElementById('lista-insumos');
   if (!cont) return;
@@ -268,6 +294,9 @@ function loadInsumos() {
   });
 }
 
+// ══════════════════════════════════════════════════
+// COSTOS / REPORTES
+// ══════════════════════════════════════════════════
 function loadCostos() {
   DB.getCostos(function(data) {
     if (!data) return;
@@ -285,6 +314,9 @@ function loadCostos() {
   });
 }
 
+// ══════════════════════════════════════════════════
+// VENTA — PERFUMES
+// ══════════════════════════════════════════════════
 function loadPerfumesVenta() {
   DB.getPerfumes('', function(perfumes) {
     APP.perfumes = perfumes;
@@ -376,12 +408,19 @@ function cambiarQty(i, delta) {
   renderCarrito();
 }
 
-function limpiarCarrito() { APP.carrito = []; renderCarrito(); showToast('Carrito limpiado'); }
+function limpiarCarrito() {
+  APP.carrito = [];
+  renderCarrito();
+  // También limpiar cliente seleccionado
+  _quitarClienteVenta();
+  showToast('Carrito limpiado');
+}
 
 function guardarVenta() {
+  if (!APP.clienteSel) { showToast('Selecciona un cliente primero'); return; }
   if (APP.carrito.length === 0) { showToast('Agrega productos al carrito'); return; }
   var venta = {
-    cliente_id:   null,
+    cliente_id:   APP.clienteSel.id,
     items:        APP.carrito.map(function(item){ return { perfume_id: item.perfume_id, formato_ml: item.formato_ml, cantidad: item.cantidad, precio_unit: item.precio_unit, es_botella_completa: 0 }; }),
     metodo_pago:  (document.getElementById('sel-metodo')  ||{}).value || 'Efectivo',
     tipo_entrega: (document.getElementById('sel-entrega') ||{}).value || 'Retiro en tienda',
@@ -399,6 +438,107 @@ function guardarVenta() {
   });
 }
 
+// ══════════════════════════════════════════════════
+// BÚSQUEDA DE CLIENTE EN VENTA
+// ══════════════════════════════════════════════════
+var _afterCli = null;
+
+function _onCliKey() {
+  if (_afterCli) clearTimeout(_afterCli);
+  _afterCli = setTimeout(_mostrarClientesVenta, 200);
+}
+
+function _mostrarClientesVenta() {
+  var inp = document.getElementById('buscar-cliente');
+  if (!inp) return;
+  var q = inp.value.trim();
+  var drop = document.getElementById('cli-dropdown');
+  if (!drop) return;
+
+  if (!q) {
+    drop.innerHTML = '';
+    drop.style.display = 'none';
+    return;
+  }
+
+  DB.getClientes(q, function(clientes) {
+    var res = clientes.slice(0, 5);
+    drop.innerHTML = '';
+    if (res.length === 0) {
+      drop.style.display = 'block';
+      drop.innerHTML = '<div class="cli-row cli-empty">Sin resultados</div>';
+      return;
+    }
+    drop.style.display = 'block';
+    res.forEach(function(c) {
+      var rut = c.rut ? '  ·  RUT: ' + c.rut : '';
+      var ig  = c.instagram ? '  ·  ' + c.instagram : '';
+      var sub = (c.telefono || '—') + rut + ig;
+      var row = document.createElement('div');
+      row.className = 'cli-row';
+      row.innerHTML =
+        '<div class="cli-nombre">' + (c.nombre || '') + '</div>' +
+        '<div class="cli-sub">' + sub + '</div>';
+      row.addEventListener('mousedown', function(e) {
+        e.preventDefault(); // evitar que el input pierda foco antes del click
+        _selClienteVenta(c);
+      });
+      drop.appendChild(row);
+    });
+  });
+}
+
+function _selClienteVenta(c) {
+  if (!c) return;
+  APP.clienteSel = c;
+  var rut = c.rut ? '  |  RUT: ' + c.rut : '';
+  var lbl = document.getElementById('lbl-cliente-sel');
+  if (lbl) {
+    lbl.textContent = '✓  ' + c.nombre + '  |  ' + (c.telefono || '') + rut;
+    lbl.className = 'lbl-cli-sel lbl-cli-ok';
+  }
+  var inp = document.getElementById('buscar-cliente');
+  if (inp) inp.value = '';
+  var drop = document.getElementById('cli-dropdown');
+  if (drop) { drop.innerHTML = ''; drop.style.display = 'none'; }
+  var btnQ = document.getElementById('btn-quitar-cli');
+  if (btnQ) btnQ.disabled = false;
+}
+
+function _quitarClienteVenta() {
+  APP.clienteSel = null;
+  var lbl = document.getElementById('lbl-cliente-sel');
+  if (lbl) {
+    lbl.textContent = 'Sin cliente seleccionado';
+    lbl.className = 'lbl-cli-sel';
+  }
+  var inp = document.getElementById('buscar-cliente');
+  if (inp) inp.value = '';
+  var drop = document.getElementById('cli-dropdown');
+  if (drop) { drop.innerHTML = ''; drop.style.display = 'none'; }
+  var btnQ = document.getElementById('btn-quitar-cli');
+  if (btnQ) btnQ.disabled = true;
+}
+
+function _nuevoClienteVenta() {
+  var nombre = prompt('Nombre del cliente:');
+  if (!nombre || !nombre.trim()) return;
+  var tel = prompt('Teléfono (opcional):') || '';
+  DB.crearCliente({ nombre: nombre.trim(), telefono: tel.trim() }, function(ok, err) {
+    if (ok) {
+      DB.getClientes(nombre.trim(), function(res) {
+        if (res && res.length > 0) _selClienteVenta(res[0]);
+      });
+      showToast('Cliente creado');
+    } else {
+      showToast('Error: ' + (err || 'No se pudo crear'));
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════
 var _toastTimer = null;
 function showToast(msg) {
   var t = document.getElementById('toast');
@@ -408,6 +548,9 @@ function showToast(msg) {
   _toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2800);
 }
 
+// ══════════════════════════════════════════════════
+// OTROS
+// ══════════════════════════════════════════════════
 function filtrarPerfumes(tipo, el) {
   document.querySelectorAll('#page-perfumes .chips-row .chip').forEach(function(c){c.className='chip cn';});
   if (el) el.className='chip cp';
@@ -452,14 +595,25 @@ function installPWA() {
 document.addEventListener('DOMContentLoaded', function() {
   var ls = document.getElementById('login-screen');
   if (ls) ls.style.display = 'flex';
+
   var selP = document.getElementById('sel-perfume');
   var selF = document.getElementById('sel-formato');
   if (selP) selP.addEventListener('change', actualizarPrecioSug);
   if (selF) selF.addEventListener('change', actualizarPrecioSug);
+
+  // Búsqueda perfumes
   var bP = document.getElementById('buscar-perfume');
   if (bP) bP.addEventListener('input', function(){ loadPerfumes(this.value); });
+
+  // Búsqueda clientes (página clientes)
   var bC = document.getElementById('buscar-cliente2');
   if (bC) bC.addEventListener('input', function(){ loadClientes(this.value); });
+
+  // Búsqueda historial
   var bH = document.getElementById('buscar-historial');
   if (bH) bH.addEventListener('input', function(){ loadHistorial(this.value); });
+
+  // Búsqueda cliente en venta — con debounce
+  var bCli = document.getElementById('buscar-cliente');
+  if (bCli) bCli.addEventListener('input', _onCliKey);
 });
