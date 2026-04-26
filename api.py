@@ -32,7 +32,7 @@ from datetime import datetime, date
 # ════════════════════════════════════════════════════════════════════════════
 #  CONFIGURACIÓN
 # ════════════════════════════════════════════════════════════════════════════
-app = Flask(__name__, static_folder=".", static_url_path="")
+app = Flask(__name__, static_folder="dewpoint-pwa", static_url_path="")
 CORS(app)  # Permite peticiones desde cualquier origen (el celular)
 
 # Sesiones activas: { token: { "username": str, "tenant_url": str } }
@@ -90,13 +90,13 @@ def err(msg, status=400):
 @app.route("/")
 def index():
     """Sirve la PWA directamente desde Flask."""
-    return send_from_directory(".", "index.html")
+    return send_from_directory("dewpoint-pwa", "index.html")
 
 
 @app.route("/<path:filename>")
 def static_files(filename):
     """Sirve CSS, JS, iconos, manifest, sw.js, etc."""
-    return send_from_directory(".", filename)
+    return send_from_directory("dewpoint-pwa", filename)
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -291,6 +291,15 @@ def get_clientes():
     q = request.args.get("q", "")
     try:
         clientes = db.get_clientes(query=q)
+        # Asegurar que los campos clave siempre estén presentes
+        for c in clientes:
+            c.setdefault("rut", "")
+            c.setdefault("telefono", "")
+            c.setdefault("instagram", "")
+            c.setdefault("email", "")
+            c.setdefault("saldo_pendiente", 0)
+            c.setdefault("total_compras", c.get("total_comprado", 0))
+            c.setdefault("n_ventas", c.get("compras", 0))
         return ok({"clientes": clientes})
     except Exception as e:
         return err(str(e), 503)
