@@ -237,11 +237,14 @@ function calcMargen(){
 }
 
 function calcTotal(){
-  var total=APP.carrito.reduce(function(s,i){return s+i.subtotal;},0);
-  var desc=parseInt(document.getElementById('inp-descuento').value||0)||0;
-  var env=parseInt(document.getElementById('inp-envio').value||0)||0;
-  var final=total-desc+env;
-  document.getElementById('total-venta').textContent=fmt(final<0?0:final);
+  var subtotal=APP.carrito.reduce(function(s,i){return s+i.subtotal;},0);
+  var descPct=Math.min(100,Math.max(0,parseFloat(document.getElementById("inp-descuento").value||0)||0));
+  var env=parseInt(document.getElementById("inp-envio").value||0)||0;
+  var descMonto=Math.round(subtotal*descPct/100);
+  var final=subtotal-descMonto+env;
+  document.getElementById("total-venta").textContent=fmt(final<0?0:final);
+  var cm=document.getElementById("chip-margen-total");
+  if(cm) cm.textContent=descPct>0?"Desc. -"+fmt(descMonto):"Margen u2014";
 }
 
 /* ══ CARRITO ═════════════════════════════════════════════════ */
@@ -308,31 +311,31 @@ function cambiarQty(i,d){
 function limpiarCarrito(){ APP.carrito=[]; renderCarrito(); showToast('Carrito limpiado'); }
 
 function guardarVenta(){
-  if(APP.carrito.length===0){ showToast('Agrega productos al carrito'); return; }
-  var confirm_save=DB.loadSetting('confirm_save',true);
-  var desc=parseInt(document.getElementById('inp-descuento').value||0)||0;
-  var env=parseInt(document.getElementById('inp-envio').value||0)||0;
-  var total=APP.carrito.reduce(function(s,i){return s+i.subtotal;},0)-desc+env;
-  if(confirm_save&&!confirm('¿Confirmar venta por '+fmt(total)+'?')) return;
-
+  if(APP.carrito.length===0){ showToast("Agrega productos al carrito"); return; }
+  var confirm_save=DB.loadSetting("confirm_save",true);
+  var subtotal=APP.carrito.reduce(function(s,i){return s+i.subtotal;},0);
+  var descPct=Math.min(100,Math.max(0,parseFloat(document.getElementById("inp-descuento").value||0)||0));
+  var descMonto=Math.round(subtotal*descPct/100);
+  var env=parseInt(document.getElementById("inp-envio").value||0)||0;
+  var total=subtotal-descMonto+env;
+  if(confirm_save&&!confirm("¿Confirmar venta por "+fmt(total)+"?")) return;
   var venta={
     cliente_id: APP.clienteSel?APP.clienteSel.id:null,
     items: APP.carrito.map(function(it){ return { perfume_id:it.perfume_id, formato_ml:it.formato_ml, cantidad:it.cantidad, precio_unit:it.precio_unit, es_botella_completa:it.es_botella_completa }; }),
-    metodo_pago: document.getElementById('sel-metodo').value,
-    tipo_entrega: document.getElementById('sel-entrega').value,
-    estado_pago: document.getElementById('sel-estado').value,
-    descuento: desc,
+    metodo_pago: document.getElementById("sel-metodo").value,
+    tipo_entrega: document.getElementById("sel-entrega").value,
+    estado_pago: document.getElementById("sel-estado").value,
+    descuento: descMonto,
     costo_envio: env,
-    notas: document.getElementById('inp-notas').value,
+    notas: document.getElementById("inp-notas").value,
   };
-
   DB.crearVenta(venta, function(ok,msg,ventaId){
     if(ok){
-      showToast('Venta #'+ventaId+' guardada — '+fmt(total));
-      if(DB.loadSetting('auto_clear',true)) limpiarCarrito();
+      showToast("Venta #"+ventaId+" guardada — "+fmt(total));
+      if(DB.loadSetting("auto_clear",true)) limpiarCarrito();
       quitarCliente();
-      loadPerfumesVenta(); /* refrescar stock */
-    } else { showToast('Error: '+(msg||'No se pudo guardar')); }
+      loadPerfumesVenta();
+    } else { showToast("Error: "+(msg||"No se pudo guardar")); }
   });
 }
 
