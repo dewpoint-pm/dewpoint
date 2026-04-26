@@ -176,7 +176,7 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 .mm-item:active{background:var(--bg4)}
 
 /* LOGIN */
-#login-screen{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);padding-top:calc(var(--pad) + env(safe-area-inset-top,0px));z-index:300}
+#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);z-index:300;min-height:100vh;min-height:-webkit-fill-available}
 .login-card{background:var(--bg3);border:1px solid var(--bdr2);border-radius:18px;padding:clamp(24px,7vw,40px) clamp(20px,6vw,36px);width:100%;max-width:360px}
 .login-logo{width:72px;height:72px;border-radius:50%;background:var(--p2);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff;margin:0 auto 14px}
 .login-title{font-size:var(--fs-xl);font-weight:800;text-align:center;font-family:Georgia,serif}
