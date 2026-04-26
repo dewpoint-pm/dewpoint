@@ -112,9 +112,8 @@ function buscarCliente(q){
     if(!res) return;
     if(clientes.length===0){ res.innerHTML='<div style="padding:8px;color:var(--t3);font-size:var(--fs-sm)">No encontrado</div>'; res.style.display='block'; return; }
     res.innerHTML = clientes.slice(0,5).map(function(c){
-      return '<div class="mm-item" onclick="selCliente('+c.id+',\''+escHtml(c.nombre)+'\')">'+
-        '<b>'+escHtml(c.nombre)+'</b><span style="color:var(--t3);margin-left:8px">'+escHtml(c.rut||'')+'</span></div>';
-    }).join('');
+     return '<div class="mm-item" onclick="selCliente('+c.id+',\''+escHtml(c.nombre)+'\')">'+
+  '<b>'+escHtml(c.nombre)+'</b><span style="color:var(--t3);margin-left:8px">'+escHtml(c.rut||c.telefono||'')+'</span></div>'; }).join('');
     res.style.display='block';
   });
 }
