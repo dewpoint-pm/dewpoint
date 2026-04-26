@@ -136,14 +136,16 @@ document.addEventListener('DOMContentLoaded', function(){
 function buscarCliente(q){
   if(!q||q.length<2){ ocultarCliRes(); return; }
   DB.getClientes(q, function(clientes){
-    var res=document.getElementById('cli-res');
+    var res=document.getElementById("cli-res");
     if(!res) return;
-    if(clientes.length===0){ res.innerHTML='<div style="padding:8px;color:var(--t3);font-size:var(--fs-sm)">No encontrado</div>'; res.style.display='block'; return; }
+    if(clientes.length===0){ res.innerHTML="<div style=\"padding:8px;color:var(--t3);font-size:var(--fs-sm)\">No encontrado</div>"; res.style.display="block"; return; }
     res.innerHTML=clientes.slice(0,5).map(function(c){
-      return '<div class="mm-item" onclick="selCliente('+c.id+',\''+escHtml(c.nombre)+'\')">'+
-        '<b>'+escHtml(c.nombre)+'</b><span style="color:var(--t3);margin-left:8px">'+escHtml(c.rut||c.telefono||'')+'</span></div>';
-    }).join('');
-    res.style.display='block';
+      /* Mostrar RUT si existe, si no teléfono, si no instagram */
+      var info = c.rut && c.rut.trim() && c.rut!=="0" ? c.rut : (c.telefono||c.instagram||"");
+      return "<div class=\"mm-item\" onclick=\"selCliente("+c.id+",+escHtml(c.nombre)+)\">"+
+        "<b>"+escHtml(c.nombre)+"</b><span style=\"color:var(--t3);margin-left:8px\">"+escHtml(info)+"</span></div>";
+    }).join("");
+    res.style.display="block";
   });
 }
 
