@@ -339,8 +339,8 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
     </div>
     <div class="fr">
       <div>
-        <label class="fl">Descuento ($)</label>
-        <input class="fi" id="inp-descuento" type="number" placeholder="0" inputmode="numeric" oninput="calcTotal()"/>
+        <label class="fl">Descuento (%)</label>
+        <input class="fi" id="inp-descuento" type="number" placeholder="0" min="0" max="100" inputmode="numeric" oninput="calcTotal()"/>
       </div>
       <div>
         <label class="fl">Costo envío ($)</label>
