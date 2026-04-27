@@ -655,13 +655,20 @@ function renderGrafico() {
   var canvas = document.getElementById('graf-canvas');
   if(!canvas) return;
   var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
 
   /* Mostrar "cargando" */
   var wrap = document.getElementById('graf-canvas-wrap');
-  if(wrap){ canvas.width=wrap.clientWidth||320; canvas.height=280; }
-  ctx.fillStyle='#13131E'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  var cssW = wrap ? wrap.clientWidth||320 : 320;
+  var cssH = 340;
+  canvas.width  = cssW * dpr;
+  canvas.height = cssH * dpr;
+  canvas.style.width  = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle='#13131E'; ctx.fillRect(0,0,cssW,cssH);
   ctx.fillStyle='#8888AA'; ctx.font='13px sans-serif'; ctx.textAlign='center';
-  ctx.fillText('Cargando gráfico...', canvas.width/2, canvas.height/2);
+  ctx.fillText('Cargando gráfico...', cssW/2, cssH/2);
 
   function _draw(datosV, datosC) {
     var serie = _REP.serie;
@@ -691,11 +698,16 @@ function renderGrafico() {
     if(serie!=='ventas') allVals = allVals.concat(valoresC);
     var maxVal = Math.max.apply(null, allVals.concat([1]));
 
-    /* Dimensiones */
+    /* Dimensiones — usar CSS px (ya escalado por dpr arriba) */
     var W = wrap ? wrap.clientWidth||320 : 320;
-    var H = 280;
-    canvas.width = W; canvas.height = H;
-    var PAD_L=72, PAD_R=20, PAD_T=36, PAD_B=56;
+    var H = 340;
+    canvas.width  = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.scale(dpr, dpr);
+    var PAD_L=80, PAD_R=24, PAD_T=40, PAD_B=60;
     var areaW = W-PAD_L-PAD_R;
     var areaH = H-PAD_T-PAD_B;
     var n = periodos.length;
@@ -718,7 +730,7 @@ function renderGrafico() {
       ctx.setLineDash([]);
       var v = maxVal*i/LINEAS;
       var lbl = v>=1000000?'$'+(v/1000000).toFixed(1)+'M':v>=1000?'$'+Math.round(v/1000)+'k':'$'+Math.round(v);
-      ctx.fillStyle='#8888AA'; ctx.font='10px sans-serif'; ctx.textAlign='right';
+      ctx.fillStyle='#8888AA'; ctx.font='11px -apple-system,sans-serif'; ctx.textAlign='right';
       ctx.fillText(lbl, PAD_L-6, y+3);
     }
 
@@ -729,17 +741,30 @@ function renderGrafico() {
       var altura = maxVal>0 ? Math.round((val/maxVal)*areaH) : 0;
       var byTop = PAD_T + areaH - altura;
       /* Sombra */
-      ctx.fillStyle='rgba(0,0,0,0.3)';
-      ctx.fillRect(bx+2, byTop+2, barW, altura);
-      /* Barra */
-      ctx.fillStyle=colorMid;
-      ctx.fillRect(bx, byTop, barW, altura);
+      ctx.fillStyle='rgba(0,0,0,0.25)';
+      ctx.fillRect(bx+3, byTop+3, barW, altura);
+      /* Barra con esquinas redondeadas arriba */
+      /* Gradiente vertical */
+      var grad=ctx.createLinearGradient(bx,byTop,bx,byTop+altura);
+      grad.addColorStop(0,colorTop); grad.addColorStop(1,colorMid);
+      ctx.fillStyle=grad;
+      if(altura>6){
+        ctx.beginPath();
+        ctx.moveTo(bx+4,byTop); ctx.lineTo(bx+barW-4,byTop);
+        ctx.quadraticCurveTo(bx+barW,byTop,bx+barW,byTop+4);
+        ctx.lineTo(bx+barW,byTop+altura); ctx.lineTo(bx,byTop+altura);
+        ctx.lineTo(bx,byTop+4);
+        ctx.quadraticCurveTo(bx,byTop,bx+4,byTop);
+        ctx.closePath(); ctx.fill();
+      } else {
+        ctx.fillRect(bx, byTop, barW, altura);
+      }
       /* Tope brillante */
-      if(altura>3){ ctx.fillStyle=colorTop; ctx.fillRect(bx,byTop,barW,2); }
+      if(altura>3){ ctx.fillStyle=colorTop; ctx.fillRect(bx,byTop,barW,3); }
       /* Valor */
       if(val>0 && altura>12){
         var lv = val>=1000000?'$'+(val/1000000).toFixed(1)+'M':val>=1000?'$'+Math.round(val/1000)+'k':'$'+Math.round(val);
-        ctx.fillStyle=colorVal; ctx.font='bold 10px sans-serif'; ctx.textAlign='center';
+        ctx.fillStyle=colorVal; ctx.font='bold 11px -apple-system,sans-serif'; ctx.textAlign='center';
         ctx.fillText(lv, bx+barW/2, Math.max(byTop-4, PAD_T+8));
       }
     }
@@ -760,7 +785,7 @@ function renderGrafico() {
         var meses={'01':'Ene','02':'Feb','03':'Mar','04':'Abr','05':'May','06':'Jun','07':'Jul','08':'Ago','09':'Sep','10':'Oct','11':'Nov','12':'Dic'};
         etq=meses[p.substring(5)]||p.substring(5);
       }
-      ctx.fillStyle='#9999BB'; ctx.font='10px sans-serif'; ctx.textAlign='center';
+      ctx.fillStyle='#9999BB'; ctx.font='11px -apple-system,sans-serif'; ctx.textAlign='center';
       ctx.fillText(etq, cx, H-PAD_B+14);
     }
 
@@ -774,10 +799,10 @@ function renderGrafico() {
       ctx.fillStyle='#1A1A2C'; ctx.strokeStyle='#4A4A6A';
       ctx.beginPath(); ctx.roundRect(PAD_L+8,PAD_T+6,90,38,4); ctx.fill(); ctx.stroke();
       ctx.fillStyle='#5BA4CF'; ctx.fillRect(PAD_L+14,PAD_T+13,12,10);
-      ctx.fillStyle='#C8C8D0'; ctx.font='10px sans-serif'; ctx.textAlign='left';
+      ctx.fillStyle='#C8C8D0'; ctx.font='11px -apple-system,sans-serif'; ctx.textAlign='left';
       ctx.fillText('Ventas',PAD_L+30,PAD_T+22);
       ctx.fillStyle='#C8923A'; ctx.fillRect(PAD_L+14,PAD_T+27,12,10);
-      ctx.fillStyle='#C8C8D0'; ctx.font='10px sans-serif'; ctx.fillText('Costos',PAD_L+30,PAD_T+38);
+      ctx.fillStyle='#C8C8D0'; ctx.font='11px -apple-system,sans-serif'; ctx.fillText('Costos',PAD_L+30,PAD_T+40);
     }
   }
 
