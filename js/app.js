@@ -543,7 +543,7 @@ function setCatRep(cat,el){
 
 function setAgrup(agrup,el){
   APP._repAgrup=agrup;
-  document.querySelectorAll('#page-reportes .card:last-child .chips-row .chip').forEach(function(c){c.className='chip cn';});
+  document.querySelectorAll("#agrup-chips .chip").forEach(function(c){c.className='chip cn';});
   if(el) el.className='chip cp';
   loadReportes();
 }
@@ -592,7 +592,8 @@ function loadReportes(){
         '<div class="rv vg">'+fmt(c.total_comprado||0)+'</div></div>';
     }).join('');
   });
-  DB.getVentasPorPeriodo(APP._repAgrup,desde,hasta,tipo,function(data){
+  var _agrup=APP._repAgrup;
+  DB.getVentasPorPeriodo(_agrup,desde,hasta,tipo,function(data){
     var gc=document.getElementById('graf-barras'), gl=document.getElementById('graf-labels');
     if(!gc||!data||data.length===0) return;
     var items=data.slice(-7);
