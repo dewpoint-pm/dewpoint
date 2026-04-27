@@ -582,14 +582,14 @@ function _refreshGrafLabel() {
   var hasta  = (document.getElementById('graf-hasta')||{}).value || null;
   var catLbl = {todos:'Todos', decants:'Decants', botella:'Botella completa'}[_REP.grafCat] || 'Todos';
   var lbl = document.getElementById('lbl-graf-periodo');
-  if(lbl) lbl.textContent = 'Gráfico [' + catLbl + ']: ' + _fmtLbl(desde, hasta);
+  if(lbl) lbl.textContent = '📈 Gráfico [' + catLbl + ']: ' + _fmtLbl(desde, hasta);
 }
 
 function _refreshIndLabel() {
   var desde = (document.getElementById('rep-desde')||{}).value || null;
   var hasta  = (document.getElementById('rep-hasta')||{}).value || null;
   var lbl = document.getElementById('lbl-ind-periodo');
-  if(lbl) lbl.textContent = 'Indicadores: ' + _fmtLbl(desde, hasta);
+  if(lbl) lbl.textContent = '📅 Indicadores: ' + _fmtLbl(desde, hasta);
 }
 
 function loadReportes(){
@@ -622,22 +622,27 @@ function loadReportes(){
     var cont=document.getElementById('top-perfumes'); if(!cont) return;
     if(!top||top.length===0){ cont.innerHTML='<p style="color:var(--t3);font-size:var(--fs-sm)">Sin ventas aun</p>'; return; }
     cont.innerHTML=top.map(function(p,i){
-      return '<div class="lr" style="'+(i%2===0?'background:var(--bg-in);border-radius:6px;padding:6px 8px;':'')+'">' +
-        '<div class="lr-l"><span style="color:var(--p);font-weight:700;min-width:22px;font-family:monospace">'+(i+1)+'.</span>'+
-        '<div><div class="rname">'+escHtml(p.nombre||'—')+'</div><div class="rsub">'+escHtml(p.marca||'')+'</div></div></div>'+
-        '<div class="lr-r"><div class="rv vg" style="font-size:var(--fs-sm)">'+(p.total_vendido||0)+' vendidos</div></div></div>';
+      var bg = i%2===0 ? 'background:var(--bg-in);border-radius:8px;' : '';
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 10px;'+bg+'">' +
+        '<div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1">' +
+        '<span style="color:var(--p);font-weight:800;font-size:var(--fs-lg);min-width:28px;text-align:right;font-family:Georgia,serif">'+(i+1)+'</span>'+
+        '<div style="min-width:0"><div style="font-size:var(--fs);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escHtml(p.nombre||'—')+'</div>'+
+        '<div style="font-size:var(--fs-sm);color:var(--t3)">'+escHtml(p.marca||'')+'</div></div></div>'+
+        '<div style="font-size:var(--fs);font-weight:700;color:var(--grn);flex-shrink:0;margin-left:10px">'+(p.total_vendido||0)+' vendidos</div></div>';
     }).join('');
   });
   DB.getTopClientes(5,desde,hasta,tipo,function(top){
     var cont=document.getElementById('top-clientes'); if(!cont) return;
     if(!top||top.length===0){ cont.innerHTML='<p style="color:var(--t3);font-size:var(--fs-sm)">Sin clientes registrados aun</p>'; return; }
     cont.innerHTML=top.map(function(c,i){
-      var tel = c.telefono ? ' · ' + c.telefono : '';
-      return '<div class="lr" style="'+(i%2===0?'background:var(--bg-in);border-radius:6px;padding:6px 8px;':'')+'">' +
-        '<div class="lr-l"><span style="color:var(--p);font-weight:700;min-width:22px;font-family:monospace">'+(i+1)+'.</span>'+
-        '<div><div class="rname">'+escHtml(c.nombre||'—')+escHtml(tel)+'</div>'+
-        '<div class="rsub">'+(c.compras||0)+' compras</div></div></div>'+
-        '<div class="lr-r"><div class="rv va">'+fmt(c.total_comprado||0)+'</div></div></div>';
+      var bg = i%2===0 ? 'background:var(--bg-in);border-radius:8px;' : '';
+      var tel = c.telefono || '';
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 10px;'+bg+'">' +
+        '<div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1">' +
+        '<span style="color:var(--p);font-weight:800;font-size:var(--fs-lg);min-width:28px;text-align:right;font-family:Georgia,serif">'+(i+1)+'</span>'+
+        '<div style="min-width:0"><div style="font-size:var(--fs);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escHtml(c.nombre||'—')+'</div>'+
+        '<div style="font-size:var(--fs-sm);color:var(--t3)">'+escHtml(tel)+'  ·  '+(c.compras||0)+' compras</div></div></div>'+
+        '<div style="font-size:var(--fs);font-weight:700;color:var(--gold);flex-shrink:0;margin-left:10px;font-family:Georgia,serif">'+fmt(c.total_comprado||0)+'</div></div>';
     }).join('');
   });
   renderGrafico();
@@ -717,8 +722,8 @@ function renderGrafico() {
     var gap    = (areaW - groupW*n) / (n+1);
 
     /* Fondo */
-    ctx.fillStyle='#13131E'; ctx.fillRect(0,0,W,H);
-    ctx.fillStyle='#0E0E1A'; ctx.fillRect(PAD_L,PAD_T,areaW,areaH);
+    ctx.fillStyle='#0E0E1A'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#070710'; ctx.fillRect(PAD_L,PAD_T,areaW,areaH);
 
     /* Grid */
     var LINEAS=5;
@@ -746,7 +751,7 @@ function renderGrafico() {
       /* Barra con esquinas redondeadas arriba */
       /* Gradiente vertical */
       var grad=ctx.createLinearGradient(bx,byTop,bx,byTop+altura);
-      grad.addColorStop(0,colorTop); grad.addColorStop(1,colorMid);
+      grad.addColorStop(0,colorTop); grad.addColorStop(0.4,colorMid); grad.addColorStop(1,colorMid);
       ctx.fillStyle=grad;
       if(altura>6){
         ctx.beginPath();
@@ -761,19 +766,19 @@ function renderGrafico() {
       }
       /* Tope brillante */
       if(altura>3){ ctx.fillStyle=colorTop; ctx.fillRect(bx,byTop,barW,3); }
-      /* Valor */
-      if(val>0 && altura>12){
+      /* Valor — negro, dentro de la barra, arriba */
+      if(val>0 && altura>22){
         var lv = val>=1000000?'$'+(val/1000000).toFixed(1)+'M':val>=1000?'$'+Math.round(val/1000)+'k':'$'+Math.round(val);
-        ctx.fillStyle=colorVal; ctx.font='bold 11px -apple-system,sans-serif'; ctx.textAlign='center';
-        ctx.fillText(lv, bx+barW/2, Math.max(byTop-4, PAD_T+8));
+        ctx.fillStyle='#000000'; ctx.font='bold 11px -apple-system,sans-serif'; ctx.textAlign='center';
+        ctx.fillText(lv, bx+barW/2, byTop+16);
       }
     }
 
     for(var i2=0;i2<periodos.length;i2++){
       if(serie==='ambos'||serie==='ventas')
-        drawBar(i2, 0, valoresV[i2], '#5BA4CF','#7ECAE0','#F0C060');
+        drawBar(i2, 0, valoresV[i2], '#2E8B57','#4CAF82','#ffffff');
       if(serie==='ambos'||serie==='costos')
-        drawBar(i2, serie==='ambos'?barW+2:0, valoresC[i2], '#C8923A','#F0C060','#FF9944');
+        drawBar(i2, serie==='ambos'?barW+2:0, valoresC[i2], '#C0392B','#E85858','#ffffff');
 
       /* Label eje X */
       var gx2 = PAD_L + gap + i2*(groupW+gap);
