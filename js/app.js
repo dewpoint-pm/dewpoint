@@ -479,13 +479,31 @@ function renderHistorial(ventas){
   cont.innerHTML=filtradas.slice(0,50).map(function(v){
     var c=col[v.estado_pago]||['rgba(91,164,207,.12)','var(--p)','cp'];
     var fecha=v.fecha?v.fecha.substring(0,10):'—';
-    return '<div class="lr" onclick="verDetalleVenta('+v.id+')" style="cursor:pointer">'+
-      '<div class="lr-l"><div class="ri" style="background:'+c[0]+';color:'+c[1]+';font-size:var(--fs-sm)">#'+v.id+'</div>'+
+    var esPendiente = v.estado_pago==='Pendiente'||v.estado_pago==='Parcial';
+    var btnPagar = esPendiente
+      ? '<button onclick="event.stopPropagation();accionMarcarPagado('+v.id+')" style="margin-top:4px;border:none;background:var(--grn);color:#fff;font-size:var(--fs-sm);font-weight:700;padding:4px 10px;border-radius:8px;cursor:pointer;display:block">✓ Marcar pagado</button>'
+      : '';
+    return '<div class="lr" onclick="verDetalleVenta('+v.id+')" style="cursor:pointer;align-items:flex-start;padding:12px 0">'+
+      '<div class="lr-l"><div class="ri" style="background:'+c[0]+';color:'+c[1]+';font-size:var(--fs-sm);margin-top:2px">#'+v.id+'</div>'+
       '<div><div class="rname">'+escHtml(v.cliente_nombre||'Sin cliente')+'</div>'+
-      '<div class="rsub">'+fecha+' · '+escHtml(v.metodo_pago||'—')+'</div></div></div>'+
-      '<div class="lr-r"><div class="rv vg">'+fmt(v.total||0)+'</div>'+
+      '<div class="rsub">'+fecha+' · '+escHtml(v.metodo_pago||'—')+'</div>'+
+      btnPagar+'</div></div>'+
+      '<div class="lr-r" style="margin-top:2px"><div class="rv vg">'+fmt(v.total||0)+'</div>'+
       '<span class="chip '+c[2]+'">'+v.estado_pago+'</span></div></div>';
   }).join('');
+}
+
+function accionMarcarPagado(ventaId){
+  if(!confirm('¿Marcar venta #'+ventaId+' como Pagado?')) return;
+  DB.marcarPagado(ventaId, function(ok){
+    if(ok){
+      showToast('Venta #'+ventaId+' marcada como Pagado');
+      delete _lastLoad['historial'];
+      loadHistorial();
+    } else {
+      showToast('Error al actualizar la venta');
+    }
+  });
 }
 
 function renderHistorialCache(){ if(APP.ventas.length>0) renderHistorial(APP.ventas); }
@@ -993,17 +1011,27 @@ function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&l
 var _toastT=null;
 function showToast(msg){
   var t=document.getElementById("toast"); if(!t) return;
-  t.textContent=msg;
+  /* Cancelar timer anterior */
+  if(_toastT){ window.clearTimeout(_toastT); _toastT=null; }
+  /* Forzar ocultamiento primero */
   t.classList.remove("show");
-  void t.offsetWidth; /* forzar reflow para reiniciar animacion */
+  t.textContent=msg;
+  /* Reflow para reiniciar transición */
+  void t.offsetHeight;
   t.classList.add("show");
-  if(_toastT) clearTimeout(_toastT);
-  _toastT=setTimeout(function(){ t.classList.remove("show"); },2800);
+  /* Ocultar después de 3 segundos */
+  _toastT = window.setTimeout(function(){
+    t.classList.remove("show");
+    _toastT=null;
+  }, 3000);
 }
 /* Click en toast para cerrarlo manualmente */
 document.addEventListener("DOMContentLoaded",function(){
   var t=document.getElementById("toast");
-  if(t) t.addEventListener("click",function(){ t.classList.remove("show"); clearTimeout(_toastT); });
+  if(t) t.addEventListener("click",function(){
+    t.classList.remove("show");
+    if(_toastT){ window.clearTimeout(_toastT); _toastT=null; }
+  });
 });
 
 function updateOnline(){ var b=document.getElementById('offline-banner'); if(!b)return; if(!navigator.onLine)b.classList.add('show'); else b.classList.remove('show'); }
