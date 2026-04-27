@@ -602,8 +602,15 @@ def top_perfumes():
     n     = int(request.args.get("n", 5))
     desde = request.args.get("desde")
     hasta = request.args.get("hasta")
+    tipo  = request.args.get("tipo")
     try:
-        top = db.get_top_perfumes(n=n, desde=desde or None, hasta=hasta or None)
+        top = db.get_top_perfumes(n=n, desde=desde or None, hasta=hasta or None, tipo=tipo or None)
+        # get_top_perfumes devuelve: nombre, marca, total_vendido
+        # Calcular ingresos aproximados usando get_ventas_por_perfume si existe,
+        # o usar total_vendido como cantidad y agregar campo ingresos
+        for p in top:
+            p.setdefault("ingresos", 0)
+            p.setdefault("cantidad_vendida", p.get("total_vendido", 0))
         return ok({"perfumes": top})
     except Exception as e:
         return err(str(e), 503)
@@ -617,9 +624,36 @@ def top_clientes():
     limit = int(request.args.get("limit", 8))
     desde = request.args.get("desde")
     hasta = request.args.get("hasta")
+    tipo  = request.args.get("tipo")
     try:
-        top = db.get_top_clientes(limit=limit, desde=desde or None, hasta=hasta or None)
+        top = db.get_top_clientes(limit=limit, desde=desde or None, hasta=hasta or None, tipo=tipo or None)
+        # Normalizar campos: total_comprado -> total_compras, compras -> n_ventas
+        for c in top:
+            c.setdefault("total_compras", c.get("total_comprado", 0))
+            c.setdefault("n_ventas", c.get("compras", 0))
         return ok({"clientes": top})
+    except Exception as e:
+        return err(str(e), 503)
+
+
+
+@app.route("/api/reportes/costos-periodo")
+def costos_periodo():
+    sesion, error = _requerir_sesion()
+    if error:
+        return error
+    agrupacion = request.args.get("agrupacion", "mes")
+    desde      = request.args.get("desde")
+    hasta      = request.args.get("hasta")
+    tipo       = request.args.get("tipo")
+    try:
+        periodos = db.get_costos_por_periodo(
+            agrupacion  = agrupacion,
+            fecha_desde = desde or None,
+            fecha_hasta = hasta or None,
+            tipo        = tipo  or None,
+        )
+        return ok({"periodos": periodos})
     except Exception as e:
         return err(str(e), 503)
 
