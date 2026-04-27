@@ -799,15 +799,21 @@ function renderGrafico() {
     ctx.beginPath(); ctx.moveTo(PAD_L,PAD_T); ctx.lineTo(PAD_L,PAD_T+areaH); ctx.lineTo(PAD_L+areaW,PAD_T+areaH); ctx.stroke();
     ctx.lineWidth=1;
 
-    /* Leyenda (solo en ambos) */
-    if(serie==='ambos'){
-      ctx.fillStyle='#1A1A2C'; ctx.strokeStyle='#4A4A6A';
-      ctx.beginPath(); ctx.roundRect(PAD_L+8,PAD_T+6,90,38,4); ctx.fill(); ctx.stroke();
-      ctx.fillStyle='#5BA4CF'; ctx.fillRect(PAD_L+14,PAD_T+13,12,10);
-      ctx.fillStyle='#C8C8D0'; ctx.font='11px -apple-system,sans-serif'; ctx.textAlign='left';
-      ctx.fillText('Ventas',PAD_L+30,PAD_T+22);
-      ctx.fillStyle='#C8923A'; ctx.fillRect(PAD_L+14,PAD_T+27,12,10);
-      ctx.fillStyle='#C8C8D0'; ctx.font='11px -apple-system,sans-serif'; ctx.fillText('Costos',PAD_L+30,PAD_T+40);
+    /* Leyenda debajo del canvas — actualizar DOM */
+    var legEl = document.getElementById('graf-legend');
+    if(legEl){
+      if(serie==='ambos'){
+        legEl.style.display='flex';
+        legEl.innerHTML =
+          '<span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:14px;background:#2E8B57;border-radius:3px;display:inline-block"></span>Ventas</span>'+
+          '<span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:14px;background:#C0392B;border-radius:3px;display:inline-block"></span>Costos</span>';
+      } else if(serie==='ventas'){
+        legEl.style.display='flex';
+        legEl.innerHTML='<span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:14px;background:#2E8B57;border-radius:3px;display:inline-block"></span>Ventas</span>';
+      } else {
+        legEl.style.display='flex';
+        legEl.innerHTML='<span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:14px;background:#C0392B;border-radius:3px;display:inline-block"></span>Costos</span>';
+      }
     }
   }
 
