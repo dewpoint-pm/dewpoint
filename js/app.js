@@ -1041,7 +1041,7 @@ updateOnline();
 
 window.addEventListener('beforeinstallprompt', function(e){
   e.preventDefault(); APP.deferredPrompt=e;
-  var btn=document.getElementById('install-btn'); if(btn) btn.style.display='block';
+  /* Instalar solo desde Configuración, no flotante */
   var card=document.getElementById('card-instalar'); if(card) card.style.display='block';
 });
 function installPWA(){
