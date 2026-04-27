@@ -582,14 +582,14 @@ function _refreshGrafLabel() {
   var hasta  = (document.getElementById('graf-hasta')||{}).value || null;
   var catLbl = {todos:'Todos', decants:'Decants', botella:'Botella completa'}[_REP.grafCat] || 'Todos';
   var lbl = document.getElementById('lbl-graf-periodo');
-  if(lbl) lbl.textContent = '📈 Gráfico [' + catLbl + ']: ' + _fmtLbl(desde, hasta);
+  if(lbl) lbl.textContent = 'Gráfico [' + catLbl + ']: ' + _fmtLbl(desde, hasta);
 }
 
 function _refreshIndLabel() {
   var desde = (document.getElementById('rep-desde')||{}).value || null;
   var hasta  = (document.getElementById('rep-hasta')||{}).value || null;
   var lbl = document.getElementById('lbl-ind-periodo');
-  if(lbl) lbl.textContent = '📅 Indicadores: ' + _fmtLbl(desde, hasta);
+  if(lbl) lbl.textContent = 'Indicadores: ' + _fmtLbl(desde, hasta);
 }
 
 function loadReportes(){
