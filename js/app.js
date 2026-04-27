@@ -658,7 +658,7 @@ function renderGrafico() {
 
   /* Mostrar "cargando" */
   var wrap = document.getElementById('graf-canvas-wrap');
-  if(wrap){ canvas.width=wrap.clientWidth||320; canvas.height=220; }
+  if(wrap){ canvas.width=wrap.clientWidth||320; canvas.height=280; }
   ctx.fillStyle='#13131E'; ctx.fillRect(0,0,canvas.width,canvas.height);
   ctx.fillStyle='#8888AA'; ctx.font='13px sans-serif'; ctx.textAlign='center';
   ctx.fillText('Cargando gráfico...', canvas.width/2, canvas.height/2);
@@ -693,14 +693,14 @@ function renderGrafico() {
 
     /* Dimensiones */
     var W = wrap ? wrap.clientWidth||320 : 320;
-    var H = 220;
+    var H = 280;
     canvas.width = W; canvas.height = H;
-    var PAD_L=64, PAD_R=16, PAD_T=30, PAD_B=50;
+    var PAD_L=72, PAD_R=20, PAD_T=36, PAD_B=56;
     var areaW = W-PAD_L-PAD_R;
     var areaH = H-PAD_T-PAD_B;
     var n = periodos.length;
     var nSeries = serie==='ambos' ? 2 : 1;
-    var groupW = Math.min(80, Math.max(16, Math.floor(areaW/Math.max(n,1))-6));
+    var groupW = Math.min(100, Math.max(20, Math.floor(areaW/Math.max(n,1))-4));
     var barW   = Math.floor(groupW/nSeries)-2;
     var gap    = (areaW - groupW*n) / (n+1);
 
@@ -709,7 +709,7 @@ function renderGrafico() {
     ctx.fillStyle='#0E0E1A'; ctx.fillRect(PAD_L,PAD_T,areaW,areaH);
 
     /* Grid */
-    var LINEAS=4;
+    var LINEAS=5;
     for(var i=0;i<=LINEAS;i++){
       var y = PAD_T + areaH - (i/LINEAS)*areaH;
       ctx.strokeStyle = i===0?'#3A3A5A':'#2A2A42';
@@ -718,7 +718,7 @@ function renderGrafico() {
       ctx.setLineDash([]);
       var v = maxVal*i/LINEAS;
       var lbl = v>=1000000?'$'+(v/1000000).toFixed(1)+'M':v>=1000?'$'+Math.round(v/1000)+'k':'$'+Math.round(v);
-      ctx.fillStyle='#8888AA'; ctx.font='9px sans-serif'; ctx.textAlign='right';
+      ctx.fillStyle='#8888AA'; ctx.font='10px sans-serif'; ctx.textAlign='right';
       ctx.fillText(lbl, PAD_L-6, y+3);
     }
 
@@ -739,7 +739,7 @@ function renderGrafico() {
       /* Valor */
       if(val>0 && altura>12){
         var lv = val>=1000000?'$'+(val/1000000).toFixed(1)+'M':val>=1000?'$'+Math.round(val/1000)+'k':'$'+Math.round(val);
-        ctx.fillStyle=colorVal; ctx.font='bold 8px sans-serif'; ctx.textAlign='center';
+        ctx.fillStyle=colorVal; ctx.font='bold 10px sans-serif'; ctx.textAlign='center';
         ctx.fillText(lv, bx+barW/2, Math.max(byTop-4, PAD_T+8));
       }
     }
@@ -760,7 +760,7 @@ function renderGrafico() {
         var meses={'01':'Ene','02':'Feb','03':'Mar','04':'Abr','05':'May','06':'Jun','07':'Jul','08':'Ago','09':'Sep','10':'Oct','11':'Nov','12':'Dic'};
         etq=meses[p.substring(5)]||p.substring(5);
       }
-      ctx.fillStyle='#9999BB'; ctx.font='9px sans-serif'; ctx.textAlign='center';
+      ctx.fillStyle='#9999BB'; ctx.font='10px sans-serif'; ctx.textAlign='center';
       ctx.fillText(etq, cx, H-PAD_B+14);
     }
 
@@ -774,10 +774,10 @@ function renderGrafico() {
       ctx.fillStyle='#1A1A2C'; ctx.strokeStyle='#4A4A6A';
       ctx.beginPath(); ctx.roundRect(PAD_L+8,PAD_T+6,90,38,4); ctx.fill(); ctx.stroke();
       ctx.fillStyle='#5BA4CF'; ctx.fillRect(PAD_L+14,PAD_T+13,12,10);
-      ctx.fillStyle='#C8C8D0'; ctx.font='9px sans-serif'; ctx.textAlign='left';
+      ctx.fillStyle='#C8C8D0'; ctx.font='10px sans-serif'; ctx.textAlign='left';
       ctx.fillText('Ventas',PAD_L+30,PAD_T+22);
       ctx.fillStyle='#C8923A'; ctx.fillRect(PAD_L+14,PAD_T+27,12,10);
-      ctx.fillStyle='#C8C8D0'; ctx.fillText('Costos',PAD_L+30,PAD_T+36);
+      ctx.fillStyle='#C8C8D0'; ctx.font='10px sans-serif'; ctx.fillText('Costos',PAD_L+30,PAD_T+38);
     }
   }
 
