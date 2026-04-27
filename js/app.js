@@ -520,7 +520,20 @@ function verDetalleVenta(id){
 }
 
 /* ══ REPORTES ════════════════════════════════════════════════ */
-function setPreset(preset,el){
+/* ══ REPORTES — Estado ══════════════════════════════════════ */
+var _REP = {
+  agrup: 'mes',
+  serie: 'ambos',
+  indCat: 'todos',
+  grafCat: 'todos',
+};
+
+function _fmtLbl(desde, hasta) {
+  if (!desde && !hasta) return 'Todo el tiempo';
+  return (desde || 'inicio') + ' → ' + (hasta || 'hoy');
+}
+
+function setPreset(preset, el) {
   document.querySelectorAll('#preset-chips .chip').forEach(function(c){c.className='chip cn';});
   if(el) el.className='chip cp';
   var hoy=new Date();
@@ -528,30 +541,63 @@ function setPreset(preset,el){
   var fmt2=function(dt){ return dt.toISOString().substring(0,10); };
   if(preset==='todo'){ d.value=''; h.value=''; }
   else if(preset==='hoy'){ d.value=fmt2(hoy); h.value=fmt2(hoy); }
-  else if(preset==='semana'){ var lun=new Date(hoy); lun.setDate(hoy.getDate()-hoy.getDay()+1); d.value=fmt2(lun); h.value=fmt2(hoy); }
   else if(preset==='mes'){ d.value=fmt2(new Date(hoy.getFullYear(),hoy.getMonth(),1)); h.value=fmt2(hoy); }
   else if(preset==='anio'){ d.value=fmt2(new Date(hoy.getFullYear(),0,1)); h.value=fmt2(hoy); }
   loadReportes();
 }
 
-function setCatRep(cat,el){
-  APP._repCat=cat;
-  document.querySelectorAll('#page-reportes .chips-row:nth-child(3) .chip').forEach(function(c){c.className='chip cn';});
+function setCatRep(cat, el) {
+  _REP.indCat = cat;
+  document.querySelectorAll('#cat-ind-chips .chip').forEach(function(c){c.className='chip cn';});
   if(el) el.className='chip cp';
   loadReportes();
 }
 
-function setAgrup(agrup,el){
-  APP._repAgrup=agrup;
-  document.querySelectorAll("#agrup-chips .chip").forEach(function(c){c.className='chip cn';});
+function setAgrup(agrup, el) {
+  _REP.agrup = agrup;
+  document.querySelectorAll('#agrup-chips .chip').forEach(function(c){c.className='chip cn';});
   if(el) el.className='chip cp';
-  loadReportes();
+  renderGrafico();
+}
+
+function setSerie(serie, el) {
+  _REP.serie = serie;
+  document.querySelectorAll('#serie-chips .chip').forEach(function(c){c.className='chip cn';});
+  if(el) el.className='chip cp';
+  var leg = document.getElementById('graf-legend');
+  if(leg) leg.style.display = serie==='ambos' ? 'flex' : 'none';
+  renderGrafico();
+}
+
+function setGrafCat(cat, el) {
+  _REP.grafCat = cat;
+  document.querySelectorAll('#cat-graf-chips .chip').forEach(function(c){c.className='chip cn';});
+  if(el) el.className='chip cp';
+  _refreshGrafLabel();
+  renderGrafico();
+}
+
+function _refreshGrafLabel() {
+  var desde = (document.getElementById('graf-desde')||{}).value || null;
+  var hasta  = (document.getElementById('graf-hasta')||{}).value || null;
+  var catLbl = {todos:'Todos', decants:'Decants', botella:'Botella completa'}[_REP.grafCat] || 'Todos';
+  var lbl = document.getElementById('lbl-graf-periodo');
+  if(lbl) lbl.textContent = '📈 Gráfico [' + catLbl + ']: ' + _fmtLbl(desde, hasta);
+}
+
+function _refreshIndLabel() {
+  var desde = (document.getElementById('rep-desde')||{}).value || null;
+  var hasta  = (document.getElementById('rep-hasta')||{}).value || null;
+  var lbl = document.getElementById('lbl-ind-periodo');
+  if(lbl) lbl.textContent = '📅 Indicadores: ' + _fmtLbl(desde, hasta);
 }
 
 function loadReportes(){
-  var desde=document.getElementById('rep-desde').value||null;
-  var hasta=document.getElementById('rep-hasta').value||null;
-  var tipo=APP._repCat!=='todos'?APP._repCat:null;
+  var desde = (document.getElementById('rep-desde')||{}).value || null;
+  var hasta  = (document.getElementById('rep-hasta')||{}).value || null;
+  var tipo   = _REP.indCat !== 'todos' ? _REP.indCat : null;
+  _refreshIndLabel();
+
   DB.getStats(function(data){
     if(!data) return;
     var s=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
@@ -574,39 +620,175 @@ function loadReportes(){
   });
   DB.getTopPerfumes(5,desde,hasta,tipo,function(top){
     var cont=document.getElementById('top-perfumes'); if(!cont) return;
-    if(!top||top.length===0){ cont.innerHTML='<p style="color:var(--t3);font-size:var(--fs-sm)">Sin datos</p>'; return; }
+    if(!top||top.length===0){ cont.innerHTML='<p style="color:var(--t3);font-size:var(--fs-sm)">Sin ventas aun</p>'; return; }
     cont.innerHTML=top.map(function(p,i){
-      return '<div class="lr"><div class="lr-l"><span style="color:var(--p);font-weight:700;min-width:20px">'+(i+1)+'</span>'+
-        '<div><div class="rname">'+escHtml(p.nombre||p.perfume_nombre||'—')+'</div><div class="rsub">'+escHtml(p.marca||'')+'</div></div></div>'+
-        '<div class="lr-r"><div class="rv vg">'+fmt(p.total_vendido||0)+'</div><div class="rv2">'+(p.cantidad_vendida||p.total_vendido||0)+' uds</div></div></div>';
+      return '<div class="lr" style="'+(i%2===0?'background:var(--bg-in);border-radius:6px;padding:6px 8px;':'')+'">' +
+        '<div class="lr-l"><span style="color:var(--p);font-weight:700;min-width:22px;font-family:monospace">'+(i+1)+'.</span>'+
+        '<div><div class="rname">'+escHtml(p.nombre||'—')+'</div><div class="rsub">'+escHtml(p.marca||'')+'</div></div></div>'+
+        '<div class="lr-r"><div class="rv vg" style="font-size:var(--fs-sm)">'+(p.total_vendido||0)+' vendidos</div></div></div>';
     }).join('');
   });
   DB.getTopClientes(5,desde,hasta,tipo,function(top){
     var cont=document.getElementById('top-clientes'); if(!cont) return;
-    if(!top||top.length===0){ cont.innerHTML='<p style="color:var(--t3);font-size:var(--fs-sm)">Sin datos</p>'; return; }
+    if(!top||top.length===0){ cont.innerHTML='<p style="color:var(--t3);font-size:var(--fs-sm)">Sin clientes registrados aun</p>'; return; }
     cont.innerHTML=top.map(function(c,i){
-      var ini=(c.nombre||'?').split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
-      return '<div class="lr"><div class="lr-l"><span style="color:var(--p);font-weight:700;min-width:20px">'+(i+1)+'</span>'+
-        '<div class="av" style="width:32px;height:32px;font-size:var(--fs-sm)">'+ini+'</div>'+
-        '<div><div class="rname">'+escHtml(c.nombre||'—')+'</div><div class="rsub">'+(c.n_ventas||c.compras||0)+' órdenes</div></div></div>'+
-        '<div class="rv vg">'+fmt(c.total_comprado||0)+'</div></div>';
+      var tel = c.telefono ? ' · ' + c.telefono : '';
+      return '<div class="lr" style="'+(i%2===0?'background:var(--bg-in);border-radius:6px;padding:6px 8px;':'')+'">' +
+        '<div class="lr-l"><span style="color:var(--p);font-weight:700;min-width:22px;font-family:monospace">'+(i+1)+'.</span>'+
+        '<div><div class="rname">'+escHtml(c.nombre||'—')+escHtml(tel)+'</div>'+
+        '<div class="rsub">'+(c.compras||0)+' compras</div></div></div>'+
+        '<div class="lr-r"><div class="rv va">'+fmt(c.total_comprado||0)+'</div></div></div>';
     }).join('');
   });
-  var _agrup=APP._repAgrup;
-  DB.getVentasPorPeriodo(_agrup,desde,hasta,tipo,function(data){
-    var gc=document.getElementById('graf-barras'), gl=document.getElementById('graf-labels');
-    if(!gc||!data||data.length===0) return;
-    var items=data.slice(-7);
-    var maxVal=Math.max.apply(null,items.map(function(d){return d.total||d.ventas||0;}));
-    gc.innerHTML=items.map(function(d,i){
-      var h=maxVal>0?Math.round((d.total||d.ventas||0)/maxVal*90):10;
-      return '<div class="bar '+(i===items.length-1?'on':'')+'" style="height:'+h+'%"></div>';
-    }).join('');
-    if(gl) gl.innerHTML=items.map(function(d){
-      var lbl=String(d.periodo||d.label||'');
-      if(lbl.length>5) lbl=lbl.substring(lbl.length-5);
-      return '<span class="clb">'+lbl+'</span>';
-    }).join('');
+  renderGrafico();
+}
+
+/* ══ GRÁFICO CANVAS — fiel al original ══════════════════════ */
+var _grafCache = { ventas: [], costos: [] };
+
+function renderGrafico() {
+  var desde = (document.getElementById('graf-desde')||{}).value || null;
+  var hasta  = (document.getElementById('graf-hasta')||{}).value || null;
+  var tipo   = _REP.grafCat !== 'todos' ? _REP.grafCat : null;
+  _refreshGrafLabel();
+
+  var canvas = document.getElementById('graf-canvas');
+  if(!canvas) return;
+  var ctx = canvas.getContext('2d');
+
+  /* Mostrar "cargando" */
+  var wrap = document.getElementById('graf-canvas-wrap');
+  if(wrap){ canvas.width=wrap.clientWidth||320; canvas.height=220; }
+  ctx.fillStyle='#13131E'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle='#8888AA'; ctx.font='13px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('Cargando gráfico...', canvas.width/2, canvas.height/2);
+
+  function _draw(datosV, datosC) {
+    var serie = _REP.serie;
+    var agrup = _REP.agrup;
+
+    /* Unir períodos */
+    var allP = {};
+    datosV.forEach(function(d){ allP[d.periodo]=true; });
+    datosC.forEach(function(d){ allP[d.periodo]=true; });
+    var periodos = Object.keys(allP).sort();
+    if(!periodos.length){ 
+      ctx.fillStyle='#13131E'; ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle='#8888AA'; ctx.font='13px sans-serif'; ctx.textAlign='center';
+      ctx.fillText('Sin datos para el período seleccionado', canvas.width/2, canvas.height/2);
+      return;
+    }
+
+    var vMap={}, cMap={};
+    datosV.forEach(function(d){ vMap[d.periodo]=parseFloat(d.total||0); });
+    datosC.forEach(function(d){ cMap[d.periodo]=parseFloat(d.costo_total||d.total||0); });
+
+    var valoresV = periodos.map(function(p){ return vMap[p]||0; });
+    var valoresC = periodos.map(function(p){ return cMap[p]||0; });
+
+    var allVals = [];
+    if(serie!=='costos') allVals = allVals.concat(valoresV);
+    if(serie!=='ventas') allVals = allVals.concat(valoresC);
+    var maxVal = Math.max.apply(null, allVals.concat([1]));
+
+    /* Dimensiones */
+    var W = wrap ? wrap.clientWidth||320 : 320;
+    var H = 220;
+    canvas.width = W; canvas.height = H;
+    var PAD_L=64, PAD_R=16, PAD_T=30, PAD_B=50;
+    var areaW = W-PAD_L-PAD_R;
+    var areaH = H-PAD_T-PAD_B;
+    var n = periodos.length;
+    var nSeries = serie==='ambos' ? 2 : 1;
+    var groupW = Math.min(80, Math.max(16, Math.floor(areaW/Math.max(n,1))-6));
+    var barW   = Math.floor(groupW/nSeries)-2;
+    var gap    = (areaW - groupW*n) / (n+1);
+
+    /* Fondo */
+    ctx.fillStyle='#13131E'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#0E0E1A'; ctx.fillRect(PAD_L,PAD_T,areaW,areaH);
+
+    /* Grid */
+    var LINEAS=4;
+    for(var i=0;i<=LINEAS;i++){
+      var y = PAD_T + areaH - (i/LINEAS)*areaH;
+      ctx.strokeStyle = i===0?'#3A3A5A':'#2A2A42';
+      ctx.setLineDash(i===0?[]:[6,5]);
+      ctx.beginPath(); ctx.moveTo(PAD_L,y); ctx.lineTo(PAD_L+areaW,y); ctx.stroke();
+      ctx.setLineDash([]);
+      var v = maxVal*i/LINEAS;
+      var lbl = v>=1000000?'$'+(v/1000000).toFixed(1)+'M':v>=1000?'$'+Math.round(v/1000)+'k':'$'+Math.round(v);
+      ctx.fillStyle='#8888AA'; ctx.font='9px sans-serif'; ctx.textAlign='right';
+      ctx.fillText(lbl, PAD_L-6, y+3);
+    }
+
+    /* Barras */
+    function drawBar(ix, offset, val, colorMid, colorTop, colorVal) {
+      var gx = PAD_L + gap + ix*(groupW+gap);
+      var bx = gx + offset;
+      var altura = maxVal>0 ? Math.round((val/maxVal)*areaH) : 0;
+      var byTop = PAD_T + areaH - altura;
+      /* Sombra */
+      ctx.fillStyle='rgba(0,0,0,0.3)';
+      ctx.fillRect(bx+2, byTop+2, barW, altura);
+      /* Barra */
+      ctx.fillStyle=colorMid;
+      ctx.fillRect(bx, byTop, barW, altura);
+      /* Tope brillante */
+      if(altura>3){ ctx.fillStyle=colorTop; ctx.fillRect(bx,byTop,barW,2); }
+      /* Valor */
+      if(val>0 && altura>12){
+        var lv = val>=1000000?'$'+(val/1000000).toFixed(1)+'M':val>=1000?'$'+Math.round(val/1000)+'k':'$'+Math.round(val);
+        ctx.fillStyle=colorVal; ctx.font='bold 8px sans-serif'; ctx.textAlign='center';
+        ctx.fillText(lv, bx+barW/2, Math.max(byTop-4, PAD_T+8));
+      }
+    }
+
+    for(var i2=0;i2<periodos.length;i2++){
+      if(serie==='ambos'||serie==='ventas')
+        drawBar(i2, 0, valoresV[i2], '#5BA4CF','#7ECAE0','#F0C060');
+      if(serie==='ambos'||serie==='costos')
+        drawBar(i2, serie==='ambos'?barW+2:0, valoresC[i2], '#C8923A','#F0C060','#FF9944');
+
+      /* Label eje X */
+      var gx2 = PAD_L + gap + i2*(groupW+gap);
+      var cx  = gx2 + groupW/2;
+      var p   = periodos[i2];
+      var etq = p;
+      if(agrup==='dia'&&p.length===10) etq=p.substring(8)+'-'+p.substring(5,7);
+      else if(agrup==='mes'&&p.length===7){
+        var meses={'01':'Ene','02':'Feb','03':'Mar','04':'Abr','05':'May','06':'Jun','07':'Jul','08':'Ago','09':'Sep','10':'Oct','11':'Nov','12':'Dic'};
+        etq=meses[p.substring(5)]||p.substring(5);
+      }
+      ctx.fillStyle='#9999BB'; ctx.font='9px sans-serif'; ctx.textAlign='center';
+      ctx.fillText(etq, cx, H-PAD_B+14);
+    }
+
+    /* Ejes */
+    ctx.strokeStyle='#4A4A6A'; ctx.lineWidth=2; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(PAD_L,PAD_T); ctx.lineTo(PAD_L,PAD_T+areaH); ctx.lineTo(PAD_L+areaW,PAD_T+areaH); ctx.stroke();
+    ctx.lineWidth=1;
+
+    /* Leyenda (solo en ambos) */
+    if(serie==='ambos'){
+      ctx.fillStyle='#1A1A2C'; ctx.strokeStyle='#4A4A6A';
+      ctx.beginPath(); ctx.roundRect(PAD_L+8,PAD_T+6,90,38,4); ctx.fill(); ctx.stroke();
+      ctx.fillStyle='#5BA4CF'; ctx.fillRect(PAD_L+14,PAD_T+13,12,10);
+      ctx.fillStyle='#C8C8D0'; ctx.font='9px sans-serif'; ctx.textAlign='left';
+      ctx.fillText('Ventas',PAD_L+30,PAD_T+22);
+      ctx.fillStyle='#C8923A'; ctx.fillRect(PAD_L+14,PAD_T+27,12,10);
+      ctx.fillStyle='#C8C8D0'; ctx.fillText('Costos',PAD_L+30,PAD_T+36);
+    }
+  }
+
+  /* Cargar datos ventas + costos */
+  DB.getVentasPorPeriodo(_REP.agrup, desde, hasta, tipo, function(datosV){
+    /* Intentar cargar costos por período */
+    fetch('/api/reportes/costos-periodo?agrupacion='+_REP.agrup+(desde?'&desde='+desde:'')+(hasta?'&hasta='+hasta:'')+(tipo?'&tipo='+tipo:''), {
+      headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('dp_tk')||'') }
+    }).then(function(r){ return r.json(); })
+      .then(function(d){ _draw(datosV||[], d.periodos||[]); })
+      .catch(function(){ _draw(datosV||[], []); });
   });
 }
 
