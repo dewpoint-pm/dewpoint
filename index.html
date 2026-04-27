@@ -412,40 +412,42 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 <section class="page" id="page-reportes">
   <div class="ph"><h2>Reportes</h2><p>Resumen del negocio</p></div>
 
-  <!-- Filtro período -->
-  <div class="card" style="margin-bottom:var(--gap)">
-    <div class="ct">Período de análisis</div>
+  <!-- FILTRO INDICADORES -->
+  <div class="card">
+    <div class="ct">Filtro indicadores</div>
     <div class="chips-row" id="preset-chips">
-      <span class="chip cp" onclick="setPreset('todo',this)">Todo</span>
-      <span class="chip cn" onclick="setPreset('hoy',this)">Hoy</span>
-      <span class="chip cn" onclick="setPreset('semana',this)">Semana</span>
-      <span class="chip cn" onclick="setPreset('mes',this)">Este mes</span>
-      <span class="chip cn" onclick="setPreset('anio',this)">Este año</span>
+      <span class="chip cp"  onclick="setPreset('todo',this)">Todo</span>
+      <span class="chip cn"  onclick="setPreset('hoy',this)">Hoy</span>
+      <span class="chip cn"  onclick="setPreset('mes',this)">Este mes</span>
+      <span class="chip cn"  onclick="setPreset('anio',this)">Este año</span>
     </div>
     <div class="fr">
       <div><label class="fl">Desde</label><input class="fi" type="date" id="rep-desde" onchange="loadReportes()"/></div>
       <div><label class="fl">Hasta</label><input class="fi" type="date" id="rep-hasta" onchange="loadReportes()"/></div>
     </div>
-    <div class="chips-row">
+    <div class="chips-row" id="cat-ind-chips">
       <span class="chip cp" onclick="setCatRep('todos',this)">Todos</span>
       <span class="chip cn" onclick="setCatRep('decants',this)">Decants</span>
-      <span class="chip cn" onclick="setCatRep('botella',this)">Botellas</span>
+      <span class="chip cn" onclick="setCatRep('botella',this)">Botella completa</span>
     </div>
+    <div id="lbl-ind-periodo" style="font-size:var(--fs-sm);color:var(--p);font-weight:600">📅 Indicadores: Todo el tiempo</div>
   </div>
 
-  <!-- Stat cards -->
-  <div class="sg" id="rep-stats-1">
+  <!-- STAT CARDS — fila 1 -->
+  <div class="sg">
     <div class="sc"><div class="sc-lbl">Ventas totales</div><div class="sc-val va" id="r-ventas">—</div></div>
     <div class="sc"><div class="sc-lbl">Órdenes</div><div class="sc-val vp" id="r-ordenes">—</div></div>
     <div class="sc"><div class="sc-lbl">Ticket promedio</div><div class="sc-val vp" id="r-ticket">—</div></div>
     <div class="sc"><div class="sc-lbl">Perfumes activos</div><div class="sc-val vg" id="r-perfumes">—</div></div>
   </div>
+  <!-- fila 2 -->
   <div class="sg">
     <div class="sc"><div class="sc-lbl">Utilidad neta</div><div class="sc-val vg" id="r-utilidad">—</div></div>
-    <div class="sc"><div class="sc-lbl">Margen promedio</div><div class="sc-val vg" id="r-margen">—</div></div>
     <div class="sc"><div class="sc-lbl">Costo perfumes</div><div class="sc-val vt" id="r-costo-perf">—</div></div>
     <div class="sc"><div class="sc-lbl">Costo insumos</div><div class="sc-val vw" id="r-costo-ins">—</div></div>
+    <div class="sc"><div class="sc-lbl">Margen promedio</div><div class="sc-val vg" id="r-margen">—</div></div>
   </div>
+  <!-- fila 3 -->
   <div class="sg">
     <div class="sc"><div class="sc-lbl">Por cobrar</div><div class="sc-val va" id="r-cobrar">—</div></div>
     <div class="sc"><div class="sc-lbl">Val. inv. insumos</div><div class="sc-val va" id="r-inv-ins">—</div></div>
@@ -453,28 +455,66 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
     <div class="sc"><div class="sc-lbl">Total insumos</div><div class="sc-val vp" id="r-ins-total">—</div></div>
   </div>
 
-  <!-- Top perfumes y clientes -->
-  <div class="card">
-    <div class="ct">Top Perfumes</div>
-    <div id="top-perfumes"><div class="spinner"></div></div>
-  </div>
-  <div class="card">
-    <div class="ct">Top Clientes</div>
-    <div id="top-clientes"><div class="spinner"></div></div>
+  <!-- TOP PERFUMES + TOP CLIENTES -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--gap);margin-bottom:var(--gap)">
+    <div class="card" style="margin-bottom:0">
+      <div class="ct">Top Perfumes</div>
+      <div id="top-perfumes"><div class="spinner"></div></div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="ct">Top Clientes</div>
+      <div id="top-clientes"><div class="spinner"></div></div>
+    </div>
   </div>
 
-  <!-- Gráfico ventas/costos -->
+  <!-- GRÁFICO CON SU PROPIO FILTRO -->
   <div class="card">
     <div class="ct">Evolución temporal</div>
-    <div class="chips-row" id="agrup-chips" style="margin-bottom:8px">
-      <span class="chip cp" onclick="setAgrup('dia',this)">Día</span>
-      <span class="chip cn" onclick="setAgrup('anio',this)">Año</span>
-      <span class="chip cn" onclick="setAgrup('mes',this)">Mes</span>
+
+    <!-- Agrupación -->
+    <div class="chips-row" id="agrup-chips" style="margin-bottom:6px">
+      <span class="chip cn" onclick="setAgrup('dia',this)">Por día</span>
+      <span class="chip cp" onclick="setAgrup('mes',this)">Por mes</span>
+      <span class="chip cn" onclick="setAgrup('anio',this)">Por año</span>
     </div>
-    <div class="mc" id="graf-barras"><div class="bar on" style="height:90%"></div><div class="bar" style="height:60%"></div><div class="bar" style="height:75%"></div><div class="bar" style="height:40%"></div><div class="bar" style="height:85%"></div><div class="bar" style="height:55%"></div><div class="bar on" style="height:70%"></div></div>
-    <div class="cl" id="graf-labels"></div>
+
+    <!-- Serie -->
+    <div class="chips-row" id="serie-chips" style="margin-bottom:6px">
+      <span class="chip cp" onclick="setSerie('ambos',this)">Ambos</span>
+      <span class="chip cn" onclick="setSerie('ventas',this)">Solo ventas</span>
+      <span class="chip cn" onclick="setSerie('costos',this)">Solo costos</span>
+    </div>
+
+    <!-- Categoría gráfico -->
+    <div class="chips-row" id="cat-graf-chips" style="margin-bottom:6px">
+      <span class="chip cp" onclick="setGrafCat('todos',this)">Todos</span>
+      <span class="chip cn" onclick="setGrafCat('decants',this)">Decants</span>
+      <span class="chip cn" onclick="setGrafCat('botella',this)">Botella completa</span>
+    </div>
+
+    <!-- Filtro de fechas propio del gráfico -->
+    <div style="background:var(--bg-in);border-radius:10px;padding:10px 12px;margin-bottom:8px">
+      <div style="font-size:var(--fs-sm);color:var(--t3);font-weight:600;margin-bottom:6px">Período del gráfico</div>
+      <div class="fr" style="margin-bottom:0">
+        <div><label class="fl">Desde</label><input class="fi" type="date" id="graf-desde" onchange="renderGrafico()" style="margin-bottom:0"/></div>
+        <div><label class="fl">Hasta</label><input class="fi" type="date" id="graf-hasta" onchange="renderGrafico()" style="margin-bottom:0"/></div>
+      </div>
+    </div>
+
+    <div id="lbl-graf-periodo" style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:8px">📈 Gráfico [Todos]: Todo el tiempo</div>
+
+    <!-- Canvas del gráfico -->
+    <div id="graf-canvas-wrap" style="width:100%;overflow-x:auto">
+      <canvas id="graf-canvas" style="display:block;width:100%;min-height:200px"></canvas>
+    </div>
+    <!-- Leyenda -->
+    <div id="graf-legend" style="display:flex;gap:16px;margin-top:8px;justify-content:center;font-size:var(--fs-sm)">
+      <span><span style="display:inline-block;width:12px;height:12px;background:#5BA4CF;border-radius:2px;margin-right:4px"></span>Ventas</span>
+      <span><span style="display:inline-block;width:12px;height:12px;background:#F0C060;border-radius:2px;margin-right:4px"></span>Costos</span>
+    </div>
   </div>
 </section>
+
 
 <!-- ════ INSUMOS ════ -->
 <section class="page" id="page-insumos">
