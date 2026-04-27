@@ -466,9 +466,9 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
   <!-- Gráfico ventas/costos -->
   <div class="card">
     <div class="ct">Evolución temporal</div>
-    <div class="chips-row" style="margin-bottom:8px">
+    <div class="chips-row" id="agrup-chips" style="margin-bottom:8px">
       <span class="chip cp" onclick="setAgrup('dia',this)">Día</span>
-      <span class="chip cn" onclick="setAgrup('semana',this)">Semana</span>
+      <span class="chip cn" onclick="setAgrup('anio',this)">Año</span>
       <span class="chip cn" onclick="setAgrup('mes',this)">Mes</span>
     </div>
     <div class="mc" id="graf-barras"><div class="bar on" style="height:90%"></div><div class="bar" style="height:60%"></div><div class="bar" style="height:75%"></div><div class="bar" style="height:40%"></div><div class="bar" style="height:85%"></div><div class="bar" style="height:55%"></div><div class="bar on" style="height:70%"></div></div>
