@@ -32,7 +32,7 @@ from datetime import datetime, date
 # ════════════════════════════════════════════════════════════════════════════
 #  CONFIGURACIÓN
 # ════════════════════════════════════════════════════════════════════════════
-app = Flask(__name__, static_folder="dewpoint-pwa", static_url_path="")
+app = Flask(__name__, static_folder=".", static_url_path="")
 CORS(app)  # Permite peticiones desde cualquier origen (el celular)
 
 # Sesiones activas: { token: { "username": str, "tenant_url": str } }
@@ -90,13 +90,13 @@ def err(msg, status=400):
 @app.route("/")
 def index():
     """Sirve la PWA directamente desde Flask."""
-    return send_from_directory("dewpoint-pwa", "index.html")
+    return send_from_directory(".", "index.html")
 
 
 @app.route("/<path:filename>")
 def static_files(filename):
     """Sirve CSS, JS, iconos, manifest, sw.js, etc."""
-    return send_from_directory("dewpoint-pwa", filename)
+    return send_from_directory(".", filename)
 
 
 # ════════════════════════════════════════════════════════════════════════════
