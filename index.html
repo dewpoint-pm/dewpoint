@@ -64,10 +64,10 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 
 /* STAT GRID */
 .sg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap);margin-bottom:var(--pad)}
-.sc{background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r);padding:var(--gap) calc(var(--gap)+2px)}
-.sc-lbl{font-size:var(--fs-sm);color:var(--t3);margin-bottom:4px;font-weight:500}
-.sc-val{font-size:clamp(15px,4.5vw,20px);font-weight:700;font-family:Georgia,serif}
-.sc-sub{font-size:var(--fs-sm);color:var(--t3);margin-top:3px}
+.sc{background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;min-height:72px}
+.sc-lbl{font-size:var(--fs-sm);color:var(--t3);margin-bottom:6px;font-weight:500;letter-spacing:0.2px}
+.sc-val{font-size:clamp(16px,5vw,22px);font-weight:800;font-family:Georgia,serif;letter-spacing:-0.5px;line-height:1}
+.sc-sub{font-size:var(--fs-sm);color:var(--t3);margin-top:4px}
 
 /* ROWS */
 .lr{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05)}
