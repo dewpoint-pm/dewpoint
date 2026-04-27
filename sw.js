@@ -5,7 +5,7 @@
    Compatible con Android 4.4+ (Chrome 36+)
    ═══════════════════════════════════════════════════════════════ */
 
-var CACHE_NAME = 'dewpoint-v1';
+var CACHE_NAME = 'dewpoint-v2';
 var STATIC_ASSETS = [
   '/',
   '/index.html',
