@@ -1040,14 +1040,22 @@ window.addEventListener('offline',updateOnline);
 updateOnline();
 
 window.addEventListener('beforeinstallprompt', function(e){
-  e.preventDefault(); APP.deferredPrompt=e;
-  /* Instalar solo desde Configuración, no flotante */
-  var card=document.getElementById('card-instalar'); if(card) card.style.display='block';
+  e.preventDefault();
+  APP.deferredPrompt=e;
+  /* Solo mostrar opción en Configuración */
+  var card=document.getElementById('card-instalar');
+  if(card) card.style.display='block';
+  /* Nunca mostrar botón flotante */
+  var btn=document.getElementById('install-btn');
+  if(btn) btn.remove();
 });
 function installPWA(){
   if(!APP.deferredPrompt) return;
   APP.deferredPrompt.prompt();
-  APP.deferredPrompt.userChoice.then(function(c){ if(c.outcome==='accepted') showToast('App instalada'); APP.deferredPrompt=null; });
+  APP.deferredPrompt.userChoice.then(function(c){
+    if(c.outcome==='accepted') showToast('App instalada');
+    APP.deferredPrompt=null;
+  });
 }
 
 /* ══ SESIÓN EXPIRADA — mostrar login automáticamente ════════ */
