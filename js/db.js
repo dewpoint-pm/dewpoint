@@ -4,9 +4,8 @@ var API_BASE = '';
 
 var DB = (function(){
   var _token = null;
-  var _onExpired = null; /* callback cuando el token expira */
+  var _onExpired = null;
 
-  /* Intentar restaurar token guardado */
   try {
     var saved = localStorage.getItem('dp_tk');
     if (saved) _token = saved;
@@ -20,7 +19,6 @@ var DB = (function(){
 
     fetch(API_BASE + path, options)
       .then(function(r) {
-        /* Si el servidor responde 401, el token expiró (Render se durmió) */
         if (r.status === 401) {
           _handleExpired();
           cb({ expired: true }, null);
@@ -33,16 +31,13 @@ var DB = (function(){
   }
 
   function _handleExpired() {
-    /* Limpiar token inválido */
     _token = null;
     try { localStorage.removeItem('dp_tk'); } catch(e) {}
-    /* Notificar a la app para mostrar el login */
     if (typeof _onExpired === 'function') _onExpired();
   }
 
   /* ── AUTH ── */
   function login(u, p, cb) {
-    /* Al hacer login, primero despertar el servidor si está dormido */
     _fetch('/api/auth/login', { method: 'POST', body: { username: u, password: p } }, function(err, d) {
       if (err && err.expired) { cb(false, 'Sesión expirada, intenta de nuevo'); return; }
       if (err || !d) { cb(false, 'Error de conexión. Render puede estar despertando, espera 30 segundos e intenta de nuevo.'); return; }
@@ -61,12 +56,19 @@ var DB = (function(){
     try { localStorage.removeItem('dp_tk'); } catch(e) {}
   }
 
-  /* Registrar callback para cuando la sesión expira */
   function onSessionExpired(fn) { _onExpired = fn; }
 
-  /* ── STATS ── */
-  function getStats(cb) {
-    _fetch('/api/stats', {}, function(err, d) {
+  /* ── STATS — Fixed: acepta (desde, hasta, tipo, cb) con backward-compat ── */
+  function getStats(desde, hasta, tipo, cb) {
+    if (typeof desde === 'function') {
+      cb = desde; desde = null; hasta = null; tipo = null;
+    }
+    var qs = '';
+    if (desde) qs += '&desde=' + encodeURIComponent(desde);
+    if (hasta) qs += '&hasta=' + encodeURIComponent(hasta);
+    if (tipo)  qs += '&tipo='  + encodeURIComponent(tipo);
+    qs = qs ? '?' + qs.substring(1) : '';
+    _fetch('/api/stats' + qs, {}, function(err, d) {
       if (err) { cb(null); return; }
       cb(d);
     });
