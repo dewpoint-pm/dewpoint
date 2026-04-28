@@ -81,6 +81,8 @@ function doLogin(){
       document.getElementById('tbu').textContent = APP.user;
       document.getElementById('tba').textContent = APP.user.charAt(0).toUpperCase();
       document.getElementById('cfg-user').textContent = APP.user;
+      /* Aplicar tema guardado */
+      _applyTheme();
       /* Precargar perfumes para la venta */
       loadPerfumesVenta();
       try { navigate(sessionStorage.getItem('dp_page')||'venta'); } catch(e){ navigate('venta'); }
@@ -997,6 +999,31 @@ function cerrarModal(id){ var el=document.getElementById(id); if(el) el.classLis
 document.addEventListener('click', function(e){ if(e.target.classList.contains('modal-overlay')) cerrarModal(e.target.id); });
 
 /* ══ CONFIG ══════════════════════════════════════════════════ */
+function _applyTheme(){
+  var isDark = DB.loadSetting('dark_mode', true);
+  if(isDark){
+    document.body.classList.remove('light');
+  } else {
+    document.body.classList.add('light');
+    document.querySelector('meta[name="theme-color"]').setAttribute('content','#3A82B5');
+  }
+  /* Sincronizar switch */
+  var sw = document.getElementById('sw-dark');
+  if(sw) sw.checked = isDark;
+}
+
+function toggleDark(el){
+  var isDark = el ? el.checked : !document.body.classList.contains('light');
+  if(isDark){
+    document.body.classList.remove('light');
+    document.querySelector('meta[name="theme-color"]').setAttribute('content','#5BA4CF');
+  } else {
+    document.body.classList.add('light');
+    document.querySelector('meta[name="theme-color"]').setAttribute('content','#3A82B5');
+  }
+  DB.saveSetting('dark_mode', isDark);
+}
+
 function setUmbral(val,el){
   document.querySelectorAll('#umbral-chips .chip').forEach(function(c){c.className='chip cn';});
   if(el) el.className='chip cp';
