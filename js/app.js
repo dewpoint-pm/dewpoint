@@ -8,9 +8,8 @@ if ('serviceWorker' in navigator) {
 
 var FORMATOS = ['2ml','3ml','5ml','10ml'];
 
-/* Cache de timestamps por página — evita recargar si los datos son recientes */
 var _lastLoad = {};
-var CACHE_TTL = 60000; /* 60 segundos */
+var CACHE_TTL = 60000;
 
 function _needsReload(key) {
   var last = _lastLoad[key];
@@ -54,7 +53,9 @@ function navigate(key, navEl) {
   closeMore();
   try { sessionStorage.setItem('dp_page', key); } catch(e){}
 
-  /* Solo recargar si la página no tiene datos recientes */
+  /* Sincronizar toggles de config cuando se abre esa página */
+  if (key === 'config') _syncConfigToggles();
+
   if (key==='clientes')  { if(_needsReload('clientes'))  loadClientes();  else renderClientesCache(); }
   if (key==='perfumes')  { if(_needsReload('perfumes'))  loadPerfumes();  else renderPerfumesCache(); }
   if (key==='historial') { if(_needsReload('historial')) loadHistorial(); else renderHistorialCache(); }
@@ -81,9 +82,7 @@ function doLogin(){
       document.getElementById('tbu').textContent = APP.user;
       document.getElementById('tba').textContent = APP.user.charAt(0).toUpperCase();
       document.getElementById('cfg-user').textContent = APP.user;
-      /* Aplicar tema guardado */
       _applyTheme();
-      /* Precargar perfumes para la venta */
       loadPerfumesVenta();
       try { navigate(sessionStorage.getItem('dp_page')||'venta'); } catch(e){ navigate('venta'); }
     } else {
@@ -115,9 +114,24 @@ document.addEventListener('keydown', function(e){
 /* ══ HELPER: mostrar spinner SOLO si contenedor vacío ════════ */
 function _showSpinner(id){
   var cont=document.getElementById(id); if(!cont) return;
-  /* Si ya tiene filas con datos reales, no poner spinner — evita parpadeo */
   if(cont.querySelector('.lr')||cont.querySelector('.rv')) return;
   cont.innerHTML='<div class="spinner"></div>';
+}
+
+/* ══ CONFIG SYNC ════════════════════════════════════════════ */
+/* Sincroniza todos los toggles con sus valores en localStorage */
+function _syncConfigToggles() {
+  var map = {
+    'sw-dark':         ['dark_mode',      true],
+    'sw-confirm':      ['confirm_save',   true],
+    'sw-auto-clear':   ['auto_clear',     true],
+    'sw-stock-alert':  ['stock_alert',    true],
+    'sw-pending-alert':['pending_alert',  true],
+  };
+  Object.keys(map).forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.checked = DB.loadSetting(map[id][0], map[id][1]);
+  });
 }
 
 /* ══ CLIENTE SEARCH ══════════════════════════════════════════ */
@@ -135,7 +149,6 @@ document.addEventListener('DOMContentLoaded', function(){
   if(selF) selF.addEventListener('change', onFormatoSel);
 });
 
-/* Cache temporal de clientes encontrados para selección segura */
 var _cliCache = {};
 
 function buscarCliente(q){
@@ -147,7 +160,6 @@ function buscarCliente(q){
       res.innerHTML='<div style="padding:8px;color:var(--t3);font-size:var(--fs-sm)">No encontrado</div>';
       res.style.display='block'; return;
     }
-    /* Guardar clientes en cache por ID para selección segura */
     _cliCache = {};
     clientes.forEach(function(c){ _cliCache[c.id] = c; });
     res.innerHTML='';
@@ -166,22 +178,91 @@ function buscarCliente(q){
   });
 }
 
-function selCliente(id,nombre){
-  APP.clienteSel={id:id,nombre:nombre};
-  document.getElementById('lbl-cliente').textContent=nombre;
-  document.getElementById('lbl-cliente').style.color='var(--t)';
-  document.getElementById('e-cli').value='';
+function selCliente(id, nombre){
+  APP.clienteSel = { id: id, nombre: nombre };
+  document.getElementById('lbl-cliente').textContent = nombre;
+  document.getElementById('lbl-cliente').style.color = 'var(--t)';
+  document.getElementById('e-cli').value = '';
   ocultarCliRes();
-  document.getElementById('btn-quitar-cli').style.display='inline-block';
+  document.getElementById('btn-quitar-cli').style.display = 'inline-block';
+  document.getElementById('btn-anonimo').style.display = 'none';
+}
+
+function selClienteAnonimo(){
+  APP.clienteSel = null;
+  document.getElementById('lbl-cliente').textContent = 'Venta anónima';
+  document.getElementById('lbl-cliente').style.color = 'var(--t3)';
+  document.getElementById('btn-quitar-cli').style.display = 'none';
+  document.getElementById('btn-anonimo').style.display = 'none';
 }
 
 function quitarCliente(){
-  APP.clienteSel=null;
-  document.getElementById('lbl-cliente').textContent='Sin cliente seleccionado';
-  document.getElementById('lbl-cliente').style.color='var(--t3)';
-  document.getElementById('btn-quitar-cli').style.display='none';
+  APP.clienteSel = null;
+  document.getElementById('lbl-cliente').textContent = 'Sin cliente seleccionado';
+  document.getElementById('lbl-cliente').style.color = 'var(--t3)';
+  document.getElementById('btn-quitar-cli').style.display = 'none';
+  document.getElementById('btn-anonimo').style.display = 'inline-block';
 }
+
 function ocultarCliRes(){ var r=document.getElementById('cli-res'); if(r) r.style.display='none'; }
+
+/* ══ RUT CHILENO ════════════════════════════════════════════ */
+function validarRut(rut) {
+  if (!rut || typeof rut !== 'string') return false;
+  var clean = rut.replace(/[\.\-\s]/g, '').toUpperCase();
+  if (clean.length < 2) return false;
+  var dv  = clean.slice(-1);
+  var num = clean.slice(0, -1);
+  if (!/^\d+$/.test(num)) return false;
+  var suma = 0, mul = 2;
+  for (var i = num.length - 1; i >= 0; i--) {
+    suma += parseInt(num[i]) * mul;
+    mul = mul === 7 ? 2 : mul + 1;
+  }
+  var res = 11 - (suma % 11);
+  var dvEsperado = res === 11 ? '0' : res === 10 ? 'K' : String(res);
+  return dv === dvEsperado;
+}
+
+function formatRut(raw) {
+  var clean = raw.replace(/[\.\-\s]/g, '').toUpperCase();
+  if (clean.length < 2) return clean;
+  var dv  = clean.slice(-1);
+  var num = clean.slice(0, -1).replace(/\D/g, '');
+  if (!num) return raw;
+  /* Agregar puntos cada 3 dígitos */
+  var formatted = '';
+  for (var i = 0; i < num.length; i++) {
+    if (i > 0 && (num.length - i) % 3 === 0) formatted += '.';
+    formatted += num[i];
+  }
+  return formatted + '-' + dv;
+}
+
+function inputRut(el) {
+  var raw = el.value;
+  if (!raw) {
+    var st = document.getElementById('mc-rut-status'); if(st) st.textContent = '';
+    return;
+  }
+  /* Formatear mientras escribe */
+  var clean = raw.replace(/[\.\-\s]/g, '');
+  if (clean.length > 1) el.value = formatRut(raw);
+
+  var st = document.getElementById('mc-rut-status');
+  if (!st) return;
+  if (clean.length >= 7) {
+    if (validarRut(raw)) {
+      st.textContent = '✓ RUT válido';
+      st.style.color = 'var(--grn)';
+    } else {
+      st.textContent = '✗ RUT inválido';
+      st.style.color = 'var(--red)';
+    }
+  } else {
+    st.textContent = '';
+  }
+}
 
 /* ══ MODO DECANT / BOTELLA ════════════════════════════════════ */
 function setModo(modo){
@@ -198,7 +279,6 @@ function loadPerfumesVenta(){
   DB.getPerfumes('', function(perfumes){
     if(perfumes&&perfumes.length>0){ APP.perfumes=perfumes; _markLoaded('perfumes'); }
     actualizarComboPerfumes();
-    /* Precargar clientes en background */
     DB.getClientes('', function(c){ if(c&&c.length>0){ APP.clientes=c; _markLoaded('clientes'); } });
   });
 }
@@ -233,6 +313,11 @@ function onPerfumeSel(){
     document.getElementById('lbl-precio-sug').textContent=pb?fmt(pb):'—';
     document.getElementById('lbl-precio-sug').style.color=pb?'var(--p)':'var(--t3)';
     var inp=document.getElementById('inp-precio'); if(inp&&pb) inp.value=pb;
+    /* Margen sugerido botella */
+    var costoPorMl=parseFloat(opt.dataset.costo)||0;
+    var mlTot=parseFloat(opt.dataset.ml)||1;
+    var costoBot=costoPorMl*mlTot;
+    _mostrarMargenSug(pb, costoBot);
   } else { onFormatoSel(); }
   calcMargen();
 }
@@ -248,7 +333,25 @@ function onFormatoSel(){
   document.getElementById('lbl-precio-sug').textContent=precio?fmt(precio):'—';
   document.getElementById('lbl-precio-sug').style.color=precio?'var(--p)':'var(--t3)';
   var inp=document.getElementById('inp-precio'); if(inp&&precio) inp.value=precio;
+  /* Margen sugerido decant */
+  var costoPorMl=parseFloat(opt.dataset.costo)||0;
+  var mlFormato=parseInt(formato)||0;
+  var costoDecant=costoPorMl*mlFormato;
+  _mostrarMargenSug(precio, costoDecant);
   calcMargen();
+}
+
+/* Muestra el margen en el card de precio sugerido */
+function _mostrarMargenSug(precio, costo) {
+  var el = document.getElementById('lbl-sug-margen');
+  if (!el) return;
+  if (precio > 0 && costo > 0) {
+    var m = ((precio - costo) / precio * 100).toFixed(0);
+    el.textContent = 'Margen: ' + m + '%';
+    el.style.color = m >= 0 ? 'var(--grn)' : 'var(--red)';
+  } else {
+    el.textContent = '';
+  }
 }
 
 function resetPrecioSug(){
@@ -256,6 +359,7 @@ function resetPrecioSug(){
   document.getElementById('lbl-precio-sug').style.color='var(--t3)';
   var st=document.getElementById('lbl-stock'); if(st) st.textContent='';
   var m=document.getElementById('lbl-margen'); if(m) m.textContent='';
+  var sm=document.getElementById('lbl-sug-margen'); if(sm) sm.textContent='';
 }
 
 function calcMargen(){
@@ -280,13 +384,46 @@ function calcMargen(){
 
 function calcTotal(){
   var subtotal=APP.carrito.reduce(function(s,i){return s+i.subtotal;},0);
+  var costoTotal=APP.carrito.reduce(function(s,i){return s+(i.costo_unit||0)*i.cantidad;},0);
   var descPct=Math.min(100,Math.max(0,parseFloat(document.getElementById('inp-descuento').value||0)||0));
   var env=parseInt(document.getElementById('inp-envio').value||0)||0;
   var descMonto=Math.round(subtotal*descPct/100);
   var final=subtotal-descMonto+env;
-  document.getElementById('total-venta').textContent=fmt(final<0?0:final);
+  if(final<0) final=0;
+  document.getElementById('total-venta').textContent=fmt(final);
+
+  /* Chip de descuento */
+  var cd=document.getElementById('chip-desc-total');
+  if(cd){
+    if(descPct>0){ cd.textContent='Desc. −'+fmt(descMonto); cd.style.display='inline-block'; }
+    else { cd.style.display='none'; }
+  }
+
+  /* Chip de margen */
   var cm=document.getElementById('chip-margen-total');
-  if(cm) cm.textContent=descPct>0?'Desc. -'+fmt(descMonto):'Margen —';
+  if(cm){
+    if(costoTotal>0 && final>0){
+      var ganancia=final-costoTotal;
+      var margenPct=(ganancia/final*100).toFixed(0);
+      cm.textContent='Margen '+margenPct+'%';
+      cm.className='chip '+(ganancia>=0?'cg':'cr');
+    } else {
+      cm.textContent='Margen —';
+      cm.className='chip cg';
+    }
+  }
+
+  /* Ganancia absoluta */
+  var cg=document.getElementById('lbl-ganancia-total');
+  if(cg){
+    if(costoTotal>0){
+      var gan=final-costoTotal;
+      cg.textContent=(gan>=0?'↑':'↓')+' Ganancia: '+fmt(gan);
+      cg.style.color=gan>=0?'var(--grn)':'var(--red)';
+    } else {
+      cg.textContent='';
+    }
+  }
 }
 
 /* ══ CARRITO ═════════════════════════════════════════════════ */
@@ -298,6 +435,10 @@ function agregarAlCarrito(){
   if(!opt||!opt.value){ showToast('Selecciona un perfume'); return; }
   if(!precio){ showToast('Ingresa el precio'); return; }
   var formato=APP.modo==='botella'?null:document.getElementById('sel-formato').value;
+  /* Calcular costo unitario para margen en total */
+  var costoPorMl=parseFloat(opt.dataset.costo)||0;
+  var mlFormato=formato?parseInt(formato)||0:(APP.modo==='botella'?parseFloat(opt.dataset.ml)||1:0);
+  var costo_unit=costoPorMl*mlFormato;
   var item={
     perfume_id:parseInt(opt.value),
     nombre:opt.textContent.split(' — ')[0],
@@ -305,6 +446,7 @@ function agregarAlCarrito(){
     formato_ml:formato,
     cantidad:cantidad,
     precio_unit:precio,
+    costo_unit:costo_unit,
     es_botella_completa:APP.modo==='botella'?1:0,
     subtotal:cantidad*precio,
   };
@@ -324,6 +466,9 @@ function renderCarrito(){
   if(APP.carrito.length===0){
     cont.innerHTML='<p style="color:var(--t3);font-size:var(--fs-sm)">Carrito vacío</p>';
     document.getElementById('total-venta').textContent='$0';
+    var cm=document.getElementById('chip-margen-total'); if(cm){ cm.textContent='Margen —'; cm.className='chip cg'; }
+    var cd=document.getElementById('chip-desc-total'); if(cd) cd.style.display='none';
+    var cg=document.getElementById('lbl-ganancia-total'); if(cg) cg.textContent='';
     return;
   }
   cont.innerHTML=APP.carrito.map(function(item,i){
@@ -373,7 +518,6 @@ function guardarVenta(){
       showToast('Venta #'+ventaId+' guardada — '+fmt(total));
       if(DB.loadSetting('auto_clear',true)) limpiarCarrito();
       quitarCliente();
-      /* Invalidar caché de páginas afectadas */
       delete _lastLoad['perfumes'];
       delete _lastLoad['historial'];
       loadPerfumesVenta();
@@ -403,12 +547,11 @@ function renderClientesCache(){ if(APP.clientes.length>0) renderClientes(APP.cli
 
 function loadClientes(q){
   q=q||'';
-  /* Mostrar datos en caché mientras carga */
   if(APP.clientes.length>0) renderClientes(APP.clientes);
   else _showSpinner('lista-clientes');
   DB.getClientes(q, function(clientes){
     if(clientes&&clientes.length>0){ APP.clientes=clientes; _markLoaded('clientes'); }
-    else if(clientes&&clientes.length===0&&q==='') { /* lista vacía real */ }
+    else if(clientes&&clientes.length===0&&q==='') { }
     renderClientes(clientes||APP.clientes);
   });
 }
@@ -540,7 +683,6 @@ function verDetalleVenta(id){
 }
 
 /* ══ REPORTES ════════════════════════════════════════════════ */
-/* ══ REPORTES — Estado ══════════════════════════════════════ */
 var _REP = {
   agrup: 'mes',
   serie: 'ambos',
@@ -613,10 +755,9 @@ function _refreshIndLabel() {
 }
 
 function loadReportes(){
-  if(!APP.user) return; /* No cargar si no hay sesión */
+  if(!APP.user) return;
   var desde = (document.getElementById('rep-desde')||{}).value || null;
   var hasta  = (document.getElementById('rep-hasta')||{}).value || null;
-  /* Limpiar strings vacíos */
   if(desde==='') desde=null;
   if(hasta==='') hasta=null;
   var tipo   = _REP.indCat !== 'todos' ? _REP.indCat : null;
@@ -672,8 +813,13 @@ function loadReportes(){
   renderGrafico();
 }
 
-/* ══ GRÁFICO CANVAS — fiel al original ══════════════════════ */
+/* ══ GRÁFICO — colores leen CSS vars según tema activo ════════ */
 var _grafCache = { ventas: [], costos: [] };
+
+/* Lee una CSS variable del body en tiempo real (respeta tema activo) */
+function _tv(name) {
+  return getComputedStyle(document.body).getPropertyValue(name).trim();
+}
 
 function renderGrafico() {
   var desde = (document.getElementById('graf-desde')||{}).value || null;
@@ -686,7 +832,6 @@ function renderGrafico() {
   var ctx = canvas.getContext('2d');
   var dpr = window.devicePixelRatio || 1;
 
-  /* Mostrar "cargando" */
   var wrap = document.getElementById('graf-canvas-wrap');
   var cssW = wrap ? wrap.clientWidth||320 : 320;
   var cssH = 340;
@@ -695,22 +840,30 @@ function renderGrafico() {
   canvas.style.width  = cssW + 'px';
   canvas.style.height = cssH + 'px';
   ctx.scale(dpr, dpr);
-  ctx.fillStyle='#13131E'; ctx.fillRect(0,0,cssW,cssH);
-  ctx.fillStyle='#8888AA'; ctx.font='13px sans-serif'; ctx.textAlign='center';
+  ctx.fillStyle = _tv('--bg3');
+  ctx.fillRect(0,0,cssW,cssH);
+  ctx.fillStyle = _tv('--t3');
+  ctx.font='13px sans-serif'; ctx.textAlign='center';
   ctx.fillText('Cargando gráfico...', cssW/2, cssH/2);
 
   function _draw(datosV, datosC) {
     var serie = _REP.serie;
     var agrup = _REP.agrup;
 
-    /* Unir períodos */
+    /* Leer colores del tema en tiempo real */
+    var cBgOuter = _tv('--bg');
+    var cBgArea  = _tv('--bg2');
+    var cGrid    = _tv('--bdr2');
+    var cLabel   = _tv('--t3');
+    var cAxis    = _tv('--bdr2');
+
     var allP = {};
     datosV.forEach(function(d){ allP[d.periodo]=true; });
     datosC.forEach(function(d){ allP[d.periodo]=true; });
     var periodos = Object.keys(allP).sort();
-    if(!periodos.length){ 
-      ctx.fillStyle='#13131E'; ctx.fillRect(0,0,canvas.width,canvas.height);
-      ctx.fillStyle='#8888AA'; ctx.font='13px sans-serif'; ctx.textAlign='center';
+    if(!periodos.length){
+      ctx.fillStyle = cBgOuter; ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = cLabel; ctx.font='13px sans-serif'; ctx.textAlign='center';
       ctx.fillText('Sin datos para el período seleccionado', canvas.width/2, canvas.height/2);
       return;
     }
@@ -727,7 +880,6 @@ function renderGrafico() {
     if(serie!=='ventas') allVals = allVals.concat(valoresC);
     var maxVal = Math.max.apply(null, allVals.concat([1]));
 
-    /* Dimensiones — usar CSS px (ya escalado por dpr arriba) */
     var W = wrap ? wrap.clientWidth||320 : 320;
     var H = 340;
     canvas.width  = W * dpr;
@@ -746,34 +898,32 @@ function renderGrafico() {
     var gap    = (areaW - groupW*n) / (n+1);
 
     /* Fondo */
-    ctx.fillStyle='#0E0E1A'; ctx.fillRect(0,0,W,H);
-    ctx.fillStyle='#070710'; ctx.fillRect(PAD_L,PAD_T,areaW,areaH);
+    ctx.fillStyle = cBgOuter; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle = cBgArea;  ctx.fillRect(PAD_L,PAD_T,areaW,areaH);
 
     /* Grid */
     var LINEAS=5;
     for(var i=0;i<=LINEAS;i++){
       var y = PAD_T + areaH - (i/LINEAS)*areaH;
-      ctx.strokeStyle = i===0?'#3A3A5A':'#2A2A42';
+      ctx.strokeStyle = cGrid;
+      ctx.lineWidth = i===0 ? 1.5 : 1;
       ctx.setLineDash(i===0?[]:[6,5]);
       ctx.beginPath(); ctx.moveTo(PAD_L,y); ctx.lineTo(PAD_L+areaW,y); ctx.stroke();
       ctx.setLineDash([]);
       var v = maxVal*i/LINEAS;
       var lbl = v>=1000000?'$'+(v/1000000).toFixed(1)+'M':v>=1000?'$'+Math.round(v/1000)+'k':'$'+Math.round(v);
-      ctx.fillStyle='#8888AA'; ctx.font='11px -apple-system,sans-serif'; ctx.textAlign='right';
+      ctx.fillStyle = cLabel; ctx.font='11px -apple-system,sans-serif'; ctx.textAlign='right';
       ctx.fillText(lbl, PAD_L-6, y+3);
     }
 
     /* Barras */
-    function drawBar(ix, offset, val, colorMid, colorTop, colorVal) {
+    function drawBar(ix, offset, val, colorMid, colorTop) {
       var gx = PAD_L + gap + ix*(groupW+gap);
       var bx = gx + offset;
       var altura = maxVal>0 ? Math.round((val/maxVal)*areaH) : 0;
       var byTop = PAD_T + areaH - altura;
-      /* Sombra */
-      ctx.fillStyle='rgba(0,0,0,0.25)';
+      ctx.fillStyle='rgba(0,0,0,0.18)';
       ctx.fillRect(bx+3, byTop+3, barW, altura);
-      /* Barra con esquinas redondeadas arriba */
-      /* Gradiente vertical */
       var grad=ctx.createLinearGradient(bx,byTop,bx,byTop+altura);
       grad.addColorStop(0,colorTop); grad.addColorStop(0.4,colorMid); grad.addColorStop(1,colorMid);
       ctx.fillStyle=grad;
@@ -788,21 +938,19 @@ function renderGrafico() {
       } else {
         ctx.fillRect(bx, byTop, barW, altura);
       }
-      /* Tope brillante */
       if(altura>3){ ctx.fillStyle=colorTop; ctx.fillRect(bx,byTop,barW,3); }
-      /* Valor — negro, dentro de la barra, arriba */
       if(val>0 && altura>22){
         var lv = val>=1000000?'$'+(val/1000000).toFixed(1)+'M':val>=1000?'$'+Math.round(val/1000)+'k':'$'+Math.round(val);
-        ctx.fillStyle='#000000'; ctx.font='bold 11px -apple-system,sans-serif'; ctx.textAlign='center';
+        ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.font='bold 11px -apple-system,sans-serif'; ctx.textAlign='center';
         ctx.fillText(lv, bx+barW/2, byTop+16);
       }
     }
 
     for(var i2=0;i2<periodos.length;i2++){
       if(serie==='ambos'||serie==='ventas')
-        drawBar(i2, 0, valoresV[i2], '#2E8B57','#4CAF82','#ffffff');
+        drawBar(i2, 0, valoresV[i2], '#2E8B57','#4CAF82');
       if(serie==='ambos'||serie==='costos')
-        drawBar(i2, serie==='ambos'?barW+2:0, valoresC[i2], '#C0392B','#E85858','#ffffff');
+        drawBar(i2, serie==='ambos'?barW+2:0, valoresC[i2], '#C0392B','#E85858');
 
       /* Label eje X */
       var gx2 = PAD_L + gap + i2*(groupW+gap);
@@ -814,16 +962,16 @@ function renderGrafico() {
         var meses={'01':'Ene','02':'Feb','03':'Mar','04':'Abr','05':'May','06':'Jun','07':'Jul','08':'Ago','09':'Sep','10':'Oct','11':'Nov','12':'Dic'};
         etq=meses[p.substring(5)]||p.substring(5);
       }
-      ctx.fillStyle='#9999BB'; ctx.font='11px -apple-system,sans-serif'; ctx.textAlign='center';
+      ctx.fillStyle = cLabel; ctx.font='11px -apple-system,sans-serif'; ctx.textAlign='center';
       ctx.fillText(etq, cx, H-PAD_B+14);
     }
 
     /* Ejes */
-    ctx.strokeStyle='#4A4A6A'; ctx.lineWidth=2; ctx.setLineDash([]);
+    ctx.strokeStyle = cAxis; ctx.lineWidth=1.5; ctx.setLineDash([]);
     ctx.beginPath(); ctx.moveTo(PAD_L,PAD_T); ctx.lineTo(PAD_L,PAD_T+areaH); ctx.lineTo(PAD_L+areaW,PAD_T+areaH); ctx.stroke();
     ctx.lineWidth=1;
 
-    /* Leyenda debajo del canvas — actualizar DOM */
+    /* Leyenda */
     var legEl = document.getElementById('graf-legend');
     if(legEl){
       if(serie==='ambos'){
@@ -841,9 +989,7 @@ function renderGrafico() {
     }
   }
 
-  /* Cargar datos ventas + costos */
   DB.getVentasPorPeriodo(_REP.agrup, desde, hasta, tipo, function(datosV){
-    /* Intentar cargar costos por período */
     fetch('/api/reportes/costos-periodo?agrupacion='+_REP.agrup+(desde?'&desde='+desde:'')+(hasta?'&hasta='+hasta:'')+(tipo?'&tipo='+tipo:''), {
       headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('dp_tk')||'') }
     }).then(function(r){ return r.json(); })
@@ -938,14 +1084,35 @@ function loadCostos(){
 /* ══ MODALES ══════════════════════════════════════════════════ */
 function abrirModalCliente(){
   document.getElementById('modal-cli-title').textContent='Nuevo cliente';
-  ['mc-nombre','mc-rut','mc-tel','mc-ig','mc-email','mc-notas'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  ['mc-nombre','mc-apellido','mc-rut','mc-tel','mc-ig','mc-email','mc-notas'].forEach(function(id){
+    var e=document.getElementById(id); if(e) e.value='';
+  });
+  var st=document.getElementById('mc-rut-status'); if(st) st.textContent='';
   document.getElementById('modal-cliente').classList.add('open');
 }
 
 function guardarCliente(){
-  var nombre=document.getElementById('mc-nombre').value.trim();
+  var nombre  = (document.getElementById('mc-nombre').value||'').trim();
+  var apellido= (document.getElementById('mc-apellido').value||'').trim();
+  var email   = (document.getElementById('mc-email').value||'').trim();
+  var rutVal  = (document.getElementById('mc-rut').value||'').trim();
+
   if(!nombre){ showToast('El nombre es obligatorio'); return; }
-  DB.crearCliente({nombre:nombre,rut:document.getElementById('mc-rut').value,telefono:document.getElementById('mc-tel').value,instagram:document.getElementById('mc-ig').value,email:document.getElementById('mc-email').value,notas:document.getElementById('mc-notas').value}, function(ok,msg){
+  if(!apellido){ showToast('El apellido es obligatorio'); return; }
+  if(!email){ showToast('El email es obligatorio'); return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ showToast('Email inválido'); return; }
+  if(rutVal && !validarRut(rutVal)){ showToast('El RUT ingresado no es válido'); return; }
+
+  var nombreCompleto = nombre + ' ' + apellido;
+
+  DB.crearCliente({
+    nombre:   nombreCompleto,
+    rut:      rutVal,
+    telefono: document.getElementById('mc-tel').value,
+    instagram:document.getElementById('mc-ig').value,
+    email:    email,
+    notas:    document.getElementById('mc-notas').value,
+  }, function(ok,msg){
     if(ok){ showToast('Cliente creado'); cerrarModal('modal-cliente'); delete _lastLoad['clientes']; loadClientes(); }
     else showToast('Error: '+(msg||'No se pudo crear'));
   });
@@ -1011,9 +1178,7 @@ function _applyTheme(){
     document.body.classList.add('light');
     document.querySelector('meta[name="theme-color"]').setAttribute('content','#3A82B5');
   }
-  /* Sincronizar switch */
-  var sw = document.getElementById('sw-dark');
-  if(sw) sw.checked = isDark;
+  _syncConfigToggles();
 }
 
 function toggleDark(el){
@@ -1026,6 +1191,9 @@ function toggleDark(el){
     document.querySelector('meta[name="theme-color"]').setAttribute('content','#3A82B5');
   }
   DB.saveSetting('dark_mode', isDark);
+  /* Re-dibujar gráfico si está visible para aplicar nuevo tema */
+  var pgRep = document.getElementById('page-reportes');
+  if(pgRep && pgRep.classList.contains('active')) renderGrafico();
 }
 
 function setUmbral(val,el){
@@ -1040,29 +1208,22 @@ function fmt(n){ return '$'+(Math.round(n)||0).toLocaleString('es-CL'); }
 function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 var _toastT=null;
-var _toastQueue=[];
 
 function showToast(msg){
   var t=document.getElementById("toast"); if(!t) return;
-  /* Cancelar timer anterior */
   if(_toastT){ window.clearTimeout(_toastT); _toastT=null; }
-  /* Ocultar inmediatamente sin transición */
   t.style.transition='none';
   t.classList.remove("show");
   t.textContent=msg;
-  /* Forzar reflow */
   void t.offsetHeight;
-  /* Restaurar transición y mostrar */
   t.style.transition='';
   t.classList.add("show");
-  /* Auto-ocultar en 3 segundos */
   _toastT = window.setTimeout(function(){
     t.classList.remove("show");
     _toastT=null;
   }, 3000);
 }
 
-/* Click en toast para cerrarlo */
 document.addEventListener("DOMContentLoaded",function(){
   var t=document.getElementById("toast");
   if(t) t.addEventListener("click",function(){
@@ -1079,10 +1240,8 @@ updateOnline();
 window.addEventListener('beforeinstallprompt', function(e){
   e.preventDefault();
   APP.deferredPrompt=e;
-  /* Solo mostrar opción en Configuración */
   var card=document.getElementById('card-instalar');
   if(card) card.style.display='block';
-  /* Nunca mostrar botón flotante */
   var btn=document.getElementById('install-btn');
   if(btn) btn.remove();
 });
@@ -1095,13 +1254,10 @@ function installPWA(){
   });
 }
 
-/* ══ SESIÓN EXPIRADA — mostrar login automáticamente ════════ */
+/* ══ SESIÓN EXPIRADA ════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', function(){
-  /* Cuando Render se duerme y reinicia, el token se invalida.
-     db.js detecta el 401 y llama este callback. */
   DB.onSessionExpired(function(){
     showToast('Sesión expirada. Por favor inicia sesión de nuevo.');
-    /* Pequeño delay para que el toast sea visible */
     setTimeout(function(){
       APP.user = '';
       try { sessionStorage.removeItem('dp_page'); } catch(e) {}
