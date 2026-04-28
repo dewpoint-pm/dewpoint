@@ -195,15 +195,14 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 .sec-lbl{font-size:var(--fs-sm);font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.6px;margin:12px 0 6px;display:flex;align-items:center;gap:8px}
 .sec-lbl::after{content:'';flex:1;height:1px;background:var(--p);opacity:.3}
 
-/* INSTALL BTN */
-
-
+#install-btn{display:none!important;pointer-events:none!important}
 /* SECTION DIVIDER */
 .divider{height:1px;background:var(--bdr2);margin:var(--gap) 0}
 </style>
 </head>
 <body>
 <div id="offline-banner">Sin conexión a internet</div>
+<script>document.addEventListener("DOMContentLoaded",function(){var b=document.getElementById("install-btn");if(b)b.parentNode.removeChild(b);});</script>
 <div id="app">
 
 <!-- LOGIN -->
