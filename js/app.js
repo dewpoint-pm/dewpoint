@@ -613,8 +613,12 @@ function _refreshIndLabel() {
 }
 
 function loadReportes(){
+  if(!APP.user) return; /* No cargar si no hay sesión */
   var desde = (document.getElementById('rep-desde')||{}).value || null;
   var hasta  = (document.getElementById('rep-hasta')||{}).value || null;
+  /* Limpiar strings vacíos */
+  if(desde==='') desde=null;
+  if(hasta==='') hasta=null;
   var tipo   = _REP.indCat !== 'todos' ? _REP.indCat : null;
   _refreshIndLabel();
 
