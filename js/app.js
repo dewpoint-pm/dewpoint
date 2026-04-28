@@ -618,7 +618,7 @@ function loadReportes(){
   var tipo   = _REP.indCat !== 'todos' ? _REP.indCat : null;
   _refreshIndLabel();
 
-  DB.getStats(function(data){
+  DB.getStats(desde, hasta, tipo, function(data){
     if(!data) return;
     var s=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
     var ticket=data.ordenes>0?Math.round(data.ventas_total/data.ordenes):0;
