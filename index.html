@@ -123,7 +123,7 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 .srch-ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--t3);pointer-events:none}
 
 /* TOTAL BAR */
-.tb-total{background:rgba(91,164,207,.1);border:1px solid var(--p);border-radius:var(--r);padding:12px var(--pad);display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--gap)}
+.tb-total{background:rgba(91,164,207,.1);border:1px solid var(--p);border-radius:var(--r);padding:12px var(--pad);margin-bottom:var(--gap)}
 .tbl{font-size:var(--fs-sm);color:var(--t3)}
 .tbv{font-size:clamp(18px,5.5vw,24px);font-weight:800;color:var(--p);font-family:Georgia,serif}
 
@@ -142,16 +142,19 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 .seg-btn{flex:1;padding:8px;border:none;background:transparent;color:var(--t3);font-size:var(--fs-sm);font-weight:600;border-radius:8px;cursor:pointer;transition:all .2s;font-family:inherit}
 .seg-btn.on{background:var(--p);color:#fff}
 
-/* SWITCH */
+/* SWITCH — FIX: slider visible en modo claro */
 .sw-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .sw-row:last-child{border-bottom:none}
 .sw-row h4{font-size:var(--fs);font-weight:500}
 .sw-row p{font-size:var(--fs-sm);color:var(--t3)}
 .tog{position:relative;width:46px;height:26px;flex-shrink:0}
 .tog input{opacity:0;width:0;height:0}
-.sl{position:absolute;inset:0;background:rgba(255,255,255,.14);border-radius:13px;cursor:pointer;transition:.28s}
-.sl:before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.28s}
-.tog input:checked+.sl{background:var(--p)}
+.sl{position:absolute;inset:0;background:rgba(255,255,255,.18);border-radius:13px;cursor:pointer;transition:.28s;border:1px solid rgba(255,255,255,.12)}
+/* Slider visible en modo claro */
+body.light .sl{background:rgba(0,0,0,.18);border:1px solid rgba(0,0,0,.12)}
+.sl:before{content:'';position:absolute;width:20px;height:20px;left:3px;top:2px;background:#fff;border-radius:50%;transition:.28s;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+body.light .sl:before{box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.tog input:checked+.sl{background:var(--p);border-color:var(--p)}
 .tog input:checked+.sl:before{transform:translateX(20px)}
 
 /* MINI CHART */
@@ -204,7 +207,6 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 .sec-lbl::after{content:'';flex:1;height:1px;background:var(--p);opacity:.3}
 
 #install-btn{display:none!important;pointer-events:none!important}
-/* SECTION DIVIDER */
 .divider{height:1px;background:var(--bdr2);margin:var(--gap) 0}
 </style>
 </head>
@@ -256,11 +258,12 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
     <div id="lbl-cliente" style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:8px">Sin cliente seleccionado</div>
     <div class="srch" style="margin-bottom:8px">
       <span class="srch-ic">👤</span>
-      <input type="search" id="e-cli" placeholder="Buscar nombre o RUT..." autocomplete="off"/>
+      <input type="search" id="e-cli" placeholder="Buscar por RUT o nombre..." autocomplete="off"/>
     </div>
     <div id="cli-res" style="display:none"></div>
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn bs btn-sm" onclick="abrirModalCliente()">+ Nuevo cliente</button>
+      <button class="btn cn btn-sm" id="btn-anonimo" onclick="selClienteAnonimo()" style="background:rgba(255,255,255,.07);color:var(--t3);border:1px solid var(--bdr2)">👤 Anónimo</button>
       <button class="btn bd btn-sm" id="btn-quitar-cli" onclick="quitarCliente()" style="display:none">✕ Quitar</button>
     </div>
   </div>
@@ -298,6 +301,7 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
       <div style="background:var(--bg-in);border:1px solid var(--bdr2);border-radius:10px;padding:10px 12px">
         <div style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:4px">Precio sugerido</div>
         <div id="lbl-precio-sug" style="font-size:var(--fs-lg);font-weight:700;font-family:Georgia,serif;color:var(--t3)">—</div>
+        <div id="lbl-sug-margen" style="font-size:var(--fs-sm);margin-top:3px"></div>
       </div>
       <div>
         <label class="fl">Precio final ($)</label>
@@ -363,9 +367,19 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
     <input class="fi" id="inp-notas" type="text" placeholder="Notas adicionales..."/>
   </div>
 
+  <!-- Total bar con descuento + margen -->
   <div class="tb-total">
-    <div><div class="tbl">Total a pagar</div><div class="tbv" id="total-venta">$0</div></div>
-    <span class="chip cg" id="chip-margen-total">Margen —</span>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div class="tbl">Total a pagar</div>
+        <div class="tbv" id="total-venta">$0</div>
+        <div id="lbl-ganancia-total" style="font-size:var(--fs-sm);margin-top:3px;font-weight:600"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+        <span class="chip cg" id="chip-margen-total">Margen —</span>
+        <span class="chip ca" id="chip-desc-total" style="display:none"></span>
+      </div>
+    </div>
   </div>
   <button class="btn bp" onclick="guardarVenta()">Guardar venta</button>
   <button class="btn bd" onclick="limpiarCarrito()">Limpiar carrito</button>
@@ -419,7 +433,6 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 <section class="page" id="page-reportes">
   <div class="ph"><h2>Reportes</h2><p>Resumen del negocio</p></div>
 
-  <!-- FILTRO INDICADORES -->
   <div class="card">
     <div class="ct">Filtro indicadores</div>
     <div class="chips-row" id="preset-chips">
@@ -440,21 +453,18 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
     <div id="lbl-ind-periodo" style="font-size:var(--fs-sm);color:var(--p);font-weight:600">📅 Indicadores: Todo el tiempo</div>
   </div>
 
-  <!-- STAT CARDS — fila 1 -->
   <div class="sg">
     <div class="sc"><div class="sc-lbl">Ventas totales</div><div class="sc-val va" id="r-ventas">—</div></div>
     <div class="sc"><div class="sc-lbl">Órdenes</div><div class="sc-val vp" id="r-ordenes">—</div></div>
     <div class="sc"><div class="sc-lbl">Ticket promedio</div><div class="sc-val vp" id="r-ticket">—</div></div>
     <div class="sc"><div class="sc-lbl">Perfumes activos</div><div class="sc-val vg" id="r-perfumes">—</div></div>
   </div>
-  <!-- fila 2 -->
   <div class="sg">
     <div class="sc"><div class="sc-lbl">Utilidad neta</div><div class="sc-val vg" id="r-utilidad">—</div></div>
     <div class="sc"><div class="sc-lbl">Costo perfumes</div><div class="sc-val vt" id="r-costo-perf">—</div></div>
     <div class="sc"><div class="sc-lbl">Costo insumos</div><div class="sc-val vw" id="r-costo-ins">—</div></div>
     <div class="sc"><div class="sc-lbl">Margen promedio</div><div class="sc-val vg" id="r-margen">—</div></div>
   </div>
-  <!-- fila 3 -->
   <div class="sg">
     <div class="sc"><div class="sc-lbl">Por cobrar</div><div class="sc-val va" id="r-cobrar">—</div></div>
     <div class="sc"><div class="sc-lbl">Val. inv. insumos</div><div class="sc-val va" id="r-inv-ins">—</div></div>
@@ -462,7 +472,6 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
     <div class="sc"><div class="sc-lbl">Total insumos</div><div class="sc-val vp" id="r-ins-total">—</div></div>
   </div>
 
-  <!-- TOP PERFUMES + TOP CLIENTES -->
   <div class="card">
     <div class="ct">Top Perfumes</div>
     <div id="top-perfumes"><div class="spinner"></div></div>
@@ -472,32 +481,23 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
     <div id="top-clientes"><div class="spinner"></div></div>
   </div>
 
-  <!-- GRÁFICO CON SU PROPIO FILTRO -->
   <div class="card">
     <div class="ct">Evolución temporal</div>
-
-    <!-- Agrupación -->
     <div class="chips-row" id="agrup-chips" style="margin-bottom:6px">
       <span class="chip cn" onclick="setAgrup('dia',this)">Por día</span>
       <span class="chip cp" onclick="setAgrup('mes',this)">Por mes</span>
       <span class="chip cn" onclick="setAgrup('anio',this)">Por año</span>
     </div>
-
-    <!-- Serie -->
     <div class="chips-row" id="serie-chips" style="margin-bottom:6px">
       <span class="chip cp" onclick="setSerie('ambos',this)">Ambos</span>
       <span class="chip cn" onclick="setSerie('ventas',this)">Solo ventas</span>
       <span class="chip cn" onclick="setSerie('costos',this)">Solo costos</span>
     </div>
-
-    <!-- Categoría gráfico -->
     <div class="chips-row" id="cat-graf-chips" style="margin-bottom:6px">
       <span class="chip cp" onclick="setGrafCat('todos',this)">Todos</span>
       <span class="chip cn" onclick="setGrafCat('decants',this)">Decants</span>
       <span class="chip cn" onclick="setGrafCat('botella',this)">Botella completa</span>
     </div>
-
-    <!-- Filtro de fechas propio del gráfico -->
     <div style="background:var(--bg-in);border-radius:10px;padding:10px 12px;margin-bottom:8px">
       <div style="font-size:var(--fs-sm);color:var(--t3);font-weight:600;margin-bottom:6px">Período del gráfico</div>
       <div class="fr" style="margin-bottom:0">
@@ -505,19 +505,13 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
         <div><label class="fl">Hasta</label><input class="fi" type="date" id="graf-hasta" onchange="renderGrafico()" style="margin-bottom:0"/></div>
       </div>
     </div>
-
     <div id="lbl-graf-periodo" style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:8px">📈 Gráfico [Todos]: Todo el tiempo</div>
-
-    <!-- Canvas del gráfico -->
     <div id="graf-canvas-wrap" style="width:100%;overflow-x:auto;border-radius:8px;overflow:hidden">
       <canvas id="graf-canvas" style="display:block;width:100%;min-height:200px"></canvas>
     </div>
-    <!-- Leyenda debajo -->
     <div id="graf-legend" style="display:flex;gap:16px;margin-top:10px;justify-content:center;font-size:var(--fs-sm);color:var(--t2)"></div>
-
   </div>
 </section>
-
 
 <!-- ════ INSUMOS ════ -->
 <section class="page" id="page-insumos">
@@ -568,13 +562,14 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
   <div class="card">
     <div class="ct">Interfaz</div>
     <div class="sec-lbl">Apariencia</div>
-    <div class="sw-row"><div><h4>Modo oscuro</h4><p>Cambia el tema de la aplicación</p></div><label class="tog"><input type="checkbox" id="sw-dark" checked onchange="toggleDark(this)"><span class="sl"></span></label></div>
+    <!-- Sin checked hardcodeado — se sincroniza desde JS vía _syncConfigToggles() -->
+    <div class="sw-row"><div><h4>Modo oscuro</h4><p>Cambia el tema de la aplicación</p></div><label class="tog"><input type="checkbox" id="sw-dark" onchange="toggleDark(this)"><span class="sl"></span></label></div>
     <div class="sec-lbl">Operaciones</div>
-    <div class="sw-row"><div><h4>Confirmar antes de guardar</h4><p>Pide confirmación al registrar ventas</p></div><label class="tog"><input type="checkbox" id="sw-confirm" checked onchange="DB.saveSetting('confirm_save',this.checked)"><span class="sl"></span></label></div>
-    <div class="sw-row"><div><h4>Limpiar carrito tras venta</h4><p>Resetea el carrito automáticamente</p></div><label class="tog"><input type="checkbox" id="sw-auto-clear" checked onchange="DB.saveSetting('auto_clear',this.checked)"><span class="sl"></span></label></div>
+    <div class="sw-row"><div><h4>Confirmar antes de guardar</h4><p>Pide confirmación al registrar ventas</p></div><label class="tog"><input type="checkbox" id="sw-confirm" onchange="DB.saveSetting('confirm_save',this.checked)"><span class="sl"></span></label></div>
+    <div class="sw-row"><div><h4>Limpiar carrito tras venta</h4><p>Resetea el carrito automáticamente</p></div><label class="tog"><input type="checkbox" id="sw-auto-clear" onchange="DB.saveSetting('auto_clear',this.checked)"><span class="sl"></span></label></div>
     <div class="sec-lbl">Notificaciones</div>
-    <div class="sw-row"><div><h4>Alertas de stock bajo</h4><p>Avisa cuando un perfume tiene &lt;20% de ml</p></div><label class="tog"><input type="checkbox" id="sw-stock-alert" checked onchange="DB.saveSetting('stock_alert',this.checked)"><span class="sl"></span></label></div>
-    <div class="sw-row"><div><h4>Alerta de ventas pendientes</h4><p>Avisa si hay ventas sin cobrar</p></div><label class="tog"><input type="checkbox" id="sw-pending-alert" checked onchange="DB.saveSetting('pending_alert',this.checked)"><span class="sl"></span></label></div>
+    <div class="sw-row"><div><h4>Alertas de stock bajo</h4><p>Avisa cuando un perfume tiene &lt;20% de ml</p></div><label class="tog"><input type="checkbox" id="sw-stock-alert" onchange="DB.saveSetting('stock_alert',this.checked)"><span class="sl"></span></label></div>
+    <div class="sw-row"><div><h4>Alerta de ventas pendientes</h4><p>Avisa si hay ventas sin cobrar</p></div><label class="tog"><input type="checkbox" id="sw-pending-alert" onchange="DB.saveSetting('pending_alert',this.checked)"><span class="sl"></span></label></div>
   </div>
   <div class="card">
     <div class="ct">Stock</div>
@@ -642,18 +637,35 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 
 <div id="toast"></div>
 
-
 <!-- MODALS -->
+
+<!-- Modal cliente — nombre + apellido separados, email obligatorio, RUT con validación -->
 <div class="modal-overlay" id="modal-cliente">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title" id="modal-cli-title">Nuevo cliente</div>
-    <label class="fl">Nombre *</label><input class="fi" id="mc-nombre" placeholder="Nombre completo"/>
-    <label class="fl">RUT</label><input class="fi" id="mc-rut" placeholder="12.345.678-9"/>
-    <label class="fl">Teléfono</label><input class="fi" id="mc-tel" placeholder="+56 9 1234 5678" type="tel"/>
-    <label class="fl">Instagram</label><input class="fi" id="mc-ig" placeholder="@usuario"/>
-    <label class="fl">Email</label><input class="fi" id="mc-email" placeholder="correo@ejemplo.com" type="email"/>
-    <label class="fl">Notas</label><input class="fi" id="mc-notas" placeholder="Notas adicionales..."/>
+    <div class="fr">
+      <div>
+        <label class="fl">Nombre <span style="color:var(--red)">*</span></label>
+        <input class="fi" id="mc-nombre" placeholder="Nombre" style="margin-bottom:0"/>
+      </div>
+      <div>
+        <label class="fl">Apellido <span style="color:var(--red)">*</span></label>
+        <input class="fi" id="mc-apellido" placeholder="Apellido" style="margin-bottom:0"/>
+      </div>
+    </div>
+    <div style="margin-bottom:var(--gap)"></div>
+    <label class="fl">RUT</label>
+    <input class="fi" id="mc-rut" placeholder="12.345.678-9" oninput="inputRut(this)" autocomplete="off"/>
+    <div id="mc-rut-status" style="font-size:var(--fs-sm);margin-top:-8px;margin-bottom:var(--gap)"></div>
+    <label class="fl">Teléfono</label>
+    <input class="fi" id="mc-tel" placeholder="+56 9 1234 5678" type="tel" oninput="this.value=this.value.replace(/[^0-9+\s\-]/g,'')"/>
+    <label class="fl">Instagram</label>
+    <input class="fi" id="mc-ig" placeholder="@usuario"/>
+    <label class="fl">Email <span style="color:var(--red)">*</span></label>
+    <input class="fi" id="mc-email" placeholder="correo@ejemplo.com" type="email"/>
+    <label class="fl">Notas</label>
+    <input class="fi" id="mc-notas" placeholder="Notas adicionales..."/>
     <button class="btn bp" onclick="guardarCliente()">Guardar cliente</button>
     <button class="btn bd" onclick="cerrarModal('modal-cliente')">Cancelar</button>
   </div>
