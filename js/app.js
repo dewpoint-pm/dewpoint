@@ -547,22 +547,36 @@ function renderClientes(clientes){
 function renderClientesCache(){ if(APP.clientes.length>0) renderClientes(APP.clientes); }
 
 function _enrichClientes(clientes, ventas){
-  /* Calcula total_comprado y n_ventas cruzando con el historial de ventas */
+  /* Calcula total_comprado y n_ventas cruzando con el historial de ventas.
+     Intenta multiples nombres de campo por si el API varia. */
+  function _getTotal(v){
+    var raw = (v.total !== undefined && v.total !== null) ? v.total
+            : (v.monto_total !== undefined) ? v.monto_total
+            : (v.total_venta !== undefined) ? v.total_venta
+            : (v.importe !== undefined) ? v.importe
+            : (v.precio_total !== undefined) ? v.precio_total : 0;
+    return parseFloat(raw) || 0;
+  }
   var map = {};
+  if(ventas.length>0) console.log('[DewPoint] Primera venta keys:', Object.keys(ventas[0]), '| total=', ventas[0].total, '| sample:', JSON.stringify(ventas[0]).substring(0,200));
   ventas.forEach(function(v){
-    if(!v.cliente_id) return;
-    if(!map[v.cliente_id]) map[v.cliente_id] = {total:0, n:0, pendiente:0};
-    map[v.cliente_id].total += (v.total||0);
-    map[v.cliente_id].n     += 1;
+    var cid = v.cliente_id;
+    if(!cid) return;
+    if(!map[cid]) map[cid] = {total:0, n:0, pendiente:0};
+    var t = _getTotal(v);
+    map[cid].total += t;
+    map[cid].n     += 1;
     if(v.estado_pago==='Pendiente'||v.estado_pago==='Parcial')
-      map[v.cliente_id].pendiente += (v.total||0);
+      map[cid].pendiente += t;
   });
   return clientes.map(function(c){
     var info = map[c.id];
     if(info){
-      c.total_comprado = c.total_comprado||info.total;
-      c.n_ventas       = c.n_ventas||info.n;
-      /* Solo sobreescribir saldo_pendiente si el API no lo devuelve */
+      /* Sobreescribir siempre con el valor calculado si es mayor que el del API */
+      var apiTotal = parseFloat(c.total_comprado||c.total_compras||0);
+      c.total_comprado = info.total > apiTotal ? info.total : apiTotal;
+      var apiN = parseInt(c.n_ventas||c.compras||0);
+      c.n_ventas = info.n > apiN ? info.n : apiN;
       if(!c.saldo_pendiente) c.saldo_pendiente = info.pendiente;
     }
     return c;
