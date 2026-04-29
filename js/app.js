@@ -23,6 +23,7 @@ var APP = {
   ventas: [], insumos: [],
   modo: 'decant',
   clienteSel: null,
+  clienteAnonimo: false,
   _histEstado: 'Todos',
   _repCat: 'todos', _repDesde: null, _repHasta: null, _repAgrup: 'mes',
   _cosCat: 'todos',
@@ -235,11 +236,36 @@ function selCliente(id,nombre){
   document.getElementById('btn-quitar-cli').style.display='inline-block';
 }
 
+function selClienteAnonimo(){
+  APP.clienteSel=null;
+  APP.clienteAnonimo=true;
+  var badge=document.getElementById('anon-badge');
+  var lbl=document.getElementById('lbl-cliente');
+  var btn=document.getElementById('btn-quitar-cli');
+  if(badge) badge.style.display='flex';
+  if(lbl) lbl.style.display='none';
+  if(btn) btn.style.display='inline-block';
+}
+
 function quitarCliente(){
   APP.clienteSel=null;
-  document.getElementById('lbl-cliente').textContent='Venta anónima (sin cliente)';
+  APP.clienteAnonimo=false;
+  document.getElementById('lbl-cliente').textContent='';
   document.getElementById('lbl-cliente').style.color='var(--t3)';
   document.getElementById('btn-quitar-cli').style.display='none';
+}
+
+function resetCliente(){
+  APP.clienteSel=null;
+  APP.clienteAnonimo=false;
+  var badge=document.getElementById('anon-badge');
+  var lbl=document.getElementById('lbl-cliente');
+  var btn=document.getElementById('btn-quitar-cli');
+  if(badge) badge.style.display='none';
+  if(lbl){ lbl.textContent=''; lbl.style.display='none'; }
+  if(btn) btn.style.display='none';
+  var eCli=document.getElementById('e-cli');
+  if(eCli) eCli.value='';
 }
 function ocultarCliRes(){ var r=document.getElementById('cli-res'); if(r) r.style.display='none'; }
 
@@ -380,13 +406,18 @@ function calcTotal(){
 
   var cm=document.getElementById('chip-margen-total');
   if(cm){
-    var costoFinal=Math.max(0,totalCosto-Math.round(totalCosto*(descPct/100)));
-    var margenPct=final>0?((final-costoFinal)/final*100).toFixed(0):0;
     var partes=[];
     if(descPct>0) partes.push('Desc. -'+fmt(descMonto));
-    if(APP.carrito.length>0) partes.push('Margen: '+margenPct+'%');
-    cm.textContent=partes.length>0?partes.join(' | '):'Margen —';
-    cm.className='chip '+(margenPct>=30?'cg':margenPct>=0?'ca':'cr');
+    if(APP.carrito.length>0 && totalCosto>0){
+      var costoFinal=Math.max(0,totalCosto-Math.round(totalCosto*(descPct/100)));
+      var margenPct=final>0?((final-costoFinal)/final*100).toFixed(0):0;
+      partes.push('Margen: '+margenPct+'%');
+      cm.textContent=partes.length>0?partes.join(' | '):'Margen —';
+      cm.className='chip '+(margenPct>=30?'cg':margenPct>=0?'ca':'cr');
+    } else {
+      cm.textContent=partes.length>0?partes.join(' | '):'Margen —';
+      cm.className='chip cg';
+    }
   }
 }
 
@@ -465,6 +496,7 @@ function limpiarCarrito(){ APP.carrito=[]; renderCarrito(); showToast('Carrito l
 
 function guardarVenta(){
   if(APP.carrito.length===0){ showToast('Agrega productos al carrito'); return; }
+  if(!APP.clienteSel && !APP.clienteAnonimo){ showToast('Debes seleccionar un cliente'); return; }
   var subtotal=APP.carrito.reduce(function(s,i){return s+i.subtotal;},0);
   var descPct=Math.min(100,Math.max(0,parseFloat(document.getElementById('inp-descuento').value||0)||0));
   var descMonto=Math.round(subtotal*descPct/100);
@@ -486,7 +518,7 @@ function guardarVenta(){
     if(ok){
       showToast('Venta #'+ventaId+' guardada — '+fmt(total));
       if(DB.loadSetting('auto_clear',true)) limpiarCarrito();
-      quitarCliente();
+      resetCliente();
       delete _lastLoad['perfumes'];
       delete _lastLoad['historial'];
       loadPerfumesVenta();
@@ -514,14 +546,49 @@ function renderClientes(clientes){
 
 function renderClientesCache(){ if(APP.clientes.length>0) renderClientes(APP.clientes); }
 
+function _enrichClientes(clientes, ventas){
+  /* Calcula total_comprado y n_ventas cruzando con el historial de ventas */
+  var map = {};
+  ventas.forEach(function(v){
+    if(!v.cliente_id) return;
+    if(!map[v.cliente_id]) map[v.cliente_id] = {total:0, n:0, pendiente:0};
+    map[v.cliente_id].total += (v.total||0);
+    map[v.cliente_id].n     += 1;
+    if(v.estado_pago==='Pendiente'||v.estado_pago==='Parcial')
+      map[v.cliente_id].pendiente += (v.total||0);
+  });
+  return clientes.map(function(c){
+    var info = map[c.id];
+    if(info){
+      c.total_comprado = c.total_comprado||info.total;
+      c.n_ventas       = c.n_ventas||info.n;
+      /* Solo sobreescribir saldo_pendiente si el API no lo devuelve */
+      if(!c.saldo_pendiente) c.saldo_pendiente = info.pendiente;
+    }
+    return c;
+  });
+}
+
 function loadClientes(q){
   q=q||'';
   if(APP.clientes.length>0) renderClientes(APP.clientes);
   else _showSpinner('lista-clientes');
   DB.getClientes(q, function(clientes){
-    if(clientes&&clientes.length>0){ APP.clientes=clientes; _markLoaded('clientes'); }
-    else if(clientes&&clientes.length===0&&q==='') {}
-    renderClientes(clientes||APP.clientes);
+    if(!clientes) clientes = [];
+    /* Si ya tenemos ventas en caché, enriquecer de inmediato */
+    if(APP.ventas.length>0){
+      clientes = _enrichClientes(clientes, APP.ventas);
+      if(clientes.length>0){ APP.clientes=clientes; _markLoaded('clientes'); }
+      renderClientes(clientes);
+    } else {
+      /* Cargar ventas para poder calcular totales */
+      DB.getVentas('', 'Todos', function(ventas){
+        if(ventas&&ventas.length>0){ APP.ventas=ventas; _markLoaded('historial'); }
+        clientes = _enrichClientes(clientes, APP.ventas);
+        if(clientes.length>0){ APP.clientes=clientes; _markLoaded('clientes'); }
+        renderClientes(clientes);
+      });
+    }
   });
 }
 
