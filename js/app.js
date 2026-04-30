@@ -502,6 +502,12 @@ function guardarVenta(){
 }
 
 /* ══ CLIENTES ════════════════════════════════════════════════ */
+/* Botón icono reutilizable */
+function _iconBtn(onclick, color, svgPath, title){
+  return '<button onclick="'+onclick+'" title="'+title+'" style="background:rgba('+color+');border:1px solid rgba('+color+',0.4);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0">'+
+    '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:rgba('+color+',1.5)">'+svgPath+'</svg></button>';
+}
+
 function renderClientes(clientes){
   var cont=document.getElementById('lista-clientes'); if(!cont) return;
   var s=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
@@ -511,17 +517,92 @@ function renderClientes(clientes){
   cont.innerHTML=clientes.map(function(c){
     var ini=(c.nombre||'?').split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
     var deuda=c.saldo_pendiente>0;
-    var totalComprado=c.total_compras||c.total_comprado||0;
+    var total=parseFloat(c.total_compras||c.total_comprado||0);
     var rutTel = c.rut&&c.rut.trim()&&c.rut!=='0' ? c.rut : (c.telefono||'—');
-    return '<div class="lr">'+
-      '<div class="lr-l"><div class="av '+(deuda?'av-gold':'')+'" style="width:36px;height:36px;font-size:var(--fs-sm)">'+ini+'</div>'+
-      '<div><div class="rname">'+escHtml(c.nombre)+'</div>'+
-      '<div class="rsub">'+escHtml(rutTel)+'</div></div></div>'+
-      '<div class="lr-r">'+
-      '<div class="rv '+(deuda?'va':'vg')+'" style="font-family:Georgia,serif">'+fmt(totalComprado)+'</div>'+
-      '<div class="rv2">'+(deuda?'<span style="color:var(--red)">Debe '+fmt(c.saldo_pendiente)+'</span>':(c.n_ventas||c.compras||0)+' órdenes')+'</div>'+
-      '</div></div>';
+    var ordenes=(c.n_ventas||c.compras||0);
+    return '<div style="padding:10px 0;border-bottom:1px solid var(--bdr2)">'+
+      '<div style="display:flex;align-items:center;gap:10px">'+
+        '<div class="av '+(deuda?'av-gold':'')+'" style="width:38px;height:38px;font-size:var(--fs-sm);flex-shrink:0">'+ini+'</div>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div class="rname">'+escHtml(c.nombre)+'</div>'+
+          '<div class="rsub">'+escHtml(rutTel)+'</div>'+
+        '</div>'+
+        '<div style="text-align:right;flex-shrink:0">'+
+          '<div class="rv '+(deuda?'va':total>0?'vg':'vt')+'" style="font-family:Georgia,serif;font-size:var(--fs)">'+fmt(total)+'</div>'+
+          '<div class="rv2">'+(deuda?'<span style="color:var(--red)">Debe '+fmt(c.saldo_pendiente)+'</span>':ordenes+' órdenes')+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end">'+
+        '<button onclick="verCliente('+c.id+')" style="background:rgba(91,164,207,.1);border:1px solid rgba(91,164,207,.3);border-radius:8px;padding:4px 10px;font-size:var(--fs-sm);font-weight:600;color:var(--p);cursor:pointer">👁 Ver</button>'+
+        '<button onclick="abrirEditarCliente('+c.id+')" style="background:rgba(91,164,207,.1);border:1px solid rgba(91,164,207,.3);border-radius:8px;padding:4px 10px;font-size:var(--fs-sm);font-weight:600;color:var(--p);cursor:pointer">✏ Editar</button>'+
+        '<button onclick="confirmarEliminarCliente('+c.id+',''+escHtml(c.nombre)+'')" style="background:rgba(232,68,90,.08);border:1px solid rgba(232,68,90,.3);border-radius:8px;padding:4px 10px;font-size:var(--fs-sm);font-weight:600;color:var(--red);cursor:pointer">🗑 Eliminar</button>'+
+      '</div>'+
+    '</div>';
   }).join('');
+}
+
+function verCliente(id){
+  var c=APP.clientes.filter(function(x){return x.id===id;})[0];
+  if(!c){ showToast('Cliente no encontrado'); return; }
+  var cont=document.getElementById('detalle-venta-content');
+  var overlay=document.getElementById('modal-detalle-venta');
+  var title=overlay.querySelector('.modal-title');
+  if(title) title.textContent='Datos del cliente';
+  overlay.classList.add('open');
+  var rut=c.rut&&c.rut!=='0'?c.rut:'—';
+  var tel=c.telefono||'—';
+  var ig=c.instagram||'—';
+  var email=c.email||'—';
+  var notas=c.notas||'—';
+  cont.innerHTML=
+    '<div class="sec-lbl">Información</div>'+
+    '<div class="lr"><div>Nombre</div><div class="rv">'+escHtml(c.nombre)+'</div></div>'+
+    '<div class="lr"><div>RUT</div><div class="rv">'+escHtml(rut)+'</div></div>'+
+    '<div class="lr"><div>Teléfono</div><div class="rv">'+escHtml(tel)+'</div></div>'+
+    '<div class="lr"><div>Instagram</div><div class="rv vp">'+escHtml(ig)+'</div></div>'+
+    '<div class="lr"><div>Email</div><div class="rv">'+escHtml(email)+'</div></div>'+
+    '<div class="divider"></div>'+
+    '<div class="sec-lbl">Estadísticas</div>'+
+    '<div class="lr"><div>Total comprado</div><div class="rv vg">'+fmt(c.total_compras||c.total_comprado||0)+'</div></div>'+
+    '<div class="lr"><div>Órdenes</div><div class="rv vp">'+(c.n_ventas||c.compras||0)+'</div></div>'+
+    (c.saldo_pendiente>0?'<div class="lr"><div>Saldo pendiente</div><div class="rv vr">'+fmt(c.saldo_pendiente)+'</div></div>':'')+
+    '<div class="divider"></div>'+
+    '<div class="sec-lbl">Notas</div>'+
+    '<p style="font-size:var(--fs-sm);color:var(--t3);padding:8px 0">'+escHtml(notas)+'</p>';
+}
+
+function abrirEditarCliente(id){
+  var c=APP.clientes.filter(function(x){return x.id===id;})[0];
+  if(!c){ showToast('Cliente no encontrado'); return; }
+  /* Reusar modal cliente en modo edición */
+  document.getElementById('modal-cli-title').textContent='Editar cliente';
+  /* Separar nombre y apellido si tiene espacio */
+  var partes=(c.nombre||'').split(' ');
+  var nombre=partes[0]||'';
+  var apellido=partes.slice(1).join(' ')||'';
+  document.getElementById('mc-nombre').value=nombre;
+  var apEl=document.getElementById('mc-apellido');
+  if(apEl) apEl.value=apellido; else document.getElementById('mc-nombre').value=c.nombre;
+  document.getElementById('mc-rut').value=c.rut||'';
+  document.getElementById('mc-tel').value=c.telefono||'';
+  document.getElementById('mc-ig').value=c.instagram||'';
+  document.getElementById('mc-email').value=c.email||'';
+  document.getElementById('mc-notas').value=c.notas||'';
+  /* Guardar id para la edición */
+  APP._editClienteId=id;
+  document.getElementById('modal-cliente').classList.add('open');
+}
+
+function confirmarEliminarCliente(id, nombre){
+  if(!confirm('¿Eliminar a '+nombre+'?
+Esta acción no se puede deshacer.')) return;
+  DB.eliminarCliente(id, function(ok){
+    if(ok){
+      showToast('Cliente eliminado');
+      delete _lastLoad['clientes'];
+      loadClientes();
+    } else showToast('No se pudo eliminar');
+  });
 }
 
 function renderClientesCache(){ if(APP.clientes.length>0) renderClientes(APP.clientes); }
@@ -570,10 +651,23 @@ function renderPerfumes(perfumes){
     var valC=agotado?'vr':bajoP?'va':'vg';
     var precios=p.precios||{};
     var precioStr=Object.keys(precios).length>0?fmt(Object.values(precios)[0])+'/'+Object.keys(precios)[0]:p.precio_botella?fmt(p.precio_botella)+' bot.':'—';
-    return '<div class="lr">'+
-      '<div class="lr-l"><div class="ri" style="background:'+icoBg+';color:'+icoC+'">'+p.nombre.charAt(0).toUpperCase()+'</div>'+
-      '<div><div class="rname">'+escHtml(p.nombre)+'</div><div class="rsub">'+escHtml(p.marca)+' · '+(p.tipo_venta==='botella'?'Botella':'Decant')+'</div></div></div>'+
-      '<div class="lr-r"><div class="rv '+valC+'">'+Math.round(p.ml_disponibles)+' ml</div><div class="rv2">'+precioStr+'</div></div></div>';
+    return '<div style="padding:10px 0;border-bottom:1px solid var(--bdr2)">'+
+      '<div style="display:flex;align-items:center;gap:10px">'+
+        '<div class="ri" style="background:'+icoBg+';color:'+icoC+';flex-shrink:0">'+p.nombre.charAt(0).toUpperCase()+'</div>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div class="rname">'+escHtml(p.nombre)+'</div>'+
+          '<div class="rsub">'+escHtml(p.marca)+' · '+(p.tipo_venta==='botella'?'Botella':'Decant')+'</div>'+
+        '</div>'+
+        '<div style="text-align:right;flex-shrink:0">'+
+          '<div class="rv '+valC+'">'+Math.round(p.ml_disponibles)+' ml</div>'+
+          '<div class="rv2">'+precioStr+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end">'+
+        '<button onclick="abrirEditarPerfume('+p.id+')" style="background:rgba(91,164,207,.1);border:1px solid rgba(91,164,207,.3);border-radius:8px;padding:4px 10px;font-size:var(--fs-sm);font-weight:600;color:var(--p);cursor:pointer">✏ Editar</button>'+
+        '<button onclick="confirmarEliminarPerfume('+p.id+',''+escHtml(p.nombre)+'')" style="background:rgba(232,68,90,.08);border:1px solid rgba(232,68,90,.3);border-radius:8px;padding:4px 10px;font-size:var(--fs-sm);font-weight:600;color:var(--red);cursor:pointer">🗑 Eliminar</button>'+
+      '</div>'+
+    '</div>';
   }).join('');
 }
 
@@ -586,6 +680,20 @@ function loadPerfumes(q){
   DB.getPerfumes(q, function(perfumes){
     if(perfumes&&perfumes.length>0){ APP.perfumes=perfumes; _markLoaded('perfumes'); }
     renderPerfumes(perfumes||APP.perfumes);
+  });
+}
+
+/* ══ ELIMINAR PERFUME ════════════════════════════════════════ */
+function confirmarEliminarPerfume(id, nombre){
+  if(!confirm('¿Eliminar "'+nombre+'"?
+Esta acción no se puede deshacer.')) return;
+  DB.eliminarPerfume(id, function(ok){
+    if(ok){
+      showToast('Perfume eliminado');
+      delete _lastLoad['perfumes'];
+      loadPerfumes();
+      loadPerfumesVenta();
+    } else showToast('No se pudo eliminar');
   });
 }
 
