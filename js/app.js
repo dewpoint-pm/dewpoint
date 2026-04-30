@@ -947,6 +947,21 @@ function loadReportes(){
 /* ══ GRÁFICO CANVAS — fiel al original ══════════════════════ */
 var _grafCache = { ventas: [], costos: [] };
 
+/* ══ TEMA GRÁFICO ════════════════════════════════════════════ */
+function _themeColors(){
+  var light = document.body.classList.contains('light');
+  return {
+    light:    light,
+    bgOuter:  light ? '#E8EBF0' : '#0E0E1A',
+    bgInner:  light ? '#FFFFFF' : '#070710',
+    grid:     light ? '#D0D5E0' : '#2A2A42',
+    axis:     light ? '#A0A8C0' : '#3A3A5A',
+    label:    light ? '#5A6078' : '#8888AA',
+    tick:     light ? '#7080A0' : '#9999BB',
+    valTxt:   light ? '#FFFFFF' : '#000000',
+  };
+}
+
 function renderGrafico() {
   var desde = (document.getElementById('graf-desde')||{}).value || null;
   var hasta  = (document.getElementById('graf-hasta')||{}).value || null;
@@ -967,8 +982,9 @@ function renderGrafico() {
   canvas.style.width  = cssW + 'px';
   canvas.style.height = cssH + 'px';
   ctx.scale(dpr, dpr);
-  ctx.fillStyle='#13131E'; ctx.fillRect(0,0,cssW,cssH);
-  ctx.fillStyle='#8888AA'; ctx.font='13px sans-serif'; ctx.textAlign='center';
+  var _tc0=_themeColors();
+  ctx.fillStyle=_tc0.bgOuter; ctx.fillRect(0,0,cssW,cssH);
+  ctx.fillStyle=_tc0.label; ctx.font='13px sans-serif'; ctx.textAlign='center';
   ctx.fillText('Cargando gráfico...', cssW/2, cssH/2);
 
   function _draw(datosV, datosC) {
@@ -981,9 +997,10 @@ function renderGrafico() {
     datosC.forEach(function(d){ allP[d.periodo]=true; });
     var periodos = Object.keys(allP).sort();
     if(!periodos.length){ 
-      ctx.fillStyle='#13131E'; ctx.fillRect(0,0,canvas.width,canvas.height);
-      ctx.fillStyle='#8888AA'; ctx.font='13px sans-serif'; ctx.textAlign='center';
-      ctx.fillText('Sin datos para el período seleccionado', canvas.width/2, canvas.height/2);
+      var _tcnd=_themeColors();
+      ctx.fillStyle=_tcnd.bgOuter; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle=_tcnd.label; ctx.font='13px sans-serif'; ctx.textAlign='center';
+      ctx.fillText('Sin datos para el período seleccionado', W/2, H/2);
       return;
     }
 
@@ -1017,21 +1034,22 @@ function renderGrafico() {
     var barW   = Math.floor(groupW/nSeries)-2;
     var gap    = (areaW - groupW*n) / (n+1);
 
-    /* Fondo */
-    ctx.fillStyle='#0E0E1A'; ctx.fillRect(0,0,W,H);
-    ctx.fillStyle='#070710'; ctx.fillRect(PAD_L,PAD_T,areaW,areaH);
+    /* Fondo — adaptativo al tema */
+    var tc=_themeColors();
+    ctx.fillStyle=tc.bgOuter; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle=tc.bgInner; ctx.fillRect(PAD_L,PAD_T,areaW,areaH);
 
     /* Grid */
     var LINEAS=5;
     for(var i=0;i<=LINEAS;i++){
       var y = PAD_T + areaH - (i/LINEAS)*areaH;
-      ctx.strokeStyle = i===0?'#3A3A5A':'#2A2A42';
+      ctx.strokeStyle = i===0?tc.axis:tc.grid;
       ctx.setLineDash(i===0?[]:[6,5]);
       ctx.beginPath(); ctx.moveTo(PAD_L,y); ctx.lineTo(PAD_L+areaW,y); ctx.stroke();
       ctx.setLineDash([]);
       var v = maxVal*i/LINEAS;
       var lbl = v>=1000000?'$'+(v/1000000).toFixed(1)+'M':v>=1000?'$'+Math.round(v/1000)+'k':'$'+Math.round(v);
-      ctx.fillStyle='#8888AA'; ctx.font='11px -apple-system,sans-serif'; ctx.textAlign='right';
+      ctx.fillStyle=tc.label; ctx.font='11px -apple-system,sans-serif'; ctx.textAlign='right';
       ctx.fillText(lbl, PAD_L-6, y+3);
     }
 
@@ -1065,7 +1083,7 @@ function renderGrafico() {
       /* Valor — negro, dentro de la barra, arriba */
       if(val>0 && altura>22){
         var lv = val>=1000000?'$'+(val/1000000).toFixed(1)+'M':val>=1000?'$'+Math.round(val/1000)+'k':'$'+Math.round(val);
-        ctx.fillStyle='#000000'; ctx.font='bold 11px -apple-system,sans-serif'; ctx.textAlign='center';
+        ctx.fillStyle=tc.valTxt; ctx.font='bold 11px -apple-system,sans-serif'; ctx.textAlign='center';
         ctx.fillText(lv, bx+barW/2, byTop+16);
       }
     }
@@ -1086,12 +1104,12 @@ function renderGrafico() {
         var meses={'01':'Ene','02':'Feb','03':'Mar','04':'Abr','05':'May','06':'Jun','07':'Jul','08':'Ago','09':'Sep','10':'Oct','11':'Nov','12':'Dic'};
         etq=meses[p.substring(5)]||p.substring(5);
       }
-      ctx.fillStyle='#9999BB'; ctx.font='11px -apple-system,sans-serif'; ctx.textAlign='center';
+      ctx.fillStyle=tc.tick; ctx.font='11px -apple-system,sans-serif'; ctx.textAlign='center';
       ctx.fillText(etq, cx, H-PAD_B+14);
     }
 
     /* Ejes */
-    ctx.strokeStyle='#4A4A6A'; ctx.lineWidth=2; ctx.setLineDash([]);
+    ctx.strokeStyle=tc.axis; ctx.lineWidth=2; ctx.setLineDash([]);
     ctx.beginPath(); ctx.moveTo(PAD_L,PAD_T); ctx.lineTo(PAD_L,PAD_T+areaH); ctx.lineTo(PAD_L+areaW,PAD_T+areaH); ctx.stroke();
     ctx.lineWidth=1;
 
@@ -1348,6 +1366,8 @@ function toggleDark(el){
     document.querySelector('meta[name="theme-color"]').setAttribute('content','#3A82B5');
   }
   DB.saveSetting('dark_mode', isDark);
+  var grafCanvas=document.getElementById('graf-canvas');
+  if(grafCanvas&&document.getElementById('page-reportes').classList.contains('active')) renderGrafico();
 }
 
 function setUmbral(val,el){
