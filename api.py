@@ -373,18 +373,38 @@ def editar_cliente(cliente_id):
         return error
     d = request.get_json(silent=True) or {}
     try:
-        ok_result, msg = db.editar_cliente(
+        # Obtener el RUT actual del cliente para evitar falso UniqueViolation
+        # cuando el RUT no cambió
+        try:
+            from database import get_conn
+            conn = get_conn()
+            row = conn.execute(
+                "SELECT rut FROM clientes WHERE id=%s", (cliente_id,)
+            ).fetchone()
+            conn.close()
+            rut_actual = (row["rut"] if row else "") or ""
+        except Exception:
+            rut_actual = ""
+
+        rut_nuevo = (d.get("rut") or "").strip()
+        # Si el RUT no cambió, pasar el mismo valor (no genera UniqueViolation)
+        # Si cambió a vacío, pasar vacío (permitido por el índice parcial WHERE rut <> '')
+        rut_a_usar = rut_nuevo
+
+        resultado = db.editar_cliente(
             cliente_id = cliente_id,
             nombre     = d.get("nombre", ""),
-            rut        = d.get("rut", ""),
+            rut        = rut_a_usar,
             telefono   = d.get("telefono", ""),
             instagram  = d.get("instagram", ""),
             email      = d.get("email", ""),
             notas      = d.get("notas", ""),
         )
-        if not ok_result:
-            return err(msg or "Error al editar")
+        if resultado is None:
+            return err("Error al editar cliente")
         return ok()
+    except ValueError as e:
+        return err(str(e))
     except Exception as e:
         return err(str(e))
 
