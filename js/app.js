@@ -514,32 +514,55 @@ function renderClientes(clientes){
   s('c-total',String(clientes.length));
   s('c-deuda',String(clientes.filter(function(c){return c.saldo_pendiente>0;}).length));
   if(clientes.length===0){ cont.innerHTML='<p style="color:var(--t3);padding:12px 0">No se encontraron clientes</p>'; return; }
-  cont.innerHTML=clientes.map(function(c){
+  cont.innerHTML='';
+  clientes.forEach(function(c){
     var ini=(c.nombre||'?').split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
     var deuda=c.saldo_pendiente>0;
     var total=parseFloat(c.total_compras||c.total_comprado||0);
-    var rutTel = c.rut&&c.rut.trim()&&c.rut!=='0' ? c.rut : (c.telefono||'—');
-    var ordenes=(c.n_ventas||c.compras||0);
-    return '<div style="padding:10px 0;border-bottom:1px solid var(--bdr2)">'+
-      '<div style="display:flex;align-items:center;gap:10px">'+
-        '<div class="av '+(deuda?'av-gold':'')+'" style="width:38px;height:38px;font-size:var(--fs-sm);flex-shrink:0">'+ini+'</div>'+
-        '<div style="flex:1;min-width:0">'+
-          '<div class="rname">'+escHtml(c.nombre)+'</div>'+
-          '<div class="rsub">'+escHtml(rutTel)+'</div>'+
-        '</div>'+
-        '<div style="text-align:right;flex-shrink:0">'+
-          '<div class="rv '+(deuda?'va':total>0?'vg':'vt')+'" style="font-family:Georgia,serif;font-size:var(--fs)">'+fmt(total)+'</div>'+
-          '<div class="rv2">'+(deuda?'<span style="color:var(--red)">Debe '+fmt(c.saldo_pendiente)+'</span>':ordenes+' órdenes')+'</div>'+
-        '</div>'+
-      '</div>'+
-      '<div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end">'+
-        '<button onclick="verCliente('+c.id+')" style="background:rgba(91,164,207,.1);border:1px solid rgba(91,164,207,.3);border-radius:8px;padding:4px 10px;font-size:var(--fs-sm);font-weight:600;color:var(--p);cursor:pointer">👁 Ver</button>'+
-        '<button onclick="abrirEditarCliente('+c.id+')" style="background:rgba(91,164,207,.1);border:1px solid rgba(91,164,207,.3);border-radius:8px;padding:4px 10px;font-size:var(--fs-sm);font-weight:600;color:var(--p);cursor:pointer">✏ Editar</button>'+
-        '<button onclick="confirmarEliminarCliente('+c.id+',''+escHtml(c.nombre)+'')" style="background:rgba(232,68,90,.08);border:1px solid rgba(232,68,90,.3);border-radius:8px;padding:4px 10px;font-size:var(--fs-sm);font-weight:600;color:var(--red);cursor:pointer">🗑 Eliminar</button>'+
-      '</div>'+
-    '</div>';
-  }).join('');
+    var rutTel=c.rut&&c.rut.trim()&&c.rut!=='0'?c.rut:(c.telefono||'—');
+    var ordenes=c.n_ventas||c.compras||0;
+    var wrap=document.createElement('div');
+    wrap.style.cssText='padding:10px 0;border-bottom:1px solid var(--bdr2)';
+    /* Info row */
+    var info=document.createElement('div');
+    info.style.cssText='display:flex;align-items:center;gap:10px';
+    /* Avatar */
+    var av=document.createElement('div');
+    av.className='av '+(deuda?'av-gold':'');
+    av.style.cssText='width:38px;height:38px;font-size:var(--fs-sm);flex-shrink:0';
+    av.textContent=ini;
+    /* Text */
+    var txt=document.createElement('div');
+    txt.style.cssText='flex:1;min-width:0';
+    txt.innerHTML='<div class="rname">'+escHtml(c.nombre)+'</div><div class="rsub">'+escHtml(rutTel)+'</div>';
+    /* Total */
+    var tot=document.createElement('div');
+    tot.style.cssText='text-align:right;flex-shrink:0';
+    tot.innerHTML='<div class="rv '+(deuda?'va':total>0?'vg':'vt')+'" style="font-family:Georgia,serif">'+fmt(total)+'</div>'+
+      '<div class="rv2">'+(deuda?'<span style="color:var(--red)">Debe '+fmt(c.saldo_pendiente)+'</span>':ordenes+' órdenes')+'</div>';
+    info.appendChild(av); info.appendChild(txt); info.appendChild(tot);
+    /* Buttons row */
+    var btns=document.createElement('div');
+    btns.style.cssText='display:flex;gap:6px;margin-top:8px;justify-content:flex-end';
+    var bStyle='border-radius:8px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer;';
+    var bVer=document.createElement('button');
+    bVer.style.cssText=bStyle+'background:rgba(91,164,207,.1);border:1px solid rgba(91,164,207,.3);color:var(--p)';
+    bVer.textContent='👁 Ver';
+    bVer.addEventListener('click',function(){ verCliente(c.id); });
+    var bEdit=document.createElement('button');
+    bEdit.style.cssText=bStyle+'background:rgba(91,164,207,.1);border:1px solid rgba(91,164,207,.3);color:var(--p)';
+    bEdit.textContent='✏ Editar';
+    bEdit.addEventListener('click',function(){ abrirEditarCliente(c.id); });
+    var bDel=document.createElement('button');
+    bDel.style.cssText=bStyle+'background:rgba(232,68,90,.08);border:1px solid rgba(232,68,90,.3);color:var(--red)';
+    bDel.textContent='🗑 Eliminar';
+    bDel.addEventListener('click',function(){ confirmarEliminarCliente(c.id, c.nombre); });
+    btns.appendChild(bVer); btns.appendChild(bEdit); btns.appendChild(bDel);
+    wrap.appendChild(info); wrap.appendChild(btns);
+    cont.appendChild(wrap);
+  });
 }
+
 
 function verCliente(id){
   var c=APP.clientes.filter(function(x){return x.id===id;})[0];
@@ -594,8 +617,7 @@ function abrirEditarCliente(id){
 }
 
 function confirmarEliminarCliente(id, nombre){
-  if(!confirm('¿Eliminar a '+nombre+'?
-Esta acción no se puede deshacer.')) return;
+  if(!confirm('¿Eliminar cliente: '+nombre+'?')) return;
   DB.eliminarCliente(id, function(ok){
     if(ok){
       showToast('Cliente eliminado');
@@ -643,7 +665,8 @@ function renderPerfumes(perfumes){
   var b=document.getElementById('badge-alertas');
   if(b){ if(bajo+sin>0){b.textContent=bajo+sin;b.style.display='inline';}else{b.style.display='none';} }
   if(filtrados.length===0){ cont.innerHTML='<p style="color:var(--t3);padding:12px 0">No se encontraron perfumes</p>'; return; }
-  cont.innerHTML=filtrados.map(function(p){
+  cont.innerHTML='';
+  filtrados.forEach(function(p){
     var agotado=p.ml_disponibles<=0;
     var bajoP=!agotado&&p.ml_totales>0&&p.ml_disponibles/p.ml_totales<0.2;
     var icoBg=agotado?'rgba(232,68,90,.15)':bajoP?'rgba(240,192,96,.12)':'rgba(91,164,207,.12)';
@@ -651,25 +674,40 @@ function renderPerfumes(perfumes){
     var valC=agotado?'vr':bajoP?'va':'vg';
     var precios=p.precios||{};
     var precioStr=Object.keys(precios).length>0?fmt(Object.values(precios)[0])+'/'+Object.keys(precios)[0]:p.precio_botella?fmt(p.precio_botella)+' bot.':'—';
-    return '<div style="padding:10px 0;border-bottom:1px solid var(--bdr2)">'+
-      '<div style="display:flex;align-items:center;gap:10px">'+
-        '<div class="ri" style="background:'+icoBg+';color:'+icoC+';flex-shrink:0">'+p.nombre.charAt(0).toUpperCase()+'</div>'+
-        '<div style="flex:1;min-width:0">'+
-          '<div class="rname">'+escHtml(p.nombre)+'</div>'+
-          '<div class="rsub">'+escHtml(p.marca)+' · '+(p.tipo_venta==='botella'?'Botella':'Decant')+'</div>'+
-        '</div>'+
-        '<div style="text-align:right;flex-shrink:0">'+
-          '<div class="rv '+valC+'">'+Math.round(p.ml_disponibles)+' ml</div>'+
-          '<div class="rv2">'+precioStr+'</div>'+
-        '</div>'+
-      '</div>'+
-      '<div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end">'+
-        '<button onclick="abrirEditarPerfume('+p.id+')" style="background:rgba(91,164,207,.1);border:1px solid rgba(91,164,207,.3);border-radius:8px;padding:4px 10px;font-size:var(--fs-sm);font-weight:600;color:var(--p);cursor:pointer">✏ Editar</button>'+
-        '<button onclick="confirmarEliminarPerfume('+p.id+',''+escHtml(p.nombre)+'')" style="background:rgba(232,68,90,.08);border:1px solid rgba(232,68,90,.3);border-radius:8px;padding:4px 10px;font-size:var(--fs-sm);font-weight:600;color:var(--red);cursor:pointer">🗑 Eliminar</button>'+
-      '</div>'+
-    '</div>';
-  }).join('');
+    var wrap=document.createElement('div');
+    wrap.style.cssText='padding:10px 0;border-bottom:1px solid var(--bdr2)';
+    /* Info row */
+    var info=document.createElement('div');
+    info.style.cssText='display:flex;align-items:center;gap:10px';
+    var ri=document.createElement('div');
+    ri.className='ri';
+    ri.style.cssText='background:'+icoBg+';color:'+icoC+';flex-shrink:0';
+    ri.textContent=p.nombre.charAt(0).toUpperCase();
+    var txt=document.createElement('div');
+    txt.style.cssText='flex:1;min-width:0';
+    txt.innerHTML='<div class="rname">'+escHtml(p.nombre)+'</div><div class="rsub">'+escHtml(p.marca)+' · '+(p.tipo_venta==='botella'?'Botella':'Decant')+'</div>';
+    var tot=document.createElement('div');
+    tot.style.cssText='text-align:right;flex-shrink:0';
+    tot.innerHTML='<div class="rv '+valC+'">'+Math.round(p.ml_disponibles)+' ml</div><div class="rv2">'+precioStr+'</div>';
+    info.appendChild(ri); info.appendChild(txt); info.appendChild(tot);
+    /* Buttons */
+    var btns=document.createElement('div');
+    btns.style.cssText='display:flex;gap:6px;margin-top:8px;justify-content:flex-end';
+    var bStyle='border-radius:8px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer;';
+    var bEdit=document.createElement('button');
+    bEdit.style.cssText=bStyle+'background:rgba(91,164,207,.1);border:1px solid rgba(91,164,207,.3);color:var(--p)';
+    bEdit.textContent='✏ Editar';
+    bEdit.addEventListener('click',function(){ abrirEditarPerfume(p.id); });
+    var bDel=document.createElement('button');
+    bDel.style.cssText=bStyle+'background:rgba(232,68,90,.08);border:1px solid rgba(232,68,90,.3);color:var(--red)';
+    bDel.textContent='🗑 Eliminar';
+    bDel.addEventListener('click',function(){ confirmarEliminarPerfume(p.id, p.nombre); });
+    btns.appendChild(bEdit); btns.appendChild(bDel);
+    wrap.appendChild(info); wrap.appendChild(btns);
+    cont.appendChild(wrap);
+  });
 }
+
 
 function renderPerfumesCache(){ if(APP.perfumes.length>0) renderPerfumes(APP.perfumes); }
 
@@ -685,8 +723,7 @@ function loadPerfumes(q){
 
 /* ══ ELIMINAR PERFUME ════════════════════════════════════════ */
 function confirmarEliminarPerfume(id, nombre){
-  if(!confirm('¿Eliminar "'+nombre+'"?
-Esta acción no se puede deshacer.')) return;
+  if(!confirm('¿Eliminar perfume: '+nombre+'?')) return;
   DB.eliminarPerfume(id, function(ok){
     if(ok){
       showToast('Perfume eliminado');
