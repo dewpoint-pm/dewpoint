@@ -613,6 +613,8 @@ function abrirEditarCliente(id){
   document.getElementById('mc-notas').value=c.notas||'';
   /* Guardar id para la edición */
   APP._editClienteId=id;
+  _clearRutFeedback();
+  APP._editClienteId=null;
   document.getElementById('modal-cliente').classList.add('open');
 }
 
@@ -1212,10 +1214,60 @@ function abrirModalCliente(){
   document.getElementById('modal-cliente').classList.add('open');
 }
 
+/* ══ RUT HELPERS ══════════════════════════════════════════════ */
+function validarRut(rutClean) {
+  rutClean = rutClean.toUpperCase().replace(/[^0-9K]/g,'');
+  if (rutClean.length < 2) return false;
+  var body = rutClean.slice(0, -1);
+  var dv   = rutClean.slice(-1);
+  var suma = 0, mult = 2;
+  for (var i = body.length - 1; i >= 0; i--) {
+    suma += parseInt(body[i]) * mult;
+    mult = mult < 7 ? mult + 1 : 2;
+  }
+  var dvEsp = 11 - (suma % 11);
+  var dvStr = dvEsp === 11 ? '0' : dvEsp === 10 ? 'K' : String(dvEsp);
+  return dv === dvStr;
+}
+
+function formatRutInput(input) {
+  var raw = input.value.replace(/[^0-9kK]/g, '').toUpperCase();
+  if (raw.length === 0) { input.value = ''; _clearRutFeedback(); return; }
+  var dv   = raw.slice(-1);
+  var body = raw.slice(0, -1);
+  var fmt  = '';
+  for (var i = body.length - 1, j = 0; i >= 0; i--, j++) {
+    if (j > 0 && j % 3 === 0) fmt = '.' + fmt;
+    fmt = body[i] + fmt;
+  }
+  input.value = body.length > 0 ? fmt + '-' + dv : dv;
+  var feedEl = document.getElementById('rut-valid');
+  if (!feedEl) return;
+  if (raw.length > 3) {
+    var esValido = validarRut(raw);
+    feedEl.textContent = esValido ? '✓ RUT válido' : '✗ RUT inválido';
+    feedEl.style.color  = esValido ? 'var(--grn)' : 'var(--red)';
+    feedEl.style.display = 'block';
+  } else {
+    feedEl.textContent = '';
+    feedEl.style.display = 'none';
+  }
+}
+
+function _clearRutFeedback(){
+  var feedEl = document.getElementById('rut-valid');
+  if (feedEl) { feedEl.textContent=''; feedEl.style.display='none'; }
+}
+
 function guardarCliente(){
   var nombre=document.getElementById('mc-nombre').value.trim();
   if(!nombre){ showToast('El nombre es obligatorio'); return; }
-  DB.crearCliente({nombre:nombre,rut:document.getElementById('mc-rut').value,telefono:document.getElementById('mc-tel').value,instagram:document.getElementById('mc-ig').value,email:document.getElementById('mc-email').value,notas:document.getElementById('mc-notas').value}, function(ok,msg){
+  var rutVal = (document.getElementById('mc-rut').value||'').trim();
+  if(rutVal && rutVal.length > 3){
+    var rutClean = rutVal.replace(/\./g,'').replace(/-/g,'').toUpperCase();
+    if(!validarRut(rutClean)){ showToast('El RUT ingresado no es válido'); return; }
+  }
+  DB.crearCliente({nombre:nombre,rut:rutVal,telefono:document.getElementById('mc-tel').value,instagram:document.getElementById('mc-ig').value,email:document.getElementById('mc-email').value,notas:document.getElementById('mc-notas').value}, function(ok,msg){
     if(ok){ showToast('Cliente creado'); cerrarModal('modal-cliente'); delete _lastLoad['clientes']; loadClientes(); }
     else showToast('Error: '+(msg||'No se pudo crear'));
   });
