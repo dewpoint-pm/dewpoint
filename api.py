@@ -296,15 +296,35 @@ def get_clientes():
     q = request.args.get("q", "")
     try:
         clientes = db.get_clientes(query=q)
-        # Asegurar que los campos clave siempre estén presentes
+        # Calcular total_comprado sumando ventas reales por cliente
+        try:
+            from database import get_conn
+            conn = get_conn()
+            rows = conn.execute("""
+                SELECT cliente_id,
+                       COALESCE(SUM(total), 0) AS total_comprado,
+                       COUNT(id) AS n_ventas,
+                       COALESCE(SUM(CASE WHEN estado_pago IN ('Pendiente','Parcial') THEN total ELSE 0 END), 0) AS saldo_pendiente
+                FROM ventas
+                WHERE cliente_id IS NOT NULL
+                GROUP BY cliente_id
+            """).fetchall()
+            conn.close()
+            totales = {r['cliente_id']: dict(r) for r in rows}
+        except Exception:
+            totales = {}
+
         for c in clientes:
             c.setdefault("rut", "")
             c.setdefault("telefono", "")
             c.setdefault("instagram", "")
             c.setdefault("email", "")
-            c.setdefault("saldo_pendiente", 0)
-            c.setdefault("total_compras", c.get("total_comprado", 0))
-            c.setdefault("n_ventas", c.get("compras", 0))
+            info = totales.get(c.get("id"), {})
+            c["total_comprado"] = float(info.get("total_comprado", 0))
+            c["total_compras"]  = c["total_comprado"]
+            c["n_ventas"]       = int(info.get("n_ventas", c.get("compras", 0)))
+            c["compras"]        = c["n_ventas"]
+            c["saldo_pendiente"]= float(info.get("saldo_pendiente", 0))
         return ok({"clientes": clientes})
     except Exception as e:
         return err(str(e), 503)
