@@ -229,7 +229,17 @@ function onPerfumeSel(){
   var opt=sel&&sel.options[sel.selectedIndex];
   if(!opt||!opt.value){ resetPrecioSug(); return; }
   var stock=document.getElementById('lbl-stock');
-  if(stock) stock.textContent='Stock: '+Math.round(parseFloat(opt.dataset.ml||0))+' ml';
+  if(stock){
+    var mlDisp=parseFloat(opt.dataset.ml||0);
+    var formato=document.getElementById('sel-formato').value;
+    var mlFmt=parseFloat((formato||'').replace('ml','')||0);
+    var posibles=mlFmt>0?Math.floor(mlDisp/mlFmt):0;
+    if(APP.modo==='botella'){
+      stock.textContent='Stock: '+Math.round(mlDisp)+' ml';
+    } else {
+      stock.textContent='Stock: '+mlDisp.toFixed(1)+' ml ('+(posibles)+' posibles)';
+    }
+  }
   if(APP.modo==='botella'){
     var pb=parseInt(opt.dataset.precio_botella)||0;
     document.getElementById('lbl-precio-sug').textContent=pb?fmt(pb):'—';
@@ -250,6 +260,14 @@ function onFormatoSel(){
   document.getElementById('lbl-precio-sug').textContent=precio?fmt(precio):'—';
   document.getElementById('lbl-precio-sug').style.color=precio?'var(--p)':'var(--t3)';
   var inp=document.getElementById('inp-precio'); if(inp&&precio) inp.value=precio;
+  /* Update stock posibles */
+  var stock=document.getElementById('lbl-stock');
+  if(stock&&opt){
+    var mlDisp=parseFloat(opt.dataset.ml||0);
+    var mlFmt=parseFloat((formato||'').replace('ml','')||0);
+    var posibles=mlFmt>0?Math.floor(mlDisp/mlFmt):0;
+    stock.textContent='Stock: '+mlDisp.toFixed(1)+' ml ('+posibles+' posibles)';
+  }
   calcMargen();
 }
 
@@ -260,6 +278,16 @@ function resetPrecioSug(){
   var m=document.getElementById('lbl-margen'); if(m) m.textContent='';
 }
 
+function _getCostoPorMl(opt){
+  var costoPorMl=parseFloat(opt.dataset.costo)||0;
+  if(!costoPorMl){
+    var costoTotal=parseFloat(opt.dataset.costo_total)||0;
+    var mlTotales=parseFloat(opt.dataset.ml_totales)||parseFloat(opt.dataset.ml)||1;
+    costoPorMl = mlTotales>0 ? costoTotal/mlTotales : 0;
+  }
+  return costoPorMl;
+}
+
 function calcMargen(){
   var sel=document.getElementById('sel-perfume');
   var opt=sel&&sel.options[sel.selectedIndex];
@@ -267,33 +295,22 @@ function calcMargen(){
   var margenEl=document.getElementById('lbl-margen');
   if(!opt||!opt.value||!inp||!margenEl){ calcTotal(); return; }
 
-  var precio=parseInt(inp.value)||0;
+  var precio=parseInt(String(inp.value).replace(/\./g,''))||0;
   if(!precio){ margenEl.textContent=''; calcTotal(); return; }
 
-  /* Costo por ml — igual que app original */
-  var costoPorMl=parseFloat(opt.dataset.costo)||0;
-  var mlTotales=parseFloat(opt.dataset.ml_totales)||1;
-  var costoTotal=parseFloat(opt.dataset.costo_total)||0;
-  var tipoVenta=opt.dataset.tipo||'decants';
-
-  /* Si costo_por_ml no viene de la API, calcularlo */
-  if(!costoPorMl && costoTotal && mlTotales){
-    costoPorMl = costoTotal / mlTotales;
-  }
-
+  var costoPorMl=_getCostoPorMl(opt);
   var mlVenta=0;
   if(APP.modo==='botella'){
-    mlVenta = mlTotales;
+    mlVenta=parseFloat(opt.dataset.ml_totales)||parseFloat(opt.dataset.ml)||0;
   } else {
     var formato=document.getElementById('sel-formato').value;
-    mlVenta = parseFloat(formato)||0;
+    mlVenta=parseFloat((formato||'').replace('ml',''))||0;
   }
 
-  var costoLiquido = Math.round(costoPorMl * mlVenta);
-  var costoUnit = costoLiquido; /* sin recetas de insumos por ahora */
-  var utilidad = precio - costoUnit;
+  var costoUnit=Math.round(costoPorMl*mlVenta);
+  var utilidad=precio-costoUnit;
 
-  if(precio>0 && costoUnit>0){
+  if(precio>0&&costoUnit>0){
     var margenPct=((utilidad/precio)*100).toFixed(1);
     margenEl.textContent='Margen: $'+Math.round(utilidad).toLocaleString('es-CL')+'  ('+margenPct+'%)';
     margenEl.style.color=utilidad>=0?'var(--grn)':'var(--red)';
@@ -318,21 +335,24 @@ function calcTotal(){
   /* Calcular margen total del carrito */
   var costoTotal=APP.carrito.reduce(function(s,i){
     var costoPorMl=parseFloat(i._costo_por_ml)||0;
-    var ml=i.formato_ml?parseFloat(i.formato_ml):parseFloat(i._ml_totales)||1;
+    var ml=i.formato_ml?parseFloat(i.formato_ml.replace('ml','')||0):parseFloat(i._ml_totales)||1;
+    if(!ml||isNaN(ml)) ml = parseFloat(i._ml_totales)||1;
     var costo=Math.round(costoPorMl*ml)*i.cantidad;
     return s+costo;
   },0);
   var utilidadTotal=subtotal-costoTotal-descMonto;
-  var margenTotal=final>0&&costoTotal>0?((utilidadTotal/final)*100).toFixed(0):null;
-  if(descPct>0&&margenTotal!==null){
-    cm.textContent='Desc. -'+fmt(descMonto)+'  |  Margen '+margenTotal+'%';
-  } else if(margenTotal!==null){
-    cm.textContent='Margen '+margenTotal+'%';
+  var margenTotal=final>0&&costoTotal>0?((utilidadTotal/final)*100).toFixed(1):null;
+  /* Mostrar utilidad estimada como en el original */
+  if(margenTotal!==null){
+    var uStr='$'+Math.abs(Math.round(utilidadTotal)).toLocaleString('es-CL')+'  ('+margenTotal+'%)';
+    cm.textContent=(utilidadTotal>=0?'':'−')+uStr+(descPct>0?' · Desc. -'+fmt(descMonto):'');
     cm.style.color=utilidadTotal>=0?'var(--grn)':'var(--red)';
   } else if(descPct>0){
     cm.textContent='Desc. -'+fmt(descMonto);
+    cm.style.color='var(--t3)';
   } else {
     cm.textContent='—';
+    cm.style.color='var(--t3)';
   }
 }
 
@@ -355,7 +375,7 @@ function agregarAlCarrito(){
     es_botella_completa:APP.modo==='botella'?1:0,
     subtotal:cantidad*precio,
     _costo_por_ml:parseFloat(opt.dataset.costo)||0,
-    _ml_totales:parseFloat(opt.dataset.ml_totales)||0,
+    _ml_totales:parseFloat(opt.dataset.ml_totales)||parseFloat(opt.dataset.ml)||0,
     _costo_total:parseFloat(opt.dataset.costo_total)||0,
   };
   APP.carrito.push(item);
@@ -377,10 +397,19 @@ function renderCarrito(){
     return;
   }
   cont.innerHTML=APP.carrito.map(function(item,i){
+    var costoPorMl=parseFloat(item._costo_por_ml)||0;
+    var mlFmt=item.formato_ml?parseFloat(String(item.formato_ml).replace('ml','')):parseFloat(item._ml_totales)||0;
+    var costoUnit=Math.round(costoPorMl*mlFmt);
+    var util=item.precio_unit-costoUnit;
+    var utilPct=item.precio_unit>0&&costoUnit>0?((util/item.precio_unit)*100).toFixed(1):null;
+    var utilStr=utilPct!==null?
+      ' <span style="color:'+(util>=0?'var(--grn)':'var(--red)')+'">util. $'+Math.round(util).toLocaleString('es-CL')+' ('+utilPct+'%)</span>':'';
     return '<div class="ci">'+
-      '<div><div class="cin">'+escHtml(item.nombre)+' '+(item.formato_ml||'botella')+'</div>'+
-      '<div class="cid">'+fmt(item.precio_unit)+' × '+item.cantidad+'</div></div>'+
-      '<div style="display:flex;align-items:center;gap:8px">'+
+      '<div style="flex:1;min-width:0">'+
+        '<div class="cin">'+escHtml(item.nombre)+' '+(item.formato_ml||'botella')+'</div>'+
+        '<div class="cid">'+fmt(item.precio_unit)+' c/u'+utilStr+'</div>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'+
       '<div class="qc"><button class="qb" onclick="cambiarQty('+i+',-1)">−</button>'+
       '<span class="qn">'+item.cantidad+'</span>'+
       '<button class="qb" onclick="cambiarQty('+i+',1)">+</button></div>'+
