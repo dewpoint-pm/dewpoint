@@ -666,7 +666,9 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
     <div class="modal-handle"></div>
     <div class="modal-title" id="modal-cli-title">Nuevo cliente</div>
     <label class="fl">Nombre *</label><input class="fi" id="mc-nombre" placeholder="Nombre completo"/>
-    <label class="fl">RUT</label><input class="fi" id="mc-rut" placeholder="12.345.678-9"/>
+    <label class="fl">RUT</label>
+    <input class="fi" id="mc-rut" placeholder="12.345.678-9" oninput="formatRutInput(this)" autocomplete="off" style="margin-bottom:4px"/>
+    <div id="rut-valid" style="font-size:var(--fs-sm);font-weight:600;margin-bottom:var(--gap);display:none"></div>
     <label class="fl">Teléfono</label><input class="fi" id="mc-tel" placeholder="+56 9 1234 5678" type="tel"/>
     <label class="fl">Instagram</label><input class="fi" id="mc-ig" placeholder="@usuario"/>
     <label class="fl">Email</label><input class="fi" id="mc-email" placeholder="correo@ejemplo.com" type="email"/>
