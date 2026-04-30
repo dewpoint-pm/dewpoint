@@ -302,16 +302,16 @@ def get_clientes():
             conn = get_conn()
             rows = conn.execute("""
                 SELECT cliente_id,
-                       COALESCE(SUM(total), 0) AS total_comprado,
-                       COUNT(id) AS n_ventas,
-                       COALESCE(SUM(CASE WHEN estado_pago IN ('Pendiente','Parcial') THEN total ELSE 0 END), 0) AS saldo_pendiente
+                       COALESCE(SUM(total), 0)::float AS total_comprado,
+                       COUNT(id)::int AS n_ventas,
+                       COALESCE(SUM(CASE WHEN estado_pago IN ('Pendiente','Parcial') THEN total ELSE 0 END), 0)::float AS saldo_pendiente
                 FROM ventas
                 WHERE cliente_id IS NOT NULL
                 GROUP BY cliente_id
             """).fetchall()
             conn.close()
-            totales = {r['cliente_id']: dict(r) for r in rows}
-        except Exception:
+            totales = {int(dict(r)["cliente_id"]): dict(r) for r in rows}
+        except Exception as ex:
             totales = {}
 
         for c in clientes:
@@ -319,7 +319,7 @@ def get_clientes():
             c.setdefault("telefono", "")
             c.setdefault("instagram", "")
             c.setdefault("email", "")
-            info = totales.get(c.get("id"), {})
+            info = totales.get(int(c.get("id", 0)), {})
             c["total_comprado"] = float(info.get("total_comprado", 0))
             c["total_compras"]  = c["total_comprado"]
             c["n_ventas"]       = int(info.get("n_ventas", c.get("compras", 0)))
@@ -378,11 +378,9 @@ def editar_cliente(cliente_id):
         try:
             from database import get_conn
             conn = get_conn()
-            row = conn.execute(
-                "SELECT rut FROM clientes WHERE id=%s", (cliente_id,)
-            ).fetchone()
+            row = conn.execute("SELECT rut FROM clientes WHERE id=%s", (cliente_id,)).fetchone()
             conn.close()
-            rut_actual = (row["rut"] if row else "") or ""
+            rut_actual = (dict(row)["rut"] if row else "") or ""
         except Exception:
             rut_actual = ""
 
