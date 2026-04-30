@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -38,175 +39,195 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 #app{display:flex;flex-direction:column;width:100%;min-height:100vh;min-height:-webkit-fill-available;max-width:520px;margin:0 auto;background:var(--bg);position:relative}
 
 /* TOPBAR */
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px var(--pad);padding-top:calc(12px + env(safe-area-inset-top,0px));background:var(--bg2);border-bottom:1px solid var(--bdr2);flex-shrink:0;min-height:52px}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px var(–pad);padding-top:calc(12px + env(safe-area-inset-top,0px));background:var(–bg2);border-bottom:1px solid var(–bdr2);flex-shrink:0;min-height:52px}
 .tb-logo{display:flex;align-items:center;gap:10px}
-.logo-dot{width:32px;height:32px;border-radius:50%;background:var(--p2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
-.tb-title{font-size:var(--fs);font-weight:700;line-height:1.2}
-.tb-sub{font-size:var(--fs-sm);color:var(--t3)}
+.logo-dot{width:32px;height:32px;border-radius:50%;background:var(–p2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.tb-title{font-size:var(–fs);font-weight:700;line-height:1.2}
+.tb-sub{font-size:var(–fs-sm);color:var(–t3)}
 .tb-right{display:flex;align-items:center;gap:10px}
-.badge-n{background:var(--red);color:#fff;border-radius:10px;font-size:var(--fs-sm);font-weight:700;padding:2px 7px}
-.avatar{width:32px;height:32px;border-radius:50%;background:var(--p2);border:1.5px solid var(--p);display:flex;align-items:center;justify-content:center;font-size:var(--fs-sm);font-weight:700;color:var(--p)}
+.badge-n{background:var(–red);color:#fff;border-radius:10px;font-size:var(–fs-sm);font-weight:700;padding:2px 7px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(–p2);border:1.5px solid var(–p);display:flex;align-items:center;justify-content:center;font-size:var(–fs-sm);font-weight:700;color:var(–p)}
 
 /* CONTENT */
-.content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding-bottom:calc(var(--nav) + env(safe-area-inset-bottom,0px) + 8px);scrollbar-width:none}
+.content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding-bottom:calc(var(–nav) + env(safe-area-inset-bottom,0px) + 8px);scrollbar-width:none}
 .content::-webkit-scrollbar{display:none}
-.page{display:none;padding:var(--pad)}
+.page{display:none;padding:var(–pad)}
 .page.active{display:block}
 
 /* NAV */
-.nav{width:100%;height:calc(var(--nav) + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);background:var(--bg2);border-top:1px solid var(--bdr2);display:flex;align-items:center;justify-content:space-around;flex-shrink:0}
+.nav{width:100%;height:calc(var(–nav) + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);background:var(–bg2);border-top:1px solid var(–bdr2);display:flex;align-items:center;justify-content:space-around;flex-shrink:0}
 .ni{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;cursor:pointer;border-radius:10px;flex:1;min-width:0;user-select:none}
 .ni svg{width:20px;height:20px;display:block}
-.ni span{font-size:clamp(8px,2.3vw,10px);color:var(--t3);font-weight:500;white-space:nowrap}
+.ni span{font-size:clamp(8px,2.3vw,10px);color:var(–t3);font-weight:500;white-space:nowrap}
 .ni.active{background:rgba(91,164,207,0.12)}
-.ni.active span{color:var(--p)}
+.ni.active span{color:var(–p)}
 
 /* PAGE HEADER */
-.ph{margin-bottom:var(--pad)}
-.ph h2{font-size:var(--fs-xl);font-weight:700;font-family:Georgia,serif}
-.ph p{font-size:var(--fs-sm);color:var(--t3);margin-top:3px}
+.ph{margin-bottom:var(–pad)}
+.ph h2{font-size:var(–fs-xl);font-weight:700;font-family:Georgia,serif}
+.ph p{font-size:var(–fs-sm);color:var(–t3);margin-top:3px}
 
 /* CARDS */
-.card{background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r);padding:var(--pad);margin-bottom:var(--gap)}
-.ct{font-size:var(--fs-sm);font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--p);margin-bottom:var(--gap)}
+.card{background:var(–bg3);border:1px solid var(–bdr2);border-radius:var(–r);padding:var(–pad);margin-bottom:var(–gap)}
+.ct{font-size:var(–fs-sm);font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(–p);margin-bottom:var(–gap)}
 
 /* STAT GRID */
-.sg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap);margin-bottom:var(--pad)}
-.sc{background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;min-height:72px}
-.sc-lbl{font-size:var(--fs-sm);color:var(--t3);margin-bottom:6px;font-weight:500;letter-spacing:0.2px}
+.sg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(–gap);margin-bottom:var(–pad)}
+.sc{background:var(–bg3);border:1px solid var(–bdr2);border-radius:var(–r);padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;min-height:72px}
+.sc-lbl{font-size:var(–fs-sm);color:var(–t3);margin-bottom:6px;font-weight:500;letter-spacing:0.2px}
 .sc-val{font-size:clamp(16px,5vw,22px);font-weight:800;font-family:Georgia,serif;letter-spacing:-0.5px;line-height:1}
-.sc-sub{font-size:var(--fs-sm);color:var(--t3);margin-top:4px}
+.sc-sub{font-size:var(–fs-sm);color:var(–t3);margin-top:4px}
 
 /* ROWS */
 .lr{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .lr:last-child{border-bottom:none}
 .lr-l{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
-.ri{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:var(--fs-sm);font-weight:700;flex-shrink:0}
-.rname{font-size:var(--fs);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rsub{font-size:var(--fs-sm);color:var(--t3);margin-top:2px}
+.ri{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:var(–fs-sm);font-weight:700;flex-shrink:0}
+.rname{font-size:var(–fs);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rsub{font-size:var(–fs-sm);color:var(–t3);margin-top:2px}
 .lr-r{text-align:right;flex-shrink:0;margin-left:8px}
-.rv{font-size:var(--fs);font-weight:700;font-family:Georgia,serif}
-.rv2{font-size:var(--fs-sm);color:var(--t3)}
+.rv{font-size:var(–fs);font-weight:700;font-family:Georgia,serif}
+.rv2{font-size:var(–fs-sm);color:var(–t3)}
 
 /* CHIPS */
-.chip{display:inline-block;padding:3px 9px;border-radius:20px;font-size:var(--fs-sm);font-weight:600;white-space:nowrap}
-.cp{background:rgba(91,164,207,.15);color:var(--p)}
-.cg{background:rgba(76,175,130,.12);color:var(--grn)}
-.ca{background:rgba(240,192,96,.12);color:var(--gold)}
-.cr{background:rgba(232,68,90,.12);color:var(--red)}
-.cn{background:rgba(255,255,255,.07);color:var(--t3)}
-.cw{background:rgba(200,146,58,.12);color:var(--warn)}
-.chips-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:var(--gap)}
+.chip{display:inline-block;padding:3px 9px;border-radius:20px;font-size:var(–fs-sm);font-weight:600;white-space:nowrap}
+.cp{background:rgba(91,164,207,.15);color:var(–p)}
+.cg{background:rgba(76,175,130,.12);color:var(–grn)}
+.ca{background:rgba(240,192,96,.12);color:var(–gold)}
+.cr{background:rgba(232,68,90,.12);color:var(–red)}
+.cn{background:rgba(255,255,255,.07);color:var(–t3)}
+.cw{background:rgba(200,146,58,.12);color:var(–warn)}
+.chips-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:var(–gap)}
+
+/* LIGHT MODE CHIP */
+body.light .cn{background:rgba(0,0,0,.07);color:var(–t3)}
 
 /* COLORS */
-.vp{color:var(--p)}.vg{color:var(--grn)}.va{color:var(--gold)}.vr{color:var(--red)}.vw{color:var(--warn)}.vt{color:var(--t3)}
+.vp{color:var(–p)}.vg{color:var(–grn)}.va{color:var(–gold)}.vr{color:var(–red)}.vw{color:var(–warn)}.vt{color:var(–t3)}
 
 /* BUTTONS */
-.btn{border:none;cursor:pointer;border-radius:10px;font-weight:700;font-size:var(--fs);padding:12px var(--pad);width:100%;display:block;text-align:center;-webkit-appearance:none;transition:opacity .15s,transform .1s;margin-bottom:var(--gap);font-family:inherit}
+.btn{border:none;cursor:pointer;border-radius:10px;font-weight:700;font-size:var(–fs);padding:12px var(–pad);width:100%;display:block;text-align:center;-webkit-appearance:none;transition:opacity .15s,transform .1s;margin-bottom:var(–gap);font-family:inherit}
 .btn:active{transform:scale(.97);opacity:.85}
-.bp{background:var(--p);color:#fff}
-.bs{background:rgba(91,164,207,.12);color:var(--p);border:1px solid var(--p)}
-.bd{background:rgba(232,68,90,.1);color:var(--red);border:1px solid rgba(232,68,90,.3)}
-.btn-sm{padding:7px 12px;font-size:var(--fs-sm);width:auto;display:inline-block;margin-bottom:0}
+.bp{background:var(–p);color:#fff}
+.bs{background:rgba(91,164,207,.12);color:var(–p);border:1px solid var(–p)}
+.bd{background:rgba(232,68,90,.1);color:var(–red);border:1px solid rgba(232,68,90,.3)}
+.btn-sm{padding:7px 12px;font-size:var(–fs-sm);width:auto;display:inline-block;margin-bottom:0}
 
 /* FORMS */
-.fl{font-size:var(--fs-sm);color:var(--t3);margin-bottom:4px;font-weight:600;display:block}
-.fi{width:100%;background:var(--bg-in);border:1px solid var(--bdr2);border-radius:10px;padding:11px 13px;font-size:var(--fs);color:var(--t);outline:none;margin-bottom:var(--gap);-webkit-appearance:none;font-family:inherit}
-.fi:focus{border-color:var(--p)}
-.fi::placeholder{color:var(--t3)}
-.fr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap);margin-bottom:var(--gap)}
+.fl{font-size:var(–fs-sm);color:var(–t3);margin-bottom:4px;font-weight:600;display:block}
+.fi{width:100%;background:var(–bg-in);border:1px solid var(–bdr2);border-radius:10px;padding:11px 13px;font-size:var(–fs);color:var(–t);outline:none;margin-bottom:var(–gap);-webkit-appearance:none;font-family:inherit}
+.fi:focus{border-color:var(–p)}
+.fi::placeholder{color:var(–t3)}
+.fr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(–gap);margin-bottom:var(–gap)}
 .fr .fi{margin-bottom:0}
-.srch{position:relative;margin-bottom:var(--gap)}
-.srch input{width:100%;background:var(--bg-in);border:1px solid var(--bdr2);border-radius:10px;padding:11px 13px 11px 38px;font-size:var(--fs);color:var(--t);outline:none;-webkit-appearance:none;font-family:inherit}
-.srch input::placeholder{color:var(--t3)}
-.srch input:focus{border-color:var(--p)}
-.srch-ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--t3);pointer-events:none}
+.srch{position:relative;margin-bottom:var(–gap)}
+.srch input{width:100%;background:var(–bg-in);border:1px solid var(–bdr2);border-radius:10px;padding:11px 13px 11px 38px;font-size:var(–fs);color:var(–t);outline:none;-webkit-appearance:none;font-family:inherit}
+.srch input::placeholder{color:var(–t3)}
+.srch input:focus{border-color:var(–p)}
+.srch-ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(–t3);pointer-events:none}
 
 /* TOTAL BAR */
-.tb-total{background:rgba(91,164,207,.1);border:1px solid var(--p);border-radius:var(--r);padding:12px var(--pad);display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--gap)}
-.tbl{font-size:var(--fs-sm);color:var(--t3)}
-.tbv{font-size:clamp(18px,5.5vw,24px);font-weight:800;color:var(--p);font-family:Georgia,serif}
+.tb-total{background:rgba(91,164,207,.1);border:1px solid var(–p);border-radius:var(–r);padding:12px var(–pad);display:flex;align-items:center;justify-content:space-between;margin-bottom:var(–gap)}
+.tbl{font-size:var(–fs-sm);color:var(–t3)}
+.tbv{font-size:clamp(18px,5.5vw,24px);font-weight:800;color:var(–p);font-family:Georgia,serif}
 
 /* QTY */
 .ci{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .ci:last-child{border-bottom:none}
-.cin{font-size:var(--fs);font-weight:600}
-.cid{font-size:var(--fs-sm);color:var(--t3)}
-.cip{font-size:var(--fs);font-weight:700;color:var(--grn)}
+.cin{font-size:var(–fs);font-weight:600}
+.cid{font-size:var(–fs-sm);color:var(–t3)}
+.cip{font-size:var(–fs);font-weight:700;color:var(–grn)}
 .qc{display:flex;align-items:center;gap:8px}
-.qb{width:27px;height:27px;border-radius:8px;background:rgba(91,164,207,.15);border:none;color:var(--p);font-size:17px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.qn{font-size:var(--fs);font-weight:700;min-width:18px;text-align:center}
+.qb{width:27px;height:27px;border-radius:8px;background:rgba(91,164,207,.15);border:none;color:var(–p);font-size:17px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.qn{font-size:var(–fs);font-weight:700;min-width:18px;text-align:center}
 
 /* SEGMENTED */
-.seg-row{display:flex;gap:6px;background:var(--bg-in);border-radius:10px;padding:3px;margin-bottom:var(--gap)}
-.seg-btn{flex:1;padding:8px;border:none;background:transparent;color:var(--t3);font-size:var(--fs-sm);font-weight:600;border-radius:8px;cursor:pointer;transition:all .2s;font-family:inherit}
-.seg-btn.on{background:var(--p);color:#fff}
+.seg-row{display:flex;gap:6px;background:var(–bg-in);border-radius:10px;padding:3px;margin-bottom:var(–gap)}
+.seg-btn{flex:1;padding:8px;border:none;background:transparent;color:var(–t3);font-size:var(–fs-sm);font-weight:600;border-radius:8px;cursor:pointer;transition:all .2s;font-family:inherit}
+.seg-btn.on{background:var(–p);color:#fff}
 
-/* SWITCH */
-.sw-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+/* SWITCH — fix visibilidad en modo claro */
+.sw-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(–bdr2)}
 .sw-row:last-child{border-bottom:none}
-.sw-row h4{font-size:var(--fs);font-weight:500}
-.sw-row p{font-size:var(--fs-sm);color:var(--t3)}
+.sw-row h4{font-size:var(–fs);font-weight:500}
+.sw-row p{font-size:var(–fs-sm);color:var(–t3)}
 .tog{position:relative;width:46px;height:26px;flex-shrink:0}
-.tog input{opacity:0;width:0;height:0}
-.sl{position:absolute;inset:0;background:rgba(255,255,255,.14);border-radius:13px;cursor:pointer;transition:.28s}
-.sl:before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.28s}
-.tog input:checked+.sl{background:var(--p)}
+.tog input{opacity:0;width:0;height:0;position:absolute}
+.sl{position:absolute;inset:0;background:rgba(140,140,160,.35);border-radius:13px;cursor:pointer;transition:.28s;border:1.5px solid rgba(140,140,160,.25)}
+.sl:before{content:’’;position:absolute;width:20px;height:20px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.28s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.tog input:checked+.sl{background:var(–p);border-color:var(–p)}
 .tog input:checked+.sl:before{transform:translateX(20px)}
+body.light .sl{background:rgba(100,110,130,.25);border-color:rgba(100,110,130,.3)}
+body.light .tog input:checked+.sl{background:var(–p);border-color:var(–p)}
 
 /* MINI CHART */
-.mc{display:flex;align-items:flex-end;gap:4px;height:54px;margin:var(--gap) 0 4px}
+.mc{display:flex;align-items:flex-end;gap:4px;height:54px;margin:var(–gap) 0 4px}
 .bar{flex:1;border-radius:4px 4px 0 0;background:rgba(91,164,207,.2);min-width:0;transition:height .4s}
-.bar.on{background:var(--p)}
+.bar.on{background:var(–p)}
 .cl{display:flex;justify-content:space-between}
-.clb{font-size:var(--fs-sm);color:var(--t3);flex:1;text-align:center}
+.clb{font-size:var(–fs-sm);color:var(–t3);flex:1;text-align:center}
 
 /* AVATAR */
-.av{border-radius:50%;background:rgba(91,164,207,.15);border:1.5px solid var(--p);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--p);flex-shrink:0}
-.av-gold{background:rgba(240,192,96,.12);color:var(--gold);border-color:var(--gold)}
-.av-red{background:rgba(232,68,90,.1);color:var(--red);border-color:var(--red)}
+.av{border-radius:50%;background:rgba(91,164,207,.15);border:1.5px solid var(–p);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(–p);flex-shrink:0}
+.av-gold{background:rgba(240,192,96,.12);color:var(–gold);border-color:var(–gold)}
+.av-red{background:rgba(232,68,90,.1);color:var(–red);border-color:var(–red)}
 
 /* SPINNER */
-.spinner{width:30px;height:30px;border:3px solid rgba(91,164,207,.2);border-top-color:var(--p);border-radius:50%;animation:spin .7s linear infinite;margin:24px auto}
+.spinner{width:30px;height:30px;border:3px solid rgba(91,164,207,.2);border-top-color:var(–p);border-radius:50%;animation:spin .7s linear infinite;margin:24px auto}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* TOAST */
-#toast{cursor:pointer;position:fixed;bottom:calc(var(--nav) + env(safe-area-inset-bottom,0px) + 16px);left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg4);color:var(--t);border:1px solid var(--bdr2);padding:10px 20px;border-radius:20px;font-size:var(--fs-sm);font-weight:600;white-space:nowrap;z-index:9999;transition:transform .4s cubic-bezier(.175,.885,.32,1.275),opacity .3s ease;pointer-events:auto;max-width:90vw;text-align:center;opacity:0;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+#toast{cursor:pointer;position:fixed;bottom:calc(var(–nav) + env(safe-area-inset-bottom,0px) + 16px);left:50%;transform:translateX(-50%) translateY(100px);background:var(–bg4);color:var(–t);border:1px solid var(–bdr2);padding:10px 20px;border-radius:20px;font-size:var(–fs-sm);font-weight:600;white-space:nowrap;z-index:9999;transition:transform .4s cubic-bezier(.175,.885,.32,1.275),opacity .3s ease;pointer-events:auto;max-width:90vw;text-align:center;opacity:0;box-shadow:0 4px 20px rgba(0,0,0,.3)}
 #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 
 /* OFFLINE */
-#offline-banner{display:none;background:var(--red);color:#fff;font-size:var(--fs-sm);font-weight:700;text-align:center;padding:6px}
+#offline-banner{display:none;background:var(–red);color:#fff;font-size:var(–fs-sm);font-weight:700;text-align:center;padding:6px}
 #offline-banner.show{display:block}
 
 /* MORE MENU */
-#more-menu{display:none;position:absolute;bottom:calc(var(--nav) + env(safe-area-inset-bottom,0px) + 8px);right:var(--pad);background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r);padding:6px;z-index:200;min-width:170px}
-.mm-item{padding:11px 14px;cursor:pointer;border-radius:8px;font-size:var(--fs);color:var(--t)}
-.mm-item:active{background:var(--bg4)}
+#more-menu{display:none;position:absolute;bottom:calc(var(–nav) + env(safe-area-inset-bottom,0px) + 8px);right:var(–pad);background:var(–bg3);border:1px solid var(–bdr2);border-radius:var(–r);padding:6px;z-index:200;min-width:170px}
+.mm-item{padding:11px 14px;cursor:pointer;border-radius:8px;font-size:var(–fs);color:var(–t)}
+.mm-item:active{background:var(–bg4)}
 
 /* LOGIN */
-#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);z-index:300;min-height:100vh;min-height:-webkit-fill-available}
-.login-card{background:var(--bg3);border:1px solid var(--bdr2);border-radius:18px;padding:clamp(24px,7vw,40px) clamp(20px,6vw,36px);width:100%;max-width:360px}
-.login-logo{width:72px;height:72px;border-radius:50%;background:var(--p2);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff;margin:0 auto 14px}
-.login-title{font-size:var(--fs-xl);font-weight:800;text-align:center;font-family:Georgia,serif}
-.login-sub{font-size:var(--fs-sm);color:var(--pglow);text-align:center;margin:4px 0 20px}
-.login-div{height:2px;background:var(--p);border-radius:1px;margin-bottom:20px}
-.err{color:var(--red);font-size:var(--fs-sm);margin-top:6px;display:none}
+#login-screen{position:fixed;inset:0;background:var(–bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(–pad);z-index:300;min-height:100vh;min-height:-webkit-fill-available}
+.login-card{background:var(–bg3);border:1px solid var(–bdr2);border-radius:18px;padding:clamp(24px,7vw,40px) clamp(20px,6vw,36px);width:100%;max-width:360px}
+.login-logo{width:72px;height:72px;border-radius:50%;background:var(–p2);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff;margin:0 auto 14px}
+.login-title{font-size:var(–fs-xl);font-weight:800;text-align:center;font-family:Georgia,serif}
+.login-sub{font-size:var(–fs-sm);color:var(–pglow);text-align:center;margin:4px 0 20px}
+.login-div{height:2px;background:var(–p);border-radius:1px;margin-bottom:20px}
+.err{color:var(–red);font-size:var(–fs-sm);margin-top:6px;display:none}
 
 /* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;display:none;align-items:flex-end;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal-sheet{background:var(--bg3);border-radius:20px 20px 0 0;padding:var(--pad);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.modal-handle{width:40px;height:4px;background:var(--bdr2);border-radius:2px;margin:0 auto 16px}
-.modal-title{font-size:var(--fs-lg);font-weight:700;font-family:Georgia,serif;margin-bottom:var(--pad)}
+.modal-sheet{background:var(–bg3);border-radius:20px 20px 0 0;padding:var(–pad);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.modal-handle{width:40px;height:4px;background:var(–bdr2);border-radius:2px;margin:0 auto 16px}
+.modal-title{font-size:var(–fs-lg);font-weight:700;font-family:Georgia,serif;margin-bottom:var(–pad)}
 
 /* SECTION LABEL */
-.sec-lbl{font-size:var(--fs-sm);font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.6px;margin:12px 0 6px;display:flex;align-items:center;gap:8px}
-.sec-lbl::after{content:'';flex:1;height:1px;background:var(--p);opacity:.3}
+.sec-lbl{font-size:var(–fs-sm);font-weight:700;color:var(–p);text-transform:uppercase;letter-spacing:.6px;margin:12px 0 6px;display:flex;align-items:center;gap:8px}
+.sec-lbl::after{content:’’;flex:1;height:1px;background:var(–p);opacity:.3}
+
+/* ANONIMO BADGE */
+.anon-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(140,140,160,.12);border:1px dashed rgba(140,140,160,.3);border-radius:8px;padding:6px 12px;font-size:var(–fs-sm);color:var(–t3);margin-bottom:8px}
+
+/* PRECIO SUGERIDO BOX */
+.precio-sug-box{background:var(–bg-in);border:1px solid var(–bdr2);border-radius:10px;padding:10px 12px}
+.precio-sug-lbl{font-size:var(–fs-sm);color:var(–t3);margin-bottom:4px}
+.precio-sug-val{font-size:var(–fs-lg);font-weight:700;font-family:Georgia,serif;color:var(–t3)}
+.precio-sug-mg{font-size:var(–fs-sm);margin-top:3px;display:none}
 
 #install-btn{display:none!important;pointer-events:none!important}
 /* SECTION DIVIDER */
-.divider{height:1px;background:var(--bdr2);margin:var(--gap) 0}
+.divider{height:1px;background:var(–bdr2);margin:var(–gap) 0}
+
+/* LIGHT MODE ROWS */
+body.light .lr{border-bottom-color:rgba(0,0,0,.07)}
+body.light .ci{border-bottom-color:rgba(0,0,0,.07)}
+body.light .sw-row{border-bottom-color:rgba(0,0,0,.08)}
 </style>
+
 </head>
 <body>
 <div id="offline-banner">Sin conexión a internet</div>
@@ -214,6 +235,7 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 <div id="app">
 
 <!-- LOGIN -->
+
 <div id="login-screen">
   <div class="login-card">
     <div class="login-logo">DP</div>
@@ -232,6 +254,7 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 </div>
 
 <!-- TOPBAR -->
+
 <header class="topbar">
   <div class="tb-logo">
     <div class="logo-dot">DP</div>
@@ -244,34 +267,53 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 </header>
 
 <!-- CONTENT -->
+
 <main class="content">
 
 <!-- ════ NUEVA VENTA ════ -->
+
 <section class="page active" id="page-venta">
   <div class="ph"><h2>Nueva Venta</h2><p>Registra una venta rápida</p></div>
 
   <!-- Cliente -->
+
   <div class="card">
     <div class="ct">Cliente</div>
-    <div id="lbl-cliente" style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:8px">Sin cliente seleccionado</div>
-    <div class="srch" style="margin-bottom:8px">
-      <span class="srch-ic">👤</span>
-      <input type="search" id="e-cli" placeholder="Buscar nombre o RUT..." autocomplete="off"/>
-    </div>
-    <div id="cli-res" style="display:none"></div>
-    <div style="display:flex;gap:8px">
-      <button class="btn bs btn-sm" onclick="abrirModalCliente()">+ Nuevo cliente</button>
-      <button class="btn bd btn-sm" id="btn-quitar-cli" onclick="quitarCliente()" style="display:none">✕ Quitar</button>
-    </div>
+
+```
+<!-- Estado vacío (por defecto) -->
+<div id="empty-cli-msg" style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:8px;padding:6px 0">Sin cliente seleccionado</div>
+
+<!-- Badge cliente anónimo -->
+<div class="anon-badge" id="anon-badge" style="display:none">
+  👤 <span>Venta anónima — sin cliente registrado</span>
+</div>
+
+<div id="lbl-cliente" style="font-size:var(--fs-sm);color:var(--t);margin-bottom:8px;display:none;font-weight:600">—</div>
+
+<div class="srch" style="margin-bottom:8px">
+  <span class="srch-ic">🔍</span>
+  <input type="search" id="e-cli" placeholder="Buscar por nombre o RUT..." autocomplete="off"/>
+</div>
+<div id="cli-res" style="display:none;background:var(--bg3);border:1px solid var(--bdr2);border-radius:10px;margin-bottom:8px"></div>
+<div style="display:flex;gap:8px">
+  <button class="btn bs btn-sm" onclick="abrirModalCliente()">+ Nuevo cliente</button>
+  <button class="btn bs btn-sm" onclick="selClienteAnonimo()" style="color:var(--t3);border-color:rgba(140,140,160,.3)">👤 Anónimo</button>
+  <button class="btn bd btn-sm" id="btn-quitar-cli" onclick="quitarCliente()" style="display:none">✕ Quitar</button>
+</div>
+```
+
   </div>
 
   <!-- Modo decant/botella -->
-  <div class="seg-row" style="margin-bottom:var(--gap)">
+
+  <div class="seg-row">
     <button class="seg-btn on" id="seg-decant" onclick="setModo('decant')">Decant</button>
     <button class="seg-btn" id="seg-botella" onclick="setModo('botella')">Botella completa</button>
   </div>
 
   <!-- Agregar producto -->
+
   <div class="card">
     <div class="ct" id="lbl-modo-titulo">Agregar Decant</div>
     <label class="fl">Perfume</label>
@@ -295,9 +337,11 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
       </div>
     </div>
     <div class="fr">
-      <div style="background:var(--bg-in);border:1px solid var(--bdr2);border-radius:10px;padding:10px 12px">
-        <div style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:4px">Precio sugerido</div>
-        <div id="lbl-precio-sug" style="font-size:var(--fs-lg);font-weight:700;font-family:Georgia,serif;color:var(--t3)">—</div>
+      <!-- Precio sugerido + margen sugerido -->
+      <div class="precio-sug-box">
+        <div class="precio-sug-lbl">Precio sugerido</div>
+        <div id="lbl-precio-sug" class="precio-sug-val">—</div>
+        <div id="lbl-margen-sug" class="precio-sug-mg"></div>
       </div>
       <div>
         <label class="fl">Precio final ($)</label>
@@ -317,12 +361,14 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
   </div>
 
   <!-- Carrito -->
+
   <div class="card">
     <div class="ct" id="ct-carrito">Carrito (0 items)</div>
     <div id="carrito-items"><p style="color:var(--t3);font-size:var(--fs-sm)">Carrito vacío</p></div>
   </div>
 
   <!-- Pago -->
+
   <div class="card">
     <div class="ct">Pago y entrega</div>
     <div class="fr">
@@ -363,32 +409,32 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
     <input class="fi" id="inp-notas" type="text" placeholder="Notas adicionales..."/>
   </div>
 
-  <div class="tb-total" style="flex-direction:column;align-items:stretch;gap:6px">
-    <div style="display:flex;align-items:center;justify-content:space-between">
-      <div><div class="tbl">Total a pagar</div><div class="tbv" id="total-venta">$0</div></div>
+  <div class="tb-total">
+    <div>
+      <div class="tbl">Total a pagar</div>
+      <div class="tbv" id="total-venta">$0</div>
     </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--bdr2);padding-top:6px">
-      <span style="font-size:var(--fs-sm);color:var(--t3)">Utilidad estimada</span>
-      <span id="chip-margen-total" style="font-size:var(--fs-sm);font-weight:700;color:var(--t3)">—</span>
-    </div>
+    <span class="chip cg" id="chip-margen-total">Margen —</span>
   </div>
   <button class="btn bp" onclick="guardarVenta()">Guardar venta</button>
   <button class="btn bd" onclick="limpiarCarrito()">Limpiar carrito</button>
 </section>
 
 <!-- ════ CLIENTES ════ -->
+
 <section class="page" id="page-clientes">
   <div class="ph"><h2>Clientes</h2><p>Gestión de clientes</p></div>
   <div class="sg">
     <div class="sc"><div class="sc-lbl">Total clientes</div><div class="sc-val vp" id="c-total">—</div></div>
     <div class="sc"><div class="sc-lbl">Con deuda</div><div class="sc-val vr" id="c-deuda">—</div></div>
   </div>
-  <div class="srch"><span class="srch-ic">🔍</span><input type="search" id="buscar-cliente" placeholder="Buscar nombre o RUT..." oninput="loadClientes(this.value)"/></div>
+  <div class="srch"><span class="srch-ic">🔍</span><input type="search" id="buscar-cliente" placeholder="Buscar por nombre o RUT..." oninput="loadClientes(this.value)"/></div>
   <div class="card" id="lista-clientes"><div class="spinner"></div></div>
   <button class="btn bp" onclick="abrirModalCliente()">+ Nuevo cliente</button>
 </section>
 
 <!-- ════ PERFUMES ════ -->
+
 <section class="page" id="page-perfumes">
   <div class="ph"><h2>Perfumes</h2><p>Inventario de decants y botellas</p></div>
   <div class="sg">
@@ -408,6 +454,7 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 </section>
 
 <!-- ════ HISTORIAL ════ -->
+
 <section class="page" id="page-historial">
   <div class="ph"><h2>Historial</h2><p>Ventas registradas</p></div>
   <div class="chips-row">
@@ -421,10 +468,10 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 </section>
 
 <!-- ════ REPORTES ════ -->
+
 <section class="page" id="page-reportes">
   <div class="ph"><h2>Reportes</h2><p>Resumen del negocio</p></div>
 
-  <!-- FILTRO INDICADORES -->
   <div class="card">
     <div class="ct">Filtro indicadores</div>
     <div class="chips-row" id="preset-chips">
@@ -445,21 +492,18 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
     <div id="lbl-ind-periodo" style="font-size:var(--fs-sm);color:var(--p);font-weight:600">📅 Indicadores: Todo el tiempo</div>
   </div>
 
-  <!-- STAT CARDS — fila 1 -->
   <div class="sg">
     <div class="sc"><div class="sc-lbl">Ventas totales</div><div class="sc-val va" id="r-ventas">—</div></div>
     <div class="sc"><div class="sc-lbl">Órdenes</div><div class="sc-val vp" id="r-ordenes">—</div></div>
     <div class="sc"><div class="sc-lbl">Ticket promedio</div><div class="sc-val vp" id="r-ticket">—</div></div>
     <div class="sc"><div class="sc-lbl">Perfumes activos</div><div class="sc-val vg" id="r-perfumes">—</div></div>
   </div>
-  <!-- fila 2 -->
   <div class="sg">
     <div class="sc"><div class="sc-lbl">Utilidad neta</div><div class="sc-val vg" id="r-utilidad">—</div></div>
     <div class="sc"><div class="sc-lbl">Costo perfumes</div><div class="sc-val vt" id="r-costo-perf">—</div></div>
     <div class="sc"><div class="sc-lbl">Costo insumos</div><div class="sc-val vw" id="r-costo-ins">—</div></div>
     <div class="sc"><div class="sc-lbl">Margen promedio</div><div class="sc-val vg" id="r-margen">—</div></div>
   </div>
-  <!-- fila 3 -->
   <div class="sg">
     <div class="sc"><div class="sc-lbl">Por cobrar</div><div class="sc-val va" id="r-cobrar">—</div></div>
     <div class="sc"><div class="sc-lbl">Val. inv. insumos</div><div class="sc-val va" id="r-inv-ins">—</div></div>
@@ -467,7 +511,6 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
     <div class="sc"><div class="sc-lbl">Total insumos</div><div class="sc-val vp" id="r-ins-total">—</div></div>
   </div>
 
-  <!-- TOP PERFUMES + TOP CLIENTES -->
   <div class="card">
     <div class="ct">Top Perfumes</div>
     <div id="top-perfumes"><div class="spinner"></div></div>
@@ -477,32 +520,23 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
     <div id="top-clientes"><div class="spinner"></div></div>
   </div>
 
-  <!-- GRÁFICO CON SU PROPIO FILTRO -->
   <div class="card">
     <div class="ct">Evolución temporal</div>
-
-    <!-- Agrupación -->
     <div class="chips-row" id="agrup-chips" style="margin-bottom:6px">
       <span class="chip cn" onclick="setAgrup('dia',this)">Por día</span>
       <span class="chip cp" onclick="setAgrup('mes',this)">Por mes</span>
       <span class="chip cn" onclick="setAgrup('anio',this)">Por año</span>
     </div>
-
-    <!-- Serie -->
     <div class="chips-row" id="serie-chips" style="margin-bottom:6px">
       <span class="chip cp" onclick="setSerie('ambos',this)">Ambos</span>
       <span class="chip cn" onclick="setSerie('ventas',this)">Solo ventas</span>
       <span class="chip cn" onclick="setSerie('costos',this)">Solo costos</span>
     </div>
-
-    <!-- Categoría gráfico -->
     <div class="chips-row" id="cat-graf-chips" style="margin-bottom:6px">
       <span class="chip cp" onclick="setGrafCat('todos',this)">Todos</span>
       <span class="chip cn" onclick="setGrafCat('decants',this)">Decants</span>
       <span class="chip cn" onclick="setGrafCat('botella',this)">Botella completa</span>
     </div>
-
-    <!-- Filtro de fechas propio del gráfico -->
     <div style="background:var(--bg-in);border-radius:10px;padding:10px 12px;margin-bottom:8px">
       <div style="font-size:var(--fs-sm);color:var(--t3);font-weight:600;margin-bottom:6px">Período del gráfico</div>
       <div class="fr" style="margin-bottom:0">
@@ -510,21 +544,16 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
         <div><label class="fl">Hasta</label><input class="fi" type="date" id="graf-hasta" onchange="renderGrafico()" style="margin-bottom:0"/></div>
       </div>
     </div>
-
     <div id="lbl-graf-periodo" style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:8px">📈 Gráfico [Todos]: Todo el tiempo</div>
-
-    <!-- Canvas del gráfico -->
     <div id="graf-canvas-wrap" style="width:100%;overflow-x:auto;border-radius:8px;overflow:hidden">
       <canvas id="graf-canvas" style="display:block;width:100%;min-height:200px"></canvas>
     </div>
-    <!-- Leyenda debajo -->
     <div id="graf-legend" style="display:flex;gap:16px;margin-top:10px;justify-content:center;font-size:var(--fs-sm);color:var(--t2)"></div>
-
   </div>
 </section>
 
-
 <!-- ════ INSUMOS ════ -->
+
 <section class="page" id="page-insumos">
   <div class="ph"><h2>Insumos</h2><p>Packaging y materiales</p></div>
   <div class="sg">
@@ -539,6 +568,7 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 </section>
 
 <!-- ════ COSTOS ════ -->
+
 <section class="page" id="page-costos">
   <div class="ph"><h2>Costos</h2><p>Análisis de costos por perfume</p></div>
   <div class="chips-row">
@@ -568,18 +598,49 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 </section>
 
 <!-- ════ CONFIGURACIÓN ════ -->
+
 <section class="page" id="page-config">
   <div class="ph"><h2>Configuración</h2><p>Preferencias del sistema</p></div>
   <div class="card">
     <div class="ct">Interfaz</div>
     <div class="sec-lbl">Apariencia</div>
-    <div class="sw-row"><div><h4>Modo oscuro</h4><p>Cambia el tema de la aplicación</p></div><label class="tog"><input type="checkbox" id="sw-dark" checked onchange="toggleDark(this)"><span class="sl"></span></label></div>
+    <div class="sw-row">
+      <div><h4>Modo oscuro</h4><p>Cambia el tema de la aplicación</p></div>
+      <label class="tog">
+        <input type="checkbox" id="sw-dark" checked onchange="toggleDark(this)">
+        <span class="sl"></span>
+      </label>
+    </div>
     <div class="sec-lbl">Operaciones</div>
-    <div class="sw-row"><div><h4>Confirmar antes de guardar</h4><p>Pide confirmación al registrar ventas</p></div><label class="tog"><input type="checkbox" id="sw-confirm" checked onchange="DB.saveSetting('confirm_save',this.checked)"><span class="sl"></span></label></div>
-    <div class="sw-row"><div><h4>Limpiar carrito tras venta</h4><p>Resetea el carrito automáticamente</p></div><label class="tog"><input type="checkbox" id="sw-auto-clear" checked onchange="DB.saveSetting('auto_clear',this.checked)"><span class="sl"></span></label></div>
+    <div class="sw-row">
+      <div><h4>Confirmar antes de guardar</h4><p>Pide confirmación al registrar ventas</p></div>
+      <label class="tog">
+        <input type="checkbox" id="sw-confirm" checked onchange="DB.saveSetting('confirm_save',this.checked)">
+        <span class="sl"></span>
+      </label>
+    </div>
+    <div class="sw-row">
+      <div><h4>Limpiar carrito tras venta</h4><p>Resetea el carrito automáticamente</p></div>
+      <label class="tog">
+        <input type="checkbox" id="sw-auto-clear" checked onchange="DB.saveSetting('auto_clear',this.checked)">
+        <span class="sl"></span>
+      </label>
+    </div>
     <div class="sec-lbl">Notificaciones</div>
-    <div class="sw-row"><div><h4>Alertas de stock bajo</h4><p>Avisa cuando un perfume tiene &lt;20% de ml</p></div><label class="tog"><input type="checkbox" id="sw-stock-alert" checked onchange="DB.saveSetting('stock_alert',this.checked)"><span class="sl"></span></label></div>
-    <div class="sw-row"><div><h4>Alerta de ventas pendientes</h4><p>Avisa si hay ventas sin cobrar</p></div><label class="tog"><input type="checkbox" id="sw-pending-alert" checked onchange="DB.saveSetting('pending_alert',this.checked)"><span class="sl"></span></label></div>
+    <div class="sw-row">
+      <div><h4>Alertas de stock bajo</h4><p>Avisa cuando un perfume tiene &lt;20% de ml</p></div>
+      <label class="tog">
+        <input type="checkbox" id="sw-stock-alert" checked onchange="DB.saveSetting('stock_alert',this.checked)">
+        <span class="sl"></span>
+      </label>
+    </div>
+    <div class="sw-row">
+      <div><h4>Alerta de ventas pendientes</h4><p>Avisa si hay ventas sin cobrar</p></div>
+      <label class="tog">
+        <input type="checkbox" id="sw-pending-alert" checked onchange="DB.saveSetting('pending_alert',this.checked)">
+        <span class="sl"></span>
+      </label>
+    </div>
   </div>
   <div class="card">
     <div class="ct">Stock</div>
@@ -612,6 +673,7 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 </main>
 
 <!-- NAV -->
+
 <nav class="nav">
   <div class="ni active" id="ni-venta" onclick="navigate('venta',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="var(--p)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
@@ -636,6 +698,7 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 </nav>
 
 <!-- MORE MENU -->
+
 <div id="more-menu">
   <div class="mm-item" onclick="navigate('historial');closeMore()">📋 Historial</div>
   <div class="mm-item" onclick="navigate('insumos');closeMore()">📦 Insumos</div>
@@ -647,22 +710,57 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 
 <div id="toast"></div>
 
+<!-- ════ MODAL CLIENTE ════ -->
 
-<!-- MODALS -->
 <div class="modal-overlay" id="modal-cliente">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title" id="modal-cli-title">Nuevo cliente</div>
-    <label class="fl">Nombre *</label><input class="fi" id="mc-nombre" placeholder="Nombre completo"/>
-    <label class="fl">RUT</label><input class="fi" id="mc-rut" placeholder="12.345.678-9"/>
-    <label class="fl">Teléfono</label><input class="fi" id="mc-tel" placeholder="+56 9 1234 5678" type="tel"/>
-    <label class="fl">Instagram</label><input class="fi" id="mc-ig" placeholder="@usuario"/>
-    <label class="fl">Email</label><input class="fi" id="mc-email" placeholder="correo@ejemplo.com" type="email"/>
-    <label class="fl">Notas</label><input class="fi" id="mc-notas" placeholder="Notas adicionales..."/>
-    <button class="btn bp" onclick="guardarCliente()">Guardar cliente</button>
-    <button class="btn bd" onclick="cerrarModal('modal-cliente')">Cancelar</button>
+
+```
+<!-- Nombre y Apellido -->
+<div class="fr">
+  <div>
+    <label class="fl">Nombre <span style="color:var(--red)">*</span></label>
+    <input class="fi" id="mc-nombre" placeholder="Nombre" style="margin-bottom:0"/>
+  </div>
+  <div>
+    <label class="fl">Apellido <span style="color:var(--red)">*</span></label>
+    <input class="fi" id="mc-apellido" placeholder="Apellido" style="margin-bottom:0"/>
   </div>
 </div>
+<div style="height:var(--gap)"></div>
+
+<!-- RUT con validación automática -->
+<label class="fl">RUT</label>
+<input class="fi" id="mc-rut" placeholder="12.345.678-9" oninput="formatRutInput(this)" autocomplete="off" style="margin-bottom:4px"/>
+<div id="rut-valid" style="font-size:var(--fs-sm);font-weight:600;margin-bottom:var(--gap);display:none"></div>
+
+<!-- Teléfono solo números -->
+<label class="fl">Teléfono</label>
+<input class="fi" id="mc-tel" placeholder="+56 9 1234 5678" type="tel" inputmode="tel" oninput="soloNumerosTel(this)"/>
+
+<label class="fl">Instagram</label>
+<input class="fi" id="mc-ig" placeholder="@usuario"/>
+
+<label class="fl">Correo <span style="color:var(--red)">*</span></label>
+<input class="fi" id="mc-email" placeholder="correo@ejemplo.com" type="email" inputmode="email"/>
+
+<label class="fl">Notas</label>
+<input class="fi" id="mc-notas" placeholder="Notas adicionales..."/>
+
+<p style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:var(--gap)">
+  <span style="color:var(--red)">*</span> Campos obligatorios
+</p>
+
+<button class="btn bp" onclick="guardarCliente()">Guardar cliente</button>
+<button class="btn bd" onclick="cerrarModal('modal-cliente')">Cancelar</button>
+```
+
+  </div>
+</div>
+
+<!-- ════ MODAL PERFUME ════ -->
 
 <div class="modal-overlay" id="modal-perfume">
   <div class="modal-sheet">
@@ -677,7 +775,6 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
         <select class="fi" id="mp-tipo" onchange="onTipoPerfumeChange()">
           <option value="decants">Decants</option>
           <option value="botella">Botella completa</option>
-          <option value="parcial">Ambos</option>
         </select>
       </div>
     </div>
@@ -702,6 +799,8 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
     <button class="btn bd" onclick="cerrarModal('modal-perfume')">Cancelar</button>
   </div>
 </div>
+
+<!-- ════ MODAL INSUMO ════ -->
 
 <div class="modal-overlay" id="modal-insumo">
   <div class="modal-sheet">
@@ -733,6 +832,49 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
   </div>
 </div>
 
+<!-- ════ MODAL EDITAR PERFUME ════ -->
+
+<div class="modal-overlay" id="modal-editar-perfume">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Editar perfume</div>
+    <input type="hidden" id="ep-id"/>
+    <label class="fl">Nombre *</label><input class="fi" id="ep-nombre" placeholder="Nombre del perfume"/>
+    <label class="fl">Marca *</label><input class="fi" id="ep-marca" placeholder="Marca"/>
+    <div class="fr">
+      <div><label class="fl">ml totales</label><input class="fi" id="ep-ml" type="number" placeholder="100" inputmode="numeric"/></div>
+      <div>
+        <label class="fl">Tipo de venta</label>
+        <select class="fi" id="ep-tipo" onchange="onTipoPerfumeEditChange()">
+          <option value="decants">Decants</option>
+          <option value="botella">Botella completa</option>
+        </select>
+      </div>
+    </div>
+    <label class="fl">Costo total con IVA ($)</label>
+    <input class="fi" id="ep-costo" type="number" placeholder="0" inputmode="numeric"/>
+    <div id="ep-precios-decant">
+      <div class="ct">Precios de venta por formato</div>
+      <div class="fr">
+        <div><label class="fl">2ml ($)</label><input class="fi" id="ep-p2" type="number" placeholder="0" inputmode="numeric"/></div>
+        <div><label class="fl">3ml ($)</label><input class="fi" id="ep-p3" type="number" placeholder="0" inputmode="numeric"/></div>
+      </div>
+      <div class="fr">
+        <div><label class="fl">5ml ($)</label><input class="fi" id="ep-p5" type="number" placeholder="0" inputmode="numeric"/></div>
+        <div><label class="fl">10ml ($)</label><input class="fi" id="ep-p10" type="number" placeholder="0" inputmode="numeric"/></div>
+      </div>
+    </div>
+    <div id="ep-precio-botella" style="display:none">
+      <label class="fl">Precio botella completa ($)</label>
+      <input class="fi" id="ep-pbotella" type="number" placeholder="0" inputmode="numeric"/>
+    </div>
+    <button class="btn bp" onclick="guardarEditarPerfume()">Guardar cambios</button>
+    <button class="btn bd" onclick="cerrarModal('modal-editar-perfume')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ════ MODAL DETALLE VENTA ════ -->
+
 <div class="modal-overlay" id="modal-detalle-venta">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
@@ -743,6 +885,61 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 </div>
 
 <script src="js/db.js"></script>
+
 <script src="js/app.js"></script>
+
+<!-- Parche: manejo de estados del selector de cliente -->
+
+<script>
+(function(){
+  var _origSel = window.selCliente;
+
+  /* Seleccionar cliente real */
+  window.selCliente = function(id, nombre){
+    _origSel(id, nombre);
+    APP.clienteAnonimo = false;
+    document.getElementById('empty-cli-msg').style.display = 'none';
+    document.getElementById('anon-badge').style.display = 'none';
+    var lbl = document.getElementById('lbl-cliente');
+    lbl.textContent = nombre;
+    lbl.style.color = 'var(--t)';
+    lbl.style.display = 'block';
+    document.getElementById('btn-quitar-cli').style.display = 'inline-block';
+  };
+
+  /* Seleccionar anónimo */
+  window.selClienteAnonimo = function(){
+    APP.clienteSel = null;
+    APP.clienteAnonimo = true;
+    document.getElementById('empty-cli-msg').style.display = 'none';
+    document.getElementById('anon-badge').style.display = 'flex';
+    document.getElementById('lbl-cliente').style.display = 'none';
+    document.getElementById('btn-quitar-cli').style.display = 'inline-block';
+  };
+
+  /* Quitar cliente → vuelve a estado vacío */
+  window.quitarCliente = function(){
+    APP.clienteSel = null;
+    APP.clienteAnonimo = false;
+    document.getElementById('empty-cli-msg').style.display = 'block';
+    document.getElementById('anon-badge').style.display = 'none';
+    document.getElementById('lbl-cliente').style.display = 'none';
+    document.getElementById('btn-quitar-cli').style.display = 'none';
+  };
+
+  /* Reset completo tras guardar venta */
+  window.resetCliente = function(){
+    APP.clienteSel = null;
+    APP.clienteAnonimo = false;
+    document.getElementById('empty-cli-msg').style.display = 'block';
+    document.getElementById('anon-badge').style.display = 'none';
+    document.getElementById('lbl-cliente').style.display = 'none';
+    document.getElementById('btn-quitar-cli').style.display = 'none';
+    var eCli = document.getElementById('e-cli');
+    if(eCli) eCli.value = '';
+  };
+})();
+</script>
+
 </body>
 </html>
