@@ -235,7 +235,7 @@ def editar_perfume(perfume_id):
         return error
     d = request.get_json(silent=True) or {}
     try:
-        ok_result, msg = db.editar_perfume(
+        resultado = db.editar_perfume(
             perfume_id   = perfume_id,
             nombre       = d.get("nombre", ""),
             marca        = d.get("marca", ""),
@@ -246,8 +246,14 @@ def editar_perfume(perfume_id):
             tipo_venta   = d.get("tipo_venta", "decants"),
             ml_disponibles = d.get("ml_disponibles"),
         )
-        if not ok_result:
-            return err(msg or "Error al editar")
+        # db.editar_perfume puede retornar (ok, msg) o la fila/dict del perfume actualizado
+        if isinstance(resultado, tuple) and len(resultado) == 2:
+            ok_result, msg = resultado
+            if not ok_result:
+                return err(msg or "Error al editar")
+        elif resultado is None or resultado is False:
+            return err("Error al editar perfume")
+        # Si retorna dict/Row (la fila del perfume), la edicion fue exitosa
         return ok()
     except Exception as e:
         return err(str(e))
