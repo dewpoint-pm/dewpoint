@@ -180,6 +180,11 @@ def get_perfumes():
     solo_activos = request.args.get("activos", "true").lower() != "false"
     try:
         perfumes = db.get_perfumes(query=q, solo_activos=solo_activos)
+        # Agregar costo_por_ml calculado para el frontend
+        for p in perfumes:
+            ml = float(p.get("ml_totales") or 1)
+            costo = float(p.get("costo_total") or 0)
+            p["costo_por_ml"] = round(costo / ml, 4) if ml > 0 else 0
         return ok({"perfumes": perfumes})
     except Exception as e:
         return err(str(e), 503)
