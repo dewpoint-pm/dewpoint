@@ -279,7 +279,7 @@ def _parse_dsn_kwargs(dsn: str) -> dict:
     sslmode  = (qp.get("sslmode") or [None])[0]
     if sslmode is None:
         _CLOUD = (
-            "supabase.co", "supabase.com",   # <-- agregado supabase.com (nuevo pooler)
+            "supabase.co", "supabase.com",
             "neon.tech", "railway.app",
             "render.com", "amazonaws.com", "azure.com",
         )
@@ -290,15 +290,10 @@ def _parse_dsn_kwargs(dsn: str) -> dict:
         user=user, password=password,
         cursor_factory=psycopg2.extras.RealDictCursor,
         client_encoding="utf8",
-        connect_timeout=15,   # <-- evita que la app se congele indefinidamente
+        connect_timeout=15,
     )
     if sslmode:
         kwargs["sslmode"] = sslmode
-        # TCP keepalives: el OS detecta conexiones muertas y las cierra antes
-        # de que el pool las entregue como "disponibles".
-        # keepalives_idle=60 → envía un probe a los 60s de inactividad.
-        # keepalives_interval/count son ignorados silenciosamente en Windows
-        # si libpq no los soporta, por lo que es seguro incluirlos siempre.
         kwargs.update(
             keepalives=1,
             keepalives_idle=60,
@@ -320,7 +315,6 @@ def _get_pool(dsn: str) -> psycopg2.pool.ThreadedConnectionPool:
                 )
             except psycopg2.OperationalError as e:
                 msg = str(e)
-                # Diagnóstico amigable según tipo de fallo de red
                 if "could not translate host name" in msg or "Name or service not known" in msg:
                     raise psycopg2.OperationalError(
                         "Sin conexión a internet.\n"
@@ -331,7 +325,7 @@ def _get_pool(dsn: str) -> psycopg2.pool.ThreadedConnectionPool:
                         "No se pudo conectar al servidor.\n"
                         "Verifica tu conexión a internet e intenta de nuevo."
                     ) from e
-                raise  # cualquier otro error de psycopg2, re-lanzar sin cambios
+                raise
         return _pools[dsn]
 
 
@@ -347,7 +341,7 @@ def close_all_pools() -> None:
             except Exception:
                 pass
         _pools.clear()
-    _cache_invalidate()   # limpiar caché al cerrar sesión
+    _cache_invalidate()
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -357,9 +351,8 @@ def set_active_conn_url(url: str) -> None:
     """Establece la URL de conexión del tenant que acaba de iniciar sesión."""
     global _active_conn_url
     _active_conn_url = url
-    _cache_invalidate()   # nueva sesión → caché del tenant anterior no aplica
+    _cache_invalidate()
 
-# Alias de retrocompatibilidad – muestra el host sin exponer contraseña
 @property
 def _db_path_compat():
     url = _active_conn_url or MASTER_DB_URL
@@ -370,7 +363,6 @@ def _db_path_compat():
     except Exception:
         return url
 
-# Atributo de módulo para mantener compatibilidad con main.py legacy
 class _ModuleCompat:
     """Permite que `db.DB_PATH` funcione aunque database.py ya no use SQLite."""
     def __getattr__(self, name):
@@ -389,7 +381,6 @@ _sys.modules[__name__].__class__ = type(
     "database", (_ModuleCompat, type(_sys.modules[__name__])), {}
 )
 
-# Alias de retrocompatibilidad
 def set_active_db(url: str) -> None:
     set_active_conn_url(url)
 
@@ -399,8 +390,6 @@ def get_active_conn_url() -> str | None:
 
 # ════════════════════════════════════════════════════════════════════════════
 #  HASHING DE CONTRASEÑAS  (bcrypt con salt automático)
-#  Reemplaza el SHA-256 sin salt anterior. La función verify_password
-#  detecta y migra automáticamente hashes SHA-256 legacy a bcrypt.
 # ════════════════════════════════════════════════════════════════════════════
 def hash_password(password: str) -> str:
     """Genera hash bcrypt seguro. Lento por diseño (rounds=12 ≈ 250ms)."""
@@ -411,7 +400,6 @@ def _verify_password(password: str, stored_hash: str) -> bool:
     """Verifica contraseña. Detecta bcrypt y SHA-256 legacy."""
     if stored_hash.startswith('$2b$') or stored_hash.startswith('$2a$'):
         return bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8'))
-    # Hash SHA-256 legacy (sin salt) — solo para migración
     return hashlib.sha256(password.encode()).hexdigest() == stored_hash
 
 
@@ -423,12 +411,6 @@ class _PgConn:
     Wrapper sobre psycopg2 que toma/devuelve conexiones de un ThreadedConnectionPool.
     API idéntica a la versión anterior: execute(), executemany(), commit(),
     rollback(), close(), cursor().
-
-    Diferencia clave:
-      · __init__  → toma una conexión del pool (sin TCP/TLS si ya existe)
-      · close()   → DEVUELVE la conexión al pool (no la cierra físicamente)
-      · __exit__  → en caso de error, descarta la conexión (close=True)
-                    para evitar reutilizar un estado transaccional roto.
     """
 
     def __init__(self, dsn: str):
@@ -437,8 +419,6 @@ class _PgConn:
         try:
             self._conn = self._pool.getconn()
         except psycopg2.pool.PoolError:
-            # Pool exhausto: todas las conexiones están en uso (no necesariamente muertas).
-            # Reintentar con backoff progresivo antes de recrear el pool.
             import time as _time
             _connected = False
             for _attempt in range(5):
@@ -450,7 +430,6 @@ class _PgConn:
                 except psycopg2.pool.PoolError:
                     pass
             if not _connected:
-                # Último recurso: recrear solo si este pool sigue siendo el activo.
                 with _pool_lock:
                     if self._dsn in _pools and _pools[self._dsn] is self._pool:
                         try:
@@ -462,7 +441,6 @@ class _PgConn:
                 self._conn = self._pool.getconn()
 
     def _is_stale_error(self, exc: psycopg2.OperationalError) -> bool:
-        """Retorna True si el error indica una conexión muerta (reconectable)."""
         pgcode = getattr(exc, "pgcode", None) or ""
         msg    = str(exc).lower()
         return pgcode in _STALE_CONN_ERRCODES or any(
@@ -470,7 +448,6 @@ class _PgConn:
         )
 
     def _discard_and_reconnect(self) -> None:
-        """Descarta la conexión muerta del pool y obtiene una nueva."""
         try:
             self._pool.putconn(self._conn, close=True)
         except Exception:
@@ -478,8 +455,6 @@ class _PgConn:
         try:
             self._conn = self._pool.getconn()
         except psycopg2.pool.PoolError:
-            # Pool exhausto tras descartar conexión muerta.
-            # Recrear solo si este pool sigue siendo el activo.
             with _pool_lock:
                 if self._dsn in _pools and _pools[self._dsn] is self._pool:
                     try:
@@ -498,7 +473,6 @@ class _PgConn:
         except psycopg2.OperationalError as e:
             if not self._is_stale_error(e):
                 raise
-            # Conexión muerta: reintentar UNA vez con una conexión nueva.
             self._discard_and_reconnect()
             cur = self._conn.cursor()
             cur.execute(sql, params if params else None)
@@ -542,7 +516,6 @@ class _PgConn:
                 self.rollback()
             except Exception:
                 pass
-            # Descarta la conexión en error para no reutilizar estado roto
             try:
                 self._pool.putconn(self._conn, close=True)
             except Exception:
@@ -589,8 +562,6 @@ def init_master_db() -> None:
     """
     Crea la tabla `usuarios` en la master DB si no existe.
     Aplica migraciones de columnas (safe: ADD COLUMN IF NOT EXISTS).
-    Solo corre una vez por sesión de app (el flag _master_db_ready evita
-    4 round-trips DDL a Neon en cada intento de login subsiguiente).
     """
     global _master_db_ready
     with _master_db_lock:
@@ -609,7 +580,6 @@ def init_master_db() -> None:
             bloqueado_hasta   TIMESTAMP
         )
     """)
-    # Migración segura: agrega columnas de brute-force si no existen aún
     for sql in [
         "ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS intentos_fallidos INTEGER NOT NULL DEFAULT 0",
         "ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS bloqueado_hasta TIMESTAMP",
@@ -633,7 +603,6 @@ def init_db(url: str | None = None) -> None:
     conn = get_conn(target)
     cur  = conn.cursor()
 
-    # ── Clientes ─────────────────────────────────────────────────────────────
     cur.execute("""
         CREATE TABLE IF NOT EXISTS clientes (
             id             SERIAL   PRIMARY KEY,
@@ -647,7 +616,6 @@ def init_db(url: str | None = None) -> None:
         )
     """)
 
-    # ── Perfumes ──────────────────────────────────────────────────────────────
     cur.execute("""
         CREATE TABLE IF NOT EXISTS perfumes (
             id              SERIAL   PRIMARY KEY,
@@ -661,7 +629,6 @@ def init_db(url: str | None = None) -> None:
         )
     """)
 
-    # ── Precios por formato ───────────────────────────────────────────────────
     cur.execute("""
         CREATE TABLE IF NOT EXISTS precios_decants (
             id          SERIAL  PRIMARY KEY,
@@ -672,7 +639,6 @@ def init_db(url: str | None = None) -> None:
         )
     """)
 
-    # ── Ventas ────────────────────────────────────────────────────────────────
     cur.execute("""
         CREATE TABLE IF NOT EXISTS ventas (
             id           SERIAL   PRIMARY KEY,
@@ -689,7 +655,6 @@ def init_db(url: str | None = None) -> None:
         )
     """)
 
-    # ── Detalle de venta ──────────────────────────────────────────────────────
     cur.execute("""
         CREATE TABLE IF NOT EXISTS detalle_venta (
             id                  SERIAL   PRIMARY KEY,
@@ -704,7 +669,6 @@ def init_db(url: str | None = None) -> None:
         )
     """)
 
-    # ── Insumos (frascos, bolsas, etiquetas, etc.) ────────────────────────────
     cur.execute("""
         CREATE TABLE IF NOT EXISTS insumos (
             id              SERIAL   PRIMARY KEY,
@@ -716,7 +680,6 @@ def init_db(url: str | None = None) -> None:
         )
     """)
 
-    # ── Recetas: qué insumos consume cada formato ──────────────────────────────
     cur.execute("""
         CREATE TABLE IF NOT EXISTS insumos_por_formato (
             id          SERIAL  PRIMARY KEY,
@@ -727,7 +690,6 @@ def init_db(url: str | None = None) -> None:
         )
     """)
 
-    # ── Índices ───────────────────────────────────────────────────────────────
     for idx_sql in [
         "CREATE INDEX IF NOT EXISTS idx_clientes_nombre   ON clientes(nombre)",
         "CREATE INDEX IF NOT EXISTS idx_clientes_telefono ON clientes(telefono)",
@@ -758,17 +720,12 @@ def _migrate(cur) -> None:
         "ALTER TABLE perfumes      ADD COLUMN IF NOT EXISTS tipo_venta TEXT NOT NULL DEFAULT 'decants'",
         "ALTER TABLE perfumes      ADD COLUMN IF NOT EXISTS eliminado BOOLEAN NOT NULL DEFAULT FALSE",
         "ALTER TABLE insumos       ADD COLUMN IF NOT EXISTS formato_ml TEXT NOT NULL DEFAULT ''",
-        # Eliminar restricción UNIQUE de teléfono (puede repetirse entre clientes)
         "ALTER TABLE clientes DROP CONSTRAINT IF EXISTS clientes_telefono_key",
-        # RUT es único (ignorando filas con RUT vacío para compatibilidad con datos anteriores)
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_clientes_rut_unique ON clientes(rut) WHERE rut <> ''",
         "CREATE TABLE IF NOT EXISTS restock_log (id SERIAL PRIMARY KEY, perfume_id INTEGER NOT NULL, fecha TIMESTAMP DEFAULT NOW(), ml_agregados REAL NOT NULL, costo_agregado INTEGER NOT NULL DEFAULT 0, costo_anterior INTEGER NOT NULL DEFAULT 0, ml_anterior REAL NOT NULL DEFAULT 0)",
     ]:
         cur.execute(sql)
 
-    # ── Sincronización retroactiva: conectar insumos existentes con formato ──
-    # Inserta en insumos_por_formato todos los insumos que tienen formato_ml
-    # asignado pero aún no tienen su receta (ON CONFLICT evita duplicados).
     cur.execute("""
         INSERT INTO insumos_por_formato(formato_ml, insumo_id, cantidad)
         SELECT i.formato_ml, i.id, 1
@@ -784,23 +741,17 @@ def _migrate(cur) -> None:
 # ════════════════════════════════════════════════════════════════════════════
 #  AUTENTICACIÓN
 # ════════════════════════════════════════════════════════════════════════════
-_BLOQUEO_MINUTOS   = 5    # tiempo de bloqueo tras demasiados intentos
-_MAX_INTENTOS      = 5    # intentos fallidos antes de bloquear
-_master_db_ready   = False  # evita re-ejecutar DDL en cada intento de login
+_BLOQUEO_MINUTOS   = 5
+_MAX_INTENTOS      = 5
+_master_db_ready   = False
 _master_db_lock    = threading.Lock()
 
 
 def verificar_login(username: str, password: str) -> dict | None:
     """
     Valida credenciales contra la master DB.
-    - Usa bcrypt (migra SHA-256 legacy automáticamente al primer login).
-    - Bloquea la cuenta por _BLOQUEO_MINUTOS tras _MAX_INTENTOS fallidos.
     Retorna dict {username, conn_url, db_path} o None si falla.
-    Lanza RuntimeError si la cuenta está bloqueada (para mostrar mensaje).
-
-    Usa UNA SOLA conexión para SELECT + UPDATE, evitando que un fallo
-    en la segunda conexión se muestre erróneamente como "Error de conexión"
-    cuando en realidad la contraseña es incorrecta.
+    Lanza RuntimeError si la cuenta está bloqueada.
     """
     if not username or not password:
         return None
@@ -817,7 +768,6 @@ def verificar_login(username: str, password: str) -> dict | None:
         if not row or not row["activo"]:
             return None
 
-        # ── Protección brute-force ───────────────────────────────────────────
         bloqueado_hasta = row["bloqueado_hasta"]
         if bloqueado_hasta and bloqueado_hasta > datetime.now():
             restante = int((bloqueado_hasta - datetime.now()).total_seconds() / 60) + 1
@@ -826,15 +776,10 @@ def verificar_login(username: str, password: str) -> dict | None:
                 f"Intenta nuevamente en {restante} minuto(s)."
             )
 
-        # ── Verificar contraseña ─────────────────────────────────────────────
         stored_hash = row["password"]
         valida = _verify_password(password, stored_hash)
 
         if not valida:
-            # Registrar intento fallido reutilizando la misma conexión.
-            # Si este UPDATE falla (p.ej. Neon pausado entre queries), se
-            # ignora silenciosamente: lo importante es retornar None para
-            # que la UI muestre "contraseña incorrecta" y no "error de red".
             try:
                 conn.execute("""
                     UPDATE usuarios
@@ -851,7 +796,6 @@ def verificar_login(username: str, password: str) -> dict | None:
                 pass
             return None
 
-        # Login correcto: resetear contador en la misma conexión
         try:
             conn.execute(
                 "UPDATE usuarios SET intentos_fallidos = 0, bloqueado_hasta = NULL WHERE username = %s",
@@ -865,7 +809,6 @@ def verificar_login(username: str, password: str) -> dict | None:
         if not conn_url:
             return None
 
-        # Migración SHA-256 → bcrypt (edge-case, usa conexión aparte)
         if not (stored_hash.startswith('$2b$') or stored_hash.startswith('$2a$')):
             _actualizar_hash(username, hash_password(password))
 
@@ -879,7 +822,6 @@ def verificar_login(username: str, password: str) -> dict | None:
 
 
 def _registrar_intento_fallido(username: str) -> None:
-    """Incrementa el contador y bloquea la cuenta si se alcanza el límite."""
     conn = get_master_conn()
     conn.execute("""
         UPDATE usuarios
@@ -896,7 +838,6 @@ def _registrar_intento_fallido(username: str) -> None:
 
 
 def _resetear_intentos(username: str) -> None:
-    """Limpia el contador de fallos tras un login exitoso."""
     conn = get_master_conn()
     conn.execute(
         "UPDATE usuarios SET intentos_fallidos = 0, bloqueado_hasta = NULL WHERE username = %s",
@@ -907,7 +848,6 @@ def _resetear_intentos(username: str) -> None:
 
 
 def _actualizar_hash(username: str, new_hash: str) -> None:
-    """Actualiza el hash de contraseña (migración SHA-256 → bcrypt)."""
     conn = get_master_conn()
     conn.execute(
         "UPDATE usuarios SET password = %s WHERE username = %s",
@@ -964,11 +904,6 @@ def get_clientes(query=""):
 
 
 def get_top_clientes(limit: int = 8, desde=None, hasta=None, tipo=None) -> list[dict]:
-    """
-    Retorna los mejores clientes ordenados por total $ comprado (descendente).
-    Excluye clientes sin nombre real (sin cliente asignado).
-    Campos: nombre, telefono, instagram, compras, total_comprado, ultima_compra
-    """
     conn = get_conn()
     extra_parts = []
     params = []
@@ -1024,7 +959,6 @@ def get_cliente(cliente_id):
 
 
 def crear_cliente(nombre, rut, telefono, instagram="", email="", notas=""):
-    """Crea un cliente y devuelve el dict completo usando la misma conexión."""
     conn = get_conn()
     try:
         cur = conn.execute(
@@ -1044,11 +978,6 @@ def crear_cliente(nombre, rut, telefono, instagram="", email="", notas=""):
 
 
 def get_or_create_anonimo() -> dict:
-    """
-    Retorna siempre el MISMO cliente anónimo (id fijo).
-    Si no existe aún, lo crea una sola vez.
-    Jamás crea duplicados de Cliente Anónimo.
-    """
     conn = get_conn()
     row = conn.execute(
         "SELECT * FROM clientes WHERE nombre='Cliente Anónimo' ORDER BY id ASC LIMIT 1"
@@ -1056,7 +985,6 @@ def get_or_create_anonimo() -> dict:
     if row:
         conn.close()
         return dict(row)
-    # Primera vez: crear el único cliente anónimo
     cur = conn.execute(
         "INSERT INTO clientes(nombre,rut,telefono,instagram,email,notas) "
         "VALUES('Cliente Anónimo','','','','','Cliente anónimo') RETURNING *"
@@ -1068,10 +996,8 @@ def get_or_create_anonimo() -> dict:
     return dict(row)
 
 
-
 def editar_cliente(cliente_id: int, nombre: str, rut: str, telefono: str,
                    instagram: str = "", email: str = "", notas: str = "") -> dict | None:
-    """Edita un cliente y devuelve el dict actualizado usando la misma conexión."""
     conn = get_conn()
     try:
         conn.execute("""
@@ -1096,7 +1022,6 @@ def editar_cliente(cliente_id: int, nombre: str, rut: str, telefono: str,
 #  PERFUMES
 # ════════════════════════════════════════════════════════════════════════════
 def _parse_perfume_row(r: dict) -> dict:
-    """Parsea precios_raw a dict {formato: precio}."""
     precios = {}
     if r.get("precios_raw"):
         for part in r["precios_raw"].split(","):
@@ -1168,7 +1093,6 @@ def get_perfume(perfume_id):
 
 
 def _fetch_perfume_in_conn(conn, perfume_id: int) -> dict | None:
-    """Obtiene datos de un perfume reutilizando una conexión ya abierta."""
     row = conn.execute("""
         SELECT p.*,
                STRING_AGG(pd.formato_ml || ':' || pd.precio::text, ',') AS precios_raw,
@@ -1201,20 +1125,11 @@ def get_precio_decant(perfume_id, formato_ml):
 
 
 def crear_perfume(nombre, marca, ml_totales, costo_total, precios_dict, precio_botella=0, tipo_venta="decants", unidades=1, ml_disponibles_inicial=None):
-    """
-    Crea un perfume y devuelve su dict completo dentro de la misma conexión.
-    Para tipo_venta='botella', `unidades` establece el stock inicial:
-      ml_disponibles = unidades * ml_totales
-    Para decants, ml_disponibles = ml_totales (una sola botella),
-      salvo que se indique ml_disponibles_inicial (botella parcialmente usada).
-    """
     conn = get_conn()
-    # Botellas completas: stock = N botellas × ml por botella
     if tipo_venta in ("botella", "parcial") and unidades > 1:
         ml_disp_inicial = float(ml_totales) * int(unidades)
-        costo_total_real = costo_total * int(unidades)
+        costo_total_real = costo_total  # costo POR botella individual, no del lote
     else:
-        # Si se indica stock inicial explícito (botella usada), respetar ese valor
         if ml_disponibles_inicial is not None and tipo_venta == "decants":
             ml_disp_inicial = float(ml_disponibles_inicial)
         else:
@@ -1245,15 +1160,7 @@ def crear_perfume(nombre, marca, ml_totales, costo_total, precios_dict, precio_b
 
 
 def editar_perfume(perfume_id, nombre, marca, ml_totales, costo_total, precios_dict, precio_botella=0, tipo_venta="decants", ml_disponibles=None):
-    """
-    Edita un perfume. Reutiliza UNA SOLA conexión para todo:
-    leer ratio, actualizar, actualizar precios y devolver datos frescos.
-    (Antes abría 3 conexiones separadas: 2× get_perfume() + 1 UPDATE)
-    Si ml_disponibles no es None, se usa ese valor directamente; de lo contrario
-    se preserva el ratio actual respecto a ml_totales.
-    """
     conn = get_conn()
-    # 1. Leer ratio de ml dentro de la misma conexión
     p_row = conn.execute(
         "SELECT ml_disponibles, ml_totales FROM perfumes WHERE id=%s", (perfume_id,)
     ).fetchone()
@@ -1267,7 +1174,6 @@ def editar_perfume(perfume_id, nombre, marca, ml_totales, costo_total, precios_d
         ratio     = p_row["ml_disponibles"] / p_row["ml_totales"] if p_row["ml_totales"] > 0 else 1
         nuevos_ml = round(float(ml_totales) * ratio, 1)
 
-    # 2. Actualizar perfume
     conn.execute("""
         UPDATE perfumes
         SET nombre=%s, marca=%s, ml_totales=%s, ml_disponibles=%s,
@@ -1276,7 +1182,6 @@ def editar_perfume(perfume_id, nombre, marca, ml_totales, costo_total, precios_d
     """, (nombre, marca, float(ml_totales), nuevos_ml,
           costo_total, precio_botella, tipo_venta, perfume_id))
 
-    # 3. Actualizar precios (UPSERT)
     for fmt, precio in precios_dict.items():
         conn.execute("""
             INSERT INTO precios_decants(perfume_id, formato_ml, precio)
@@ -1284,7 +1189,6 @@ def editar_perfume(perfume_id, nombre, marca, ml_totales, costo_total, precios_d
             ON CONFLICT(perfume_id, formato_ml) DO UPDATE SET precio=EXCLUDED.precio
         """, (perfume_id, fmt, precio))
 
-    # 4. Leer datos frescos en la misma conexión
     result = _fetch_perfume_in_conn(conn, perfume_id)
     conn.commit()
     conn.close()
@@ -1293,10 +1197,6 @@ def editar_perfume(perfume_id, nombre, marca, ml_totales, costo_total, precios_d
 
 
 def ajustar_stock_ml(perfume_id, delta_ml):
-    """
-    Suma o resta ml al stock disponible.
-    delta_ml negativo = restar (venta). positivo = reponer.
-    """
     conn = get_conn()
     row = conn.execute(
         "SELECT ml_disponibles, nombre FROM perfumes WHERE id=%s", (perfume_id,)
@@ -1324,19 +1224,6 @@ def ajustar_stock_ml(perfume_id, delta_ml):
 
 
 def reponer_stock(perfume_id, ml_nuevos, costo_adicional=0):
-    """
-    Suma ml_nuevos a ml_disponibles del perfume.
-    Para decants, también suma a ml_totales (stock acumulado).
-    Para botellas/parcial, ml_totales es el tamaño fijo de UNA unidad y NO se toca.
-
-    Lógica de costo:
-    - Si el perfume es tipo botella/parcial Y su stock está en 0 (o negativo),
-      se interpreta como un nuevo lote: costo_total se REEMPLAZA por costo_adicional
-      (no se acumula sobre el anterior). El costo anterior se guarda en restock_log.
-    - En cualquier otro caso (decants, o botella con stock parcial remanente),
-      se sigue acumulando como antes.
-    - Siempre se inserta una fila en restock_log para trazabilidad.
-    """
     conn = get_conn()
     row = conn.execute(
         "SELECT nombre, ml_disponibles, ml_totales, costo_total, tipo_venta FROM perfumes WHERE id=%s",
@@ -1419,9 +1306,6 @@ def get_ventas(query="", filtro_estado="Todos"):
     ventas    = [dict(r) for r in rows]
     venta_ids = [v["id"] for v in ventas]
 
-    # Cuando no hay query de búsqueda no necesitamos los ítems para filtrar:
-    # se dejan en None para que ModalDetalleVenta los cargue bajo demanda.
-    # Cuando SÍ hay query, los ítems se necesitan para buscar por nombre de producto.
     if query:
         detalle_rows = conn.execute("""
             SELECT dv.*, p.nombre AS perfume_nombre, p.marca
@@ -1442,7 +1326,6 @@ def get_ventas(query="", filtro_estado="Todos"):
     for d in ventas:
         if isinstance(d.get("fecha"), date):
             d["fecha"] = d["fecha"].isoformat()
-        # None = ítems no cargados (carga diferida); [] = venta sin ítems
         d["items"] = detalles_por_venta.get(d["id"]) if query else None
         if filtro_estado != "Todos" and d["estado_pago"] != filtro_estado:
             continue
@@ -1467,6 +1350,21 @@ def get_detalle_venta(venta_id):
     return [dict(r) for r in rows]
 
 
+def get_detalles_bulk(venta_ids):
+    """Carga ítems de múltiples ventas en una sola consulta (para exportación)."""
+    if not venta_ids:
+        return []
+    conn = get_conn()
+    rows = conn.execute("""
+        SELECT dv.*, p.nombre AS perfume_nombre, p.marca
+        FROM detalle_venta dv
+        JOIN perfumes p ON p.id = dv.perfume_id
+        WHERE dv.venta_id IN %s
+    """, (tuple(venta_ids),)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
 def _costo_por_ml(perfume_row) -> float:
     ml_totales = perfume_row["ml_totales"] or 1
     return round((perfume_row["costo_total"] or 0) / ml_totales, 4)
@@ -1476,10 +1374,8 @@ def crear_venta(cliente_id, items, metodo_pago, tipo_entrega, estado_pago,
                 descuento=0, costo_envio=0, notas=""):
     """
     Crea una venta y sus detalles.
-
-    OPTIMIZACIÓN: verificación de stock con UN SOLO SELECT ... IN
-    en lugar de N SELECT individuales (uno por ítem).
-    Todo dentro de UNA SOLA conexión.
+    La fecha se resuelve directamente en PostgreSQL usando la zona horaria
+    de Santiago (America/Santiago) para evitar el desfase UTC del servidor.
     """
     conn = get_conn()
 
@@ -1528,12 +1424,17 @@ def crear_venta(cliente_id, items, metodo_pago, tipo_entrega, estado_pago,
     total      = sum(subtotales) - descuento + costo_envio
 
     # 3. Insertar venta
+    # ── FIX ZONA HORARIA ──────────────────────────────────────────────────
+    # Se usa (NOW() AT TIME ZONE 'America/Santiago')::date directamente en SQL
+    # para que la fecha siempre corresponda al día real en Chile,
+    # independiente de la zona horaria del servidor (Render/UTC).
+    # ──────────────────────────────────────────────────────────────────────
     cur = conn.execute("""
         INSERT INTO ventas(cliente_id, fecha, metodo_pago, tipo_entrega, estado_pago,
                            descuento, costo_envio, total, notas)
-        VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES(%s, (NOW() AT TIME ZONE 'America/Santiago')::date, %s, %s, %s, %s, %s, %s, %s)
         RETURNING id
-    """, (cliente_id, date.today(), metodo_pago, tipo_entrega, estado_pago,
+    """, (cliente_id, metodo_pago, tipo_entrega, estado_pago,
           descuento, costo_envio, total, notas))
     _vrow = cur.fetchone()
     if _vrow is None:
@@ -1542,14 +1443,14 @@ def crear_venta(cliente_id, items, metodo_pago, tipo_entrega, estado_pago,
         return False, "Error interno al crear la venta", None
     venta_id = _vrow["id"]
 
-    # Obtener IDs de insumos de bolsas (se descuentan 1 por pedido, no por ítem)
+    # Obtener IDs de insumos de bolsas
     bolsa_rows = conn.execute(
         "SELECT id FROM insumos WHERE categoria = 'Bolsas de packaging'"
     ).fetchall()
     bolsa_ids = {r["id"] for r in bolsa_rows}
-    bolsas_descontadas = set()  # control para no descontar la misma bolsa más de una vez
+    bolsas_descontadas = set()
 
-    # ── Pre-cargar recetas de todos los formatos en UNA sola query ────────────
+    # Pre-cargar recetas de todos los formatos en UNA sola query
     fmt_keys_needed = set()
     for item in items:
         fmt_keys_needed.add("botella" if item.get("es_botella_completa") else item["formato_ml"])
@@ -1566,14 +1467,13 @@ def crear_venta(cliente_id, items, metodo_pago, tipo_entrega, estado_pago,
     for _r in all_recipe_rows:
         _recipes_by_fmt[_r["formato_ml"]].append(_r)
 
-    # 4. Insertar detalle y descontar stock (usando stock_map ya cargado)
+    # 4. Insertar detalle y descontar stock
     for item, sub in zip(items, subtotales):
         es_completa  = bool(item.get("es_botella_completa", 0))
         p_row        = stock_map[item["perfume_id"]]
         costo_por_ml = _costo_por_ml(p_row)
         fmt_key      = "botella" if es_completa else item["formato_ml"]
 
-        # ── Calcular costo de insumos para este ítem ──────────────────────
         receta_rows = _recipes_by_fmt[fmt_key]
         costo_insumos_unit = sum(
             float(r["cantidad"]) * float(r["costo_unitario"])
@@ -1615,11 +1515,9 @@ def crear_venta(cliente_id, items, metodo_pago, tipo_entrega, estado_pago,
                 (ml_vendidos, item["perfume_id"])
             )
 
-        # ── Descontar stock de cada insumo en la receta ───────────────────
         for r in receta_rows:
             insumo_id = r["insumo_id"]
             if insumo_id in bolsa_ids:
-                # Bolsas: 1 por pedido. Si ya se descontó esta bolsa, saltar.
                 if insumo_id not in bolsas_descontadas:
                     conn.execute(
                         "UPDATE insumos SET stock_actual = GREATEST(0, stock_actual - 1) WHERE id=%s",
@@ -1633,7 +1531,6 @@ def crear_venta(cliente_id, items, metodo_pago, tipo_entrega, estado_pago,
                     (consumo, insumo_id)
                 )
 
-    # ── Descontar bolsas 1 vez por pedido (no están en recetas) ───────────
     for bolsa_id in bolsa_ids:
         if bolsa_id not in bolsas_descontadas:
             conn.execute(
@@ -1691,7 +1588,6 @@ def marcar_pagado(venta_id):
 #  REPORTES / STATS
 # ════════════════════════════════════════════════════════════════════════════
 def get_stats():
-    """Retorna stats globales en una sola consulta."""
     cached = _cache_get("stats")
     if cached is not None:
         return cached
@@ -1764,11 +1660,6 @@ def get_top_perfumes(n=5, desde=None, hasta=None, tipo=None):
 def get_stats_rango(fecha_desde=None, fecha_hasta=None, tipo=None):
     """
     Stats filtradas por rango de fechas y tipo de venta.
-
-    tipo: None | "todos" → sin filtro de tipo
-          "decants"      → solo ítems es_botella_completa=0
-          "botella"      → solo ítems es_botella_completa=1
-
     OPTIMIZACIÓN: 1 sola consulta con CTE → 1 round-trip.
     """
     conn = get_conn()
@@ -1822,7 +1713,6 @@ def get_stats_rango(fecha_desde=None, fecha_hasta=None, tipo=None):
             FROM profit p
         """, params_q).fetchone()
     else:
-        # Sin filtro de tipo: consulta original
         row = conn.execute(f"""
             WITH ventas_rango AS (
                 SELECT v.id, v.total, v.estado_pago
@@ -1872,11 +1762,6 @@ def get_stats_rango(fecha_desde=None, fecha_hasta=None, tipo=None):
 
 
 def get_ventas_por_periodo(agrupacion="dia", fecha_desde=None, fecha_hasta=None, tipo=None):
-    """
-    Retorna lista de {periodo, total, ordenes} agrupado por día, mes o año.
-    agrupacion: "dia" | "mes" | "anio"
-    tipo: None | "todos" → sin filtro; "decants" | "botella" → filtra por es_botella_completa
-    """
     conn = get_conn()
     params: list = []
 
@@ -1934,10 +1819,6 @@ def get_ventas_por_periodo(agrupacion="dia", fecha_desde=None, fecha_hasta=None,
 
 
 def get_costos_por_periodo(agrupacion="dia", fecha_desde=None, fecha_hasta=None, tipo=None):
-    """
-    Retorna lista de {periodo, costo_total} agrupado por día, mes o año.
-    tipo: None | "todos" → sin filtro; "decants" | "botella" → filtra por es_botella_completa
-    """
     conn = get_conn()
     condiciones: list[str] = []
     params: list = []
@@ -1961,7 +1842,7 @@ def get_costos_por_periodo(agrupacion="dia", fecha_desde=None, fecha_hasta=None,
 
     rows = conn.execute(f"""
         SELECT {fmt_expr}                                          AS periodo,
-               COALESCE(SUM(dv.costo_unitario * dv.cantidad), 0)  AS costo_total
+               COALESCE(SUM(dv.costo_unitario * dv.cantidad + dv.costo_insumos), 0)  AS costo_total
         FROM ventas v
         JOIN detalle_venta dv ON dv.venta_id = v.id
         {where}
@@ -1973,11 +1854,10 @@ def get_costos_por_periodo(agrupacion="dia", fecha_desde=None, fecha_hasta=None,
 
 
 # ════════════════════════════════════════════════════════════════════════════
-#  INSUMOS  (frascos, bolsas, etiquetas, packaging)
+#  INSUMOS
 # ════════════════════════════════════════════════════════════════════════════
 
 def get_insumos(query: str = "") -> list[dict]:
-    """Lista todos los insumos, opcionalmente filtrados por nombre o categoría."""
     cache_key = f"insumos:{query.lower()}"
     cached = _cache_get(cache_key)
     if cached is not None:
@@ -2000,7 +1880,6 @@ def get_insumos(query: str = "") -> list[dict]:
             categoria, nombre
     """, (q, q)).fetchall()
 
-    # Obtener formatos vinculados para cada insumo
     insumo_ids = [r["id"] for r in rows]
     vinculados = {}
     if insumo_ids:
@@ -2029,9 +1908,6 @@ def get_insumo(insumo_id: int) -> dict | None:
 
 
 def get_stock_frascos_formato(formato_ml: str) -> float:
-    """Retorna el stock total de insumos (frascos) registrados para el formato indicado.
-    Suma stock_actual de todos los insumos con ese formato_ml.
-    Retorna 0.0 si no hay ningún insumo para ese formato."""
     cache_key = f"insumos:stock_frascos:{formato_ml}"
     cached = _cache_get(cache_key)
     if cached is not None:
@@ -2050,7 +1926,6 @@ def get_stock_frascos_formato(formato_ml: str) -> float:
 def crear_insumo(nombre: str, categoria: str, stock_actual: float,
                  costo_unitario: float, formato_ml: str = "",
                  formatos_vinculados: list[str] | None = None) -> dict:
-    """Crea un insumo y lo enlaza automáticamente a la receta de su formato."""
     conn = get_conn()
     fmt  = (formato_ml or "").strip()
     cur  = conn.execute(
@@ -2065,9 +1940,7 @@ def crear_insumo(nombre: str, categoria: str, stock_actual: float,
         conn.close()
         return None
     insumo_id = row["id"]
-    # ── Auto-enlazar a receta ────────────────────────────────────────────
     if formatos_vinculados is not None:
-        # Vinculación explícita (insumos sin formato propio: bolsas, etc.)
         for f in formatos_vinculados:
             conn.execute("""
                 INSERT INTO insumos_por_formato(formato_ml, insumo_id, cantidad)
@@ -2075,7 +1948,6 @@ def crear_insumo(nombre: str, categoria: str, stock_actual: float,
                 ON CONFLICT(formato_ml, insumo_id) DO NOTHING
             """, (f, insumo_id))
     elif fmt in ("2ml", "3ml", "5ml", "10ml"):
-        # Vinculación automática para Frascos/Jeringas
         conn.execute("""
             INSERT INTO insumos_por_formato(formato_ml, insumo_id, cantidad)
             VALUES(%s, %s, 1)
@@ -2091,11 +1963,9 @@ def editar_insumo(insumo_id: int, nombre: str, categoria: str,
                   stock_actual: float, costo_unitario: float,
                   formato_ml: str = "",
                   formatos_vinculados: list[str] | None = None) -> dict | None:
-    """Actualiza un insumo y sincroniza su entrada en insumos_por_formato."""
     conn = get_conn()
     fmt_nuevo = (formato_ml or "").strip()
 
-    # Leer formato anterior ANTES del UPDATE
     old = conn.execute(
         "SELECT formato_ml FROM insumos WHERE id=%s", (insumo_id,)
     ).fetchone()
@@ -2108,9 +1978,7 @@ def editar_insumo(insumo_id: int, nombre: str, categoria: str,
     """, (nombre.strip(), categoria.strip(), fmt_nuevo,
           float(stock_actual), float(costo_unitario), insumo_id))
 
-    # ── Sincronizar insumos_por_formato ──────────────────────────────────
     if formatos_vinculados is not None:
-        # Vinculación explícita: limpiar todo y reinsertar
         conn.execute(
             "DELETE FROM insumos_por_formato WHERE insumo_id=%s", (insumo_id,)
         )
@@ -2121,7 +1989,6 @@ def editar_insumo(insumo_id: int, nombre: str, categoria: str,
                 ON CONFLICT(formato_ml, insumo_id) DO NOTHING
             """, (f, insumo_id))
     else:
-        # Frascos/Jeringas: sincronizar formato único
         if fmt_viejo != fmt_nuevo:
             if fmt_viejo in ("2ml", "3ml", "5ml", "10ml"):
                 conn.execute(
@@ -2143,7 +2010,6 @@ def editar_insumo(insumo_id: int, nombre: str, categoria: str,
 
 
 def eliminar_insumo(insumo_id: int) -> tuple[bool, str]:
-    """Elimina un insumo. Las recetas que lo usan se borran en cascada."""
     conn = get_conn()
     try:
         conn.execute("DELETE FROM insumos WHERE id=%s", (insumo_id,))
@@ -2159,12 +2025,6 @@ def eliminar_insumo(insumo_id: int) -> tuple[bool, str]:
 
 def reponer_insumo(insumo_id: int, cantidad: float,
                    costo_nuevo: float | None = None) -> dict | None:
-    """
-    Suma `cantidad` al stock.
-    Si se pasa `costo_nuevo`, actualiza el costo unitario con promedio ponderado:
-        nuevo_costo = (stock_actual * costo_actual + cantidad * costo_nuevo)
-                      / (stock_actual + cantidad)
-    """
     conn = get_conn()
     row  = conn.execute(
         "SELECT stock_actual, costo_unitario FROM insumos WHERE id=%s", (insumo_id,)
@@ -2175,7 +2035,6 @@ def reponer_insumo(insumo_id: int, cantidad: float,
 
     nuevo_stock = float(row["stock_actual"]) + float(cantidad)
     if costo_nuevo is not None and float(costo_nuevo) > 0:
-        # Costo promedio ponderado
         nuevo_costo = (
             float(row["stock_actual"]) * float(row["costo_unitario"])
             + float(cantidad) * float(costo_nuevo)
@@ -2196,14 +2055,10 @@ def reponer_insumo(insumo_id: int, cantidad: float,
 
 
 # ════════════════════════════════════════════════════════════════════════════
-#  RECETAS  (qué insumos consume cada formato de decant)
+#  RECETAS
 # ════════════════════════════════════════════════════════════════════════════
 
 def get_receta(formato_ml: str) -> list[dict]:
-    """
-    Retorna la lista de insumos que consume un formato dado.
-    Cada elemento: {insumo_id, nombre, categoria, cantidad, costo_unitario}
-    """
     cache_key = f"recetas:{formato_ml}"
     cached = _cache_get(cache_key)
     if cached is not None:
@@ -2225,8 +2080,6 @@ def get_receta(formato_ml: str) -> list[dict]:
 
 
 def get_todas_recetas() -> dict[str, list[dict]]:
-    """Retorna todas las recetas agrupadas por formato, incluyendo stock_actual.
-    No usa caché porque el stock cambia frecuentemente."""
     conn = get_conn()
     rows = conn.execute("""
         SELECT ipf.formato_ml, ipf.insumo_id, ipf.cantidad,
@@ -2245,16 +2098,10 @@ def get_todas_recetas() -> dict[str, list[dict]]:
 
 
 def set_receta(formato_ml: str, items: list[dict]) -> None:
-    """
-    Reemplaza completamente la receta de un formato.
-    `items` = lista de {insumo_id: int, cantidad: float}
-    """
     conn = get_conn()
-    # Borrar receta existente para este formato
     conn.execute(
         "DELETE FROM insumos_por_formato WHERE formato_ml=%s", (formato_ml,)
     )
-    # Insertar nuevas entradas
     for it in items:
         if float(it.get("cantidad", 0)) > 0:
             conn.execute(
@@ -2273,13 +2120,6 @@ def set_receta(formato_ml: str, items: list[dict]) -> None:
 # ════════════════════════════════════════════════════════════════════════════
 
 def get_insumos_stats() -> dict:
-    """
-    Retorna un resumen del inventario de insumos:
-      · n_insumos          – total de tipos de insumos registrados
-      · valor_inventario   – Σ (stock_actual × costo_unitario)
-      · n_bajo_stock       – insumos con stock_actual < 15
-      · n_sin_stock        – insumos con stock_actual = 0
-    """
     cache_key = "insumos:stats"
     cached = _cache_get(cache_key)
     if cached is not None:
