@@ -27,7 +27,12 @@ import threading
 import uuid
 import os
 import json
-from datetime import datetime, date
+from datetime import datetime, date, timezone
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
+_TZ_SANTIAGO = ZoneInfo('America/Santiago')
 
 # ════════════════════════════════════════════════════════════════════════════
 #  CONFIGURACIÓN
@@ -65,7 +70,12 @@ def _requerir_sesion():
 
 def _json_serial(obj):
     """Serializa tipos Python que json no sabe manejar (date, datetime)."""
-    if isinstance(obj, (date, datetime)):
+    if isinstance(obj, datetime):
+        # Convertir UTC → hora chilena antes de serializar
+        if obj.tzinfo is None:
+            obj = obj.replace(tzinfo=timezone.utc)
+        return obj.astimezone(_TZ_SANTIAGO).strftime('%Y-%m-%dT%H:%M:%S')
+    if isinstance(obj, date):
         return obj.isoformat()
     raise TypeError(f"Tipo no serializable: {type(obj)}")
 
@@ -235,7 +245,7 @@ def editar_perfume(perfume_id):
         return error
     d = request.get_json(silent=True) or {}
     try:
-        resultado = db.editar_perfume(
+        ok_result, msg = db.editar_perfume(
             perfume_id   = perfume_id,
             nombre       = d.get("nombre", ""),
             marca        = d.get("marca", ""),
@@ -246,14 +256,8 @@ def editar_perfume(perfume_id):
             tipo_venta   = d.get("tipo_venta", "decants"),
             ml_disponibles = d.get("ml_disponibles"),
         )
-        # db.editar_perfume puede retornar (ok, msg) o la fila/dict del perfume actualizado
-        if isinstance(resultado, tuple) and len(resultado) == 2:
-            ok_result, msg = resultado
-            if not ok_result:
-                return err(msg or "Error al editar")
-        elif resultado is None or resultado is False:
-            return err("Error al editar perfume")
-        # Si retorna dict/Row (la fila del perfume), la edicion fue exitosa
+        if not ok_result:
+            return err(msg or "Error al editar")
         return ok()
     except Exception as e:
         return err(str(e))
