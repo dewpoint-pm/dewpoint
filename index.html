@@ -34,8 +34,18 @@ body.light{
   --red:#D0283C;--gold:#B8860B;--grn:#2E7D4F;--warn:#A0621A;
   --bdr:#5BA4CF;--bdr2:rgba(58,130,181,0.25);
 }
-html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:var(--fs);-webkit-font-smoothing:antialiased;overflow-x:hidden}
-#app{display:flex;flex-direction:column;width:100%;min-height:100vh;min-height:-webkit-fill-available;max-width:520px;margin:0 auto;background:var(--bg);position:relative}
+
+/* ═══ FIX VIEWPORT MÓVIL ═══════════════════════════════════════════════════
+   Problema: 100vh en móvil incluye la barra del navegador, causando recorte.
+   Solución:
+   · html necesita height:-webkit-fill-available para que iOS lo propague.
+   · body hereda esa altura con min-height.
+   · #app usa 100svh (small viewport: chrome siempre visible) + 100dvh
+     (dynamic: se ajusta cuando el chrome se oculta al hacer scroll).
+   ═══════════════════════════════════════════════════════════════════════════ */
+html{height:100%;height:-webkit-fill-available}
+body{width:100%;min-height:100vh;min-height:-webkit-fill-available;background:var(--bg);color:var(--t);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:var(--fs);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+#app{display:flex;flex-direction:column;width:100%;min-height:100vh;min-height:100svh;min-height:100dvh;max-width:520px;margin:0 auto;background:var(--bg);position:relative}
 
 /* TOPBAR */
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:12px var(--pad);padding-top:calc(12px + env(safe-area-inset-top,0px));background:var(--bg2);border-bottom:1px solid var(--bdr2);flex-shrink:0;min-height:52px}
@@ -183,8 +193,10 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 .mm-item{padding:11px 14px;cursor:pointer;border-radius:8px;font-size:var(--fs);color:var(--t)}
 .mm-item:active{background:var(--bg4)}
 
-/* LOGIN */
-#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);z-index:300;min-height:100vh;min-height:-webkit-fill-available}
+/* LOGIN
+   position:fixed + inset:0 ya cubre toda la pantalla correctamente.
+   No necesita min-height adicional. */
+#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);z-index:300}
 .login-card{background:var(--bg3);border:1px solid var(--bdr2);border-radius:18px;padding:clamp(24px,7vw,40px) clamp(20px,6vw,36px);width:100%;max-width:360px}
 .login-logo{width:72px;height:72px;border-radius:50%;background:var(--p2);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff;margin:0 auto 14px}
 .login-title{font-size:var(--fs-xl);font-weight:800;text-align:center;font-family:Georgia,serif}
