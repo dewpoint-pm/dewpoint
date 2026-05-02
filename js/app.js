@@ -479,7 +479,7 @@ function guardarVenta(){
   var confirm_save=DB.loadSetting('confirm_save',true);
   if(confirm_save&&!confirm('¿Confirmar venta por '+fmt(total)+'?')) return;
   var venta={
-    cliente_id:APP.clienteSel?APP.clienteSel.id:null,
+    cliente_id:APP.clienteSel?APP.clienteSel.id:(APP.clienteAnonimo?2:null),
     items:APP.carrito.map(function(it){ return {perfume_id:it.perfume_id,formato_ml:it.formato_ml,cantidad:it.cantidad,precio_unit:it.precio_unit,es_botella_completa:it.es_botella_completa}; }),
     metodo_pago:document.getElementById('sel-metodo').value,
     tipo_entrega:document.getElementById('sel-entrega').value,
