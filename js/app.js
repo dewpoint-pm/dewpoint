@@ -479,7 +479,7 @@ function guardarVenta(){
   var confirm_save=DB.loadSetting('confirm_save',true);
   if(confirm_save&&!confirm('¿Confirmar venta por '+fmt(total)+'?')) return;
   var venta={
-    cliente_id:APP.clienteSel?APP.clienteSel.id:(APP.clienteAnonimo?2:null),
+    cliente_id:APP.clienteSel?APP.clienteSel.id:(APP.clienteAnonimo?(function(){var a=APP.clientes.filter(function(x){return (x.nombre||'').toLowerCase().includes('an') && (x.nombre||'').toLowerCase().includes('nim');});return a.length?a[0].id:null;})():null),
     items:APP.carrito.map(function(it){ return {perfume_id:it.perfume_id,formato_ml:it.formato_ml,cantidad:it.cantidad,precio_unit:it.precio_unit,es_botella_completa:it.es_botella_completa}; }),
     metodo_pago:document.getElementById('sel-metodo').value,
     tipo_entrega:document.getElementById('sel-entrega').value,
@@ -1079,11 +1079,17 @@ function renderGrafico() {
       }
       /* Tope brillante */
       if(altura>3){ ctx.fillStyle=colorTop; ctx.fillRect(bx,byTop,barW,3); }
-      /* Valor — negro, dentro de la barra, arriba */
-      if(val>0 && altura>22){
+      /* Valor — dentro de la barra si hay espacio, encima si es muy pequeña */
+      if(val>0){
         var lv = val>=1000000?'$'+(val/1000000).toFixed(1)+'M':val>=1000?'$'+Math.round(val/1000)+'k':'$'+Math.round(val);
-        ctx.fillStyle=tc.valTxt; ctx.font='bold 11px -apple-system,sans-serif'; ctx.textAlign='center';
-        ctx.fillText(lv, bx+barW/2, byTop+16);
+        ctx.font='bold 11px -apple-system,sans-serif'; ctx.textAlign='center';
+        if(altura>22){
+          ctx.fillStyle=tc.valTxt;
+          ctx.fillText(lv, bx+barW/2, byTop+16);
+        } else {
+          ctx.fillStyle=tc.label;
+          ctx.fillText(lv, bx+barW/2, byTop-5);
+        }
       }
     }
 
