@@ -466,6 +466,17 @@ def crear_venta():
         )
         if not ok_result:
             return err(msg or "Error al crear venta")
+        # Corregir fecha a zona horaria chilena (la BD guarda UTC por defecto)
+        try:
+            from database import get_conn
+            conn = get_conn()
+            conn.execute(
+                "UPDATE ventas SET fecha = (NOW() AT TIME ZONE 'America/Santiago')::date WHERE id = %s",
+                (venta_id,)
+            )
+            conn.close()
+        except Exception:
+            pass  # Si falla la corrección de zona, igual retornar la venta creada
         return ok({"venta_id": venta_id})
     except Exception as e:
         return err(str(e))
