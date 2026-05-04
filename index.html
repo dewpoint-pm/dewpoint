@@ -34,18 +34,8 @@ body.light{
   --red:#D0283C;--gold:#B8860B;--grn:#2E7D4F;--warn:#A0621A;
   --bdr:#5BA4CF;--bdr2:rgba(58,130,181,0.25);
 }
-
-/* ═══ FIX VIEWPORT MÓVIL ═══════════════════════════════════════════════════
-   Problema: 100vh en móvil incluye la barra del navegador, causando recorte.
-   Solución:
-   · html necesita height:-webkit-fill-available para que iOS lo propague.
-   · body hereda esa altura con min-height.
-   · #app usa 100svh (small viewport: chrome siempre visible) + 100dvh
-     (dynamic: se ajusta cuando el chrome se oculta al hacer scroll).
-   ═══════════════════════════════════════════════════════════════════════════ */
-html{height:100%;height:-webkit-fill-available}
-body{width:100%;min-height:100vh;min-height:-webkit-fill-available;background:var(--bg);color:var(--t);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:var(--fs);-webkit-font-smoothing:antialiased;overflow-x:hidden}
-#app{display:flex;flex-direction:column;width:100%;min-height:100vh;min-height:100svh;min-height:100dvh;max-width:520px;margin:0 auto;background:var(--bg);position:relative}
+html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:var(--fs);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+#app{display:flex;flex-direction:column;width:100%;min-height:100vh;min-height:-webkit-fill-available;max-width:520px;margin:0 auto;background:var(--bg);position:relative}
 
 /* TOPBAR */
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:12px var(--pad);padding-top:calc(12px + env(safe-area-inset-top,0px));background:var(--bg2);border-bottom:1px solid var(--bdr2);flex-shrink:0;min-height:52px}
@@ -193,10 +183,8 @@ body{width:100%;min-height:100vh;min-height:-webkit-fill-available;background:va
 .mm-item{padding:11px 14px;cursor:pointer;border-radius:8px;font-size:var(--fs);color:var(--t)}
 .mm-item:active{background:var(--bg4)}
 
-/* LOGIN
-   position:fixed + inset:0 ya cubre toda la pantalla correctamente.
-   No necesita min-height adicional. */
-#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);z-index:300}
+/* LOGIN */
+#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);z-index:300;min-height:100vh;min-height:-webkit-fill-available}
 .login-card{background:var(--bg3);border:1px solid var(--bdr2);border-radius:18px;padding:clamp(24px,7vw,40px) clamp(20px,6vw,36px);width:100%;max-width:360px}
 .login-logo{width:72px;height:72px;border-radius:50%;background:var(--p2);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff;margin:0 auto 14px}
 .login-title{font-size:var(--fs-xl);font-weight:800;text-align:center;font-family:Georgia,serif}
@@ -355,7 +343,8 @@ body{width:100%;min-height:100vh;min-height:-webkit-fill-available;background:va
         <select class="fi" id="sel-metodo">
           <option>Efectivo</option>
           <option>Transferencia</option>
-          <option>Tarjeta de crédito</option>
+          <option>Tarjeta débito</option>
+          <option>Tarjeta crédito</option>
         </select>
       </div>
       <div>
@@ -363,6 +352,7 @@ body{width:100%;min-height:100vh;min-height:-webkit-fill-available;background:va
         <select class="fi" id="sel-estado">
           <option>Pagado</option>
           <option>Pendiente</option>
+          <option>Parcial</option>
         </select>
       </div>
     </div>
@@ -380,7 +370,6 @@ body{width:100%;min-height:100vh;min-height:-webkit-fill-available;background:va
     <select class="fi" id="sel-entrega">
       <option>Retiro en tienda</option>
       <option>Despacho a domicilio</option>
-      <option>Punto acordado</option>
     </select>
     <label class="fl">Notas</label>
     <input class="fi" id="inp-notas" type="text" placeholder="Notas adicionales..."/>
@@ -702,6 +691,7 @@ body{width:100%;min-height:100vh;min-height:-webkit-fill-available;background:va
         <select class="fi" id="mp-tipo" onchange="onTipoPerfumeChange()">
           <option value="decants">Decants</option>
           <option value="botella">Botella completa</option>
+          <option value="parcial">Ambos</option>
         </select>
       </div>
     </div>
@@ -719,8 +709,17 @@ body{width:100%;min-height:100vh;min-height:-webkit-fill-available;background:va
       </div>
     </div>
     <div id="mp-precio-botella" style="display:none">
-      <label class="fl">Precio botella completa ($)</label>
-      <input class="fi" id="mp-pbotella" type="number" placeholder="0" inputmode="numeric"/>
+      <div class="fr">
+        <div>
+          <label class="fl">Precio botella ($)</label>
+          <input class="fi" id="mp-pbotella" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0"/>
+        </div>
+        <div>
+          <label class="fl">Unidades en stock</label>
+          <input class="fi" id="mp-unidades" type="number" placeholder="1" min="1" inputmode="numeric" style="margin-bottom:0"/>
+        </div>
+      </div>
+      <p style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:var(--gap)">💡 Si trajiste 5 botellas, ingresa 5. El stock se calculará como unidades × ml.</p>
     </div>
     <button class="btn bp" onclick="guardarPerfume()">Guardar perfume</button>
     <button class="btn bd" onclick="cerrarModal('modal-perfume')">Cancelar</button>
@@ -768,5 +767,57 @@ body{width:100%;min-height:100vh;min-height:-webkit-fill-available;background:va
 
 <script src="js/db.js"></script>
 <script src="js/app.js"></script>
+
+<!-- ════ MODAL EDITAR PERFUME ════ -->
+<div class="modal-overlay" id="modal-editar-perfume">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Editar perfume</div>
+    <input type="hidden" id="ep-id"/>
+    <label class="fl">Nombre *</label>
+    <input class="fi" id="ep-nombre" placeholder="Nombre del perfume"/>
+    <label class="fl">Marca *</label>
+    <input class="fi" id="ep-marca" placeholder="Marca"/>
+    <div class="fr">
+      <div><label class="fl">ml totales</label><input class="fi" id="ep-ml" type="number" placeholder="100" inputmode="numeric"/></div>
+      <div>
+        <label class="fl">Tipo de venta</label>
+        <select class="fi" id="ep-tipo" onchange="onTipoPerfumeEditChange()">
+          <option value="decants">Decants</option>
+          <option value="botella">Botella completa</option>
+          <option value="parcial">Ambos</option>
+        </select>
+      </div>
+    </div>
+    <label class="fl">Costo total con IVA ($)</label>
+    <input class="fi" id="ep-costo" type="number" placeholder="0" inputmode="numeric"/>
+    <div id="ep-precios-decant">
+      <div class="ct">Precios por formato</div>
+      <div class="fr">
+        <div><label class="fl">2ml ($)</label><input class="fi" id="ep-p2" type="number" placeholder="0" inputmode="numeric"/></div>
+        <div><label class="fl">3ml ($)</label><input class="fi" id="ep-p3" type="number" placeholder="0" inputmode="numeric"/></div>
+      </div>
+      <div class="fr">
+        <div><label class="fl">5ml ($)</label><input class="fi" id="ep-p5" type="number" placeholder="0" inputmode="numeric"/></div>
+        <div><label class="fl">10ml ($)</label><input class="fi" id="ep-p10" type="number" placeholder="0" inputmode="numeric"/></div>
+      </div>
+    </div>
+    <div id="ep-precio-botella" style="display:none">
+      <div class="fr">
+        <div>
+          <label class="fl">Precio botella ($)</label>
+          <input class="fi" id="ep-pbotella" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0"/>
+        </div>
+        <div>
+          <label class="fl">Unidades en stock</label>
+          <input class="fi" id="ep-unidades" type="number" placeholder="1" min="1" inputmode="numeric" style="margin-bottom:0"/>
+        </div>
+      </div>
+      <p style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:var(--gap)">💡 Stock total = unidades × ml por botella.</p>
+    </div>
+    <button class="btn bp" onclick="guardarEditarPerfume()">Guardar cambios</button>
+    <button class="btn bd" onclick="cerrarModal('modal-editar-perfume')">Cancelar</button>
+  </div>
+</div>
 </body>
 </html>
