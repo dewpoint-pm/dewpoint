@@ -682,46 +682,63 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title" id="modal-perf-title">Nuevo perfume</div>
-    <label class="fl">Nombre *</label><input class="fi" id="mp-nombre" placeholder="Nombre del perfume"/>
-    <label class="fl">Marca *</label><input class="fi" id="mp-marca" placeholder="Marca"/>
-    <div class="fr">
-      <div><label class="fl">ml totales</label><input class="fi" id="mp-ml" type="number" placeholder="100" inputmode="numeric"/></div>
-      <div>
-        <label class="fl">Tipo de venta</label>
-        <select class="fi" id="mp-tipo" onchange="onTipoPerfumeChange()">
-          <option value="decants">Decants</option>
-          <option value="botella">Botella completa</option>
-          <option value="parcial">Ambos</option>
-        </select>
-      </div>
-    </div>
-    <label class="fl">Costo total con IVA ($)</label>
-    <input class="fi" id="mp-costo" type="number" placeholder="0" inputmode="numeric"/>
-    <div id="mp-precios-decant">
-      <div class="ct">Precios de venta por formato</div>
+
+    <!-- SECCIÓN DECANT -->
+    <div id="mp-sec-decant">
       <div class="fr">
-        <div><label class="fl">2ml ($)</label><input class="fi" id="mp-p2" type="number" placeholder="0" inputmode="numeric"/></div>
-        <div><label class="fl">3ml ($)</label><input class="fi" id="mp-p3" type="number" placeholder="0" inputmode="numeric"/></div>
+        <div><label class="fl">Nombre *</label><input class="fi" id="mp-nombre" placeholder="Ej: Sauvage" style="margin-bottom:0"/></div>
+        <div><label class="fl">Marca *</label><input class="fi" id="mp-marca" placeholder="Ej: Dior" style="margin-bottom:0"/></div>
       </div>
+      <div style="height:var(--gap)"></div>
       <div class="fr">
-        <div><label class="fl">5ml ($)</label><input class="fi" id="mp-p5" type="number" placeholder="0" inputmode="numeric"/></div>
-        <div><label class="fl">10ml ($)</label><input class="fi" id="mp-p10" type="number" placeholder="0" inputmode="numeric"/></div>
+        <div><label class="fl">ml totales *</label><input class="fi" id="mp-ml" type="number" placeholder="100" inputmode="numeric" style="margin-bottom:0"/></div>
+        <div><label class="fl">Costo total IVA ($)</label><input class="fi" id="mp-costo" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0"/></div>
       </div>
-    </div>
-    <div id="mp-precio-botella" style="display:none">
-      <div class="fr">
-        <div>
-          <label class="fl">Precio botella ($)</label>
-          <input class="fi" id="mp-pbotella" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0"/>
+      <div style="height:var(--gap)"></div>
+
+      <!-- Precios decant -->
+      <div id="mp-precios-decant">
+        <div class="ct">Precios de venta por formato</div>
+        <div class="fr">
+          <div><label class="fl">2ml ($)</label><input class="fi" id="mp-p2" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0"/></div>
+          <div><label class="fl">3ml ($)</label><input class="fi" id="mp-p3" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0"/></div>
         </div>
-        <div>
-          <label class="fl">Unidades en stock</label>
-          <input class="fi" id="mp-unidades" type="number" placeholder="1" min="1" inputmode="numeric" style="margin-bottom:0"/>
+        <div style="height:var(--gap)"></div>
+        <div class="fr">
+          <div><label class="fl">5ml ($)</label><input class="fi" id="mp-p5" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0"/></div>
+          <div><label class="fl">10ml ($)</label><input class="fi" id="mp-p10" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0"/></div>
         </div>
+        <div style="height:var(--gap)"></div>
       </div>
-      <p style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:var(--gap)">💡 Si trajiste 5 botellas, ingresa 5. El stock se calculará como unidades × ml.</p>
+
+      <!-- Sección botella -->
+      <div id="mp-precio-botella" style="display:none">
+        <div class="fr">
+          <div><label class="fl">ml por botella *</label><input class="fi" id="mp-ml-bot" type="number" placeholder="100" inputmode="numeric" style="margin-bottom:0" oninput="document.getElementById('mp-ml').value=this.value"/></div>
+          <div><label class="fl">Costo por botella ($)</label><input class="fi" id="mp-costo-bot" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0" oninput="document.getElementById('mp-costo').value=this.value"/></div>
+        </div>
+        <div style="height:var(--gap)"></div>
+        <label class="fl">Unidades en stock *</label>
+        <input class="fi" id="mp-unidades" type="number" placeholder="1" min="1" inputmode="numeric"/>
+        <p style="font-size:var(--fs-sm);color:var(--t3);margin-top:-8px;margin-bottom:var(--gap)">Cantidad de botellas físicas que ingresas al stock.</p>
+        <label class="fl">Precio venta botella completa ($)</label>
+        <input class="fi" id="mp-pbotella" type="number" placeholder="0" inputmode="numeric"/>
+      </div>
     </div>
-    <button class="btn bp" onclick="guardarPerfume()">Guardar perfume</button>
+
+    <!-- Tipo de venta chips -->
+    <div class="sec-lbl">Clasificación de venta</div>
+    <div class="fr" style="gap:8px;margin-bottom:var(--gap)">
+      <button id="mp-btn-decant" onclick="setTipoPerfume('decants',this)" style="border-radius:10px;padding:10px 8px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;border:2px solid var(--bdr2);background:var(--bg-in);color:var(--t3);transition:all .2s;text-align:center">
+        🧪 Solo Decants<br><span style="font-weight:400;font-size:10px">Venta solo por formatos<br>(2ml, 3ml, 5ml, 10ml)</span>
+      </button>
+      <button id="mp-btn-botella" onclick="setTipoPerfume('botella',this)" style="border-radius:10px;padding:10px 8px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;border:2px solid var(--bdr2);background:var(--bg-in);color:var(--t3);transition:all .2s;text-align:center">
+        🧴 Botella Completa<br><span style="font-weight:400;font-size:10px">Venta únicamente como<br>botella entera</span>
+      </button>
+    </div>
+    <input type="hidden" id="mp-tipo" value="decants"/>
+
+    <button class="btn bp" onclick="guardarPerfume()" style="margin-top:8px">Guardar perfume</button>
     <button class="btn bd" onclick="cerrarModal('modal-perfume')">Cancelar</button>
   </div>
 </div>
