@@ -27,12 +27,7 @@ import threading
 import uuid
 import os
 import json
-from datetime import datetime, date, timezone
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
-_TZ_SANTIAGO = ZoneInfo('America/Santiago')
+from datetime import datetime, date
 
 # ════════════════════════════════════════════════════════════════════════════
 #  CONFIGURACIÓN
@@ -70,12 +65,7 @@ def _requerir_sesion():
 
 def _json_serial(obj):
     """Serializa tipos Python que json no sabe manejar (date, datetime)."""
-    if isinstance(obj, datetime):
-        # Convertir UTC → hora chilena antes de serializar
-        if obj.tzinfo is None:
-            obj = obj.replace(tzinfo=timezone.utc)
-        return obj.astimezone(_TZ_SANTIAGO).strftime('%Y-%m-%dT%H:%M:%S')
-    if isinstance(obj, date):
+    if isinstance(obj, (date, datetime)):
         return obj.isoformat()
     raise TypeError(f"Tipo no serializable: {type(obj)}")
 
@@ -221,15 +211,24 @@ def crear_perfume():
         return error
     d = request.get_json(silent=True) or {}
     try:
+        ml_totales = float(d.get("ml_totales", 0))
+        tipo_venta = d.get("tipo_venta", "decants")
+        unidades   = int(d.get("unidades", 1))
+        # ml_disponibles_inicial = unidades × ml para botellas
+        ml_disp_ini = None
+        if tipo_venta in ("botella", "parcial") and unidades >= 1:
+            ml_disp_ini = ml_totales * unidades
+
         resultado = db.crear_perfume(
             nombre       = d.get("nombre", ""),
             marca        = d.get("marca", ""),
-            ml_totales   = float(d.get("ml_totales", 0)),
+            ml_totales   = ml_totales,
             costo_total  = int(d.get("costo_total", 0)),
             precios_dict = d.get("precios", {}),
             precio_botella = int(d.get("precio_botella", 0)),
-            tipo_venta   = d.get("tipo_venta", "decants"),
-            unidades     = int(d.get("unidades", 1)),
+            tipo_venta   = tipo_venta,
+            unidades     = unidades,
+            ml_disponibles_inicial = ml_disp_ini,
         )
         if not resultado:
             return err("Error al crear perfume")
@@ -245,19 +244,30 @@ def editar_perfume(perfume_id):
         return error
     d = request.get_json(silent=True) or {}
     try:
-        ok_result, msg = db.editar_perfume(
+        # Calcular ml_disponibles según unidades si es botella
+        ml_totales     = float(d.get("ml_totales", 0))
+        tipo_venta     = d.get("tipo_venta", "decants")
+        unidades       = int(d.get("unidades", 1))
+        ml_disponibles = d.get("ml_disponibles")
+
+        # Si es botella y vienen unidades, calcular ml_disponibles
+        if tipo_venta in ("botella", "parcial") and unidades >= 1:
+            ml_disponibles = ml_totales * unidades
+
+        result = db.editar_perfume(
             perfume_id   = perfume_id,
             nombre       = d.get("nombre", ""),
             marca        = d.get("marca", ""),
-            ml_totales   = float(d.get("ml_totales", 0)),
+            ml_totales   = ml_totales,
             costo_total  = int(d.get("costo_total", 0)),
             precios_dict = d.get("precios", {}),
             precio_botella = int(d.get("precio_botella", 0)),
-            tipo_venta   = d.get("tipo_venta", "decants"),
-            ml_disponibles = d.get("ml_disponibles"),
+            tipo_venta   = tipo_venta,
+            ml_disponibles = ml_disponibles,
         )
-        if not ok_result:
-            return err(msg or "Error al editar")
+        # editar_perfume retorna el perfume actualizado (dict) o None/False en error
+        if result is None or result is False:
+            return err("Error al editar perfume")
         return ok()
     except Exception as e:
         return err(str(e))
@@ -466,17 +476,6 @@ def crear_venta():
         )
         if not ok_result:
             return err(msg or "Error al crear venta")
-        # Corregir fecha a zona horaria chilena (la BD guarda UTC por defecto)
-        try:
-            from database import get_conn
-            conn = get_conn()
-            conn.execute(
-                "UPDATE ventas SET fecha = (NOW() AT TIME ZONE 'America/Santiago')::date WHERE id = %s",
-                (venta_id,)
-            )
-            conn.close()
-        except Exception:
-            pass  # Si falla la corrección de zona, igual retornar la venta creada
         return ok({"venta_id": venta_id})
     except Exception as e:
         return err(str(e))
