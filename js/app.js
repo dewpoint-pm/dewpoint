@@ -479,7 +479,7 @@ function guardarVenta(){
   var confirm_save=DB.loadSetting('confirm_save',true);
   if(confirm_save&&!confirm('¿Confirmar venta por '+fmt(total)+'?')) return;
   var venta={
-    cliente_id:APP.clienteSel?APP.clienteSel.id:(APP.clienteAnonimo?(function(){var a=APP.clientes.filter(function(x){return (x.nombre||'').toLowerCase().includes('an') && (x.nombre||'').toLowerCase().includes('nim');});return a.length?a[0].id:null;})():null),
+    cliente_id:APP.clienteSel?APP.clienteSel.id:null,
     items:APP.carrito.map(function(it){ return {perfume_id:it.perfume_id,formato_ml:it.formato_ml,cantidad:it.cantidad,precio_unit:it.precio_unit,es_botella_completa:it.es_botella_completa}; }),
     metodo_pago:document.getElementById('sel-metodo').value,
     tipo_entrega:document.getElementById('sel-entrega').value,
@@ -614,6 +614,7 @@ function abrirEditarCliente(id){
   /* Guardar id para la edición */
   APP._editClienteId=id;
   _clearRutFeedback();
+  APP._editClienteId=null;
   document.getElementById('modal-cliente').classList.add('open');
 }
 
@@ -722,6 +723,69 @@ function loadPerfumes(q){
   });
 }
 
+function abrirEditarPerfume(id){
+  var p = APP.perfumes.filter(function(x){ return x.id===id; })[0];
+  if(!p){ showToast('Perfume no encontrado'); return; }
+  var unidadesActuales = 1;
+  if((p.tipo_venta==='botella'||p.tipo_venta==='parcial') && p.ml_totales>0){
+    unidadesActuales = Math.max(1, Math.round(p.ml_disponibles / p.ml_totales));
+  }
+  var set=function(id,v){ var e=document.getElementById(id); if(e) e.value=v; };
+  set('ep-id', p.id);
+  set('ep-nombre', p.nombre||'');
+  set('ep-marca', p.marca||'');
+  set('ep-ml', p.ml_totales||'');
+  set('ep-costo', p.costo_total||'');
+  set('ep-tipo', p.tipo_venta||'decants');
+  var precios=p.precios||{};
+  set('ep-p2', precios['2ml']||'');
+  set('ep-p3', precios['3ml']||'');
+  set('ep-p5', precios['5ml']||'');
+  set('ep-p10', precios['10ml']||'');
+  set('ep-pbotella', p.precio_botella||'');
+  set('ep-unidades', unidadesActuales);
+  onTipoPerfumeEditChange();
+  document.getElementById('modal-editar-perfume').classList.add('open');
+}
+
+function guardarEditarPerfume(){
+  var id=parseInt((document.getElementById('ep-id')||{}).value||0);
+  if(!id){ showToast('Error: ID de perfume no encontrado'); return; }
+  var nombre=((document.getElementById('ep-nombre')||{}).value||'').trim();
+  var marca=((document.getElementById('ep-marca')||{}).value||'').trim();
+  var ml=parseFloat((document.getElementById('ep-ml')||{}).value)||0;
+  if(!nombre||!marca||!ml){ showToast('Completa nombre, marca y ml'); return; }
+  var tipo=(document.getElementById('ep-tipo')||{}).value||'decants';
+  var precios={};
+  if(tipo!=='botella'){
+    [['2ml','ep-p2'],['3ml','ep-p3'],['5ml','ep-p5'],['10ml','ep-p10']].forEach(function(pair){
+      var v=parseInt((document.getElementById(pair[1])||{}).value)||0;
+      if(v) precios[pair[0]]=v;
+    });
+  }
+  var unidades=1;
+  if(tipo==='botella'||tipo==='parcial'){
+    unidades=Math.max(1, parseInt((document.getElementById('ep-unidades')||{}).value)||1);
+  }
+  var mlDisp = tipo==='decants' ? null : ml*unidades;
+  DB.editarPerfume(id,{
+    nombre:nombre, marca:marca, ml_totales:ml,
+    costo_total:parseInt((document.getElementById('ep-costo')||{}).value)||0,
+    precios:precios,
+    precio_botella:tipo!=='decants'?parseInt((document.getElementById('ep-pbotella')||{}).value)||0:0,
+    tipo_venta:tipo,
+    unidades:unidades,
+    ml_disponibles:mlDisp
+  }, function(ok,msg){
+    if(ok){
+      showToast('Perfume actualizado');
+      cerrarModal('modal-editar-perfume');
+      delete _lastLoad['perfumes'];
+      loadPerfumes(); loadPerfumesVenta();
+    } else showToast('Error: '+(msg||'No se pudo actualizar'));
+  });
+}
+
 /* ══ ELIMINAR PERFUME ════════════════════════════════════════ */
 function confirmarEliminarPerfume(id, nombre){
   if(!confirm('¿Eliminar perfume: '+nombre+'?')) return;
@@ -744,13 +808,6 @@ function filtrarHistorial(estado,el){
   loadHistorial();
 }
 
-function _fmtDate(iso){
-  if(!iso||iso==='—') return iso;
-  var p=iso.substring(0,10).split('-');
-  if(p.length!==3) return iso;
-  return p[2]+'-'+p[1]+'-'+p[0];
-}
-
 function renderHistorial(ventas){
   var cont=document.getElementById('lista-historial'); if(!cont) return;
   var filtradas=ventas.filter(function(v){ return APP._histEstado==='Todos'||v.estado_pago===APP._histEstado; });
@@ -758,7 +815,7 @@ function renderHistorial(ventas){
   var col={'Pagado':['rgba(76,175,130,.12)','var(--grn)','cg'],'Pendiente':['rgba(200,146,58,.12)','var(--warn)','cw'],'Parcial':['rgba(232,68,90,.12)','var(--red)','cr']};
   cont.innerHTML=filtradas.slice(0,50).map(function(v){
     var c=col[v.estado_pago]||['rgba(91,164,207,.12)','var(--p)','cp'];
-    var fecha=v.fecha?_fmtDate(v.fecha.substring(0,10)):'—';
+    var fecha=v.fecha?v.fecha.substring(0,10):'—';
     var esPendiente = v.estado_pago==='Pendiente'||v.estado_pago==='Parcial';
     var btnPagar = esPendiente
       ? '<button onclick="event.stopPropagation();accionMarcarPagado('+v.id+')" style="margin-top:4px;border:none;background:var(--grn);color:#fff;font-size:var(--fs-sm);font-weight:700;padding:4px 10px;border-radius:8px;cursor:pointer;display:block">✓ Marcar pagado</button>'
@@ -828,7 +885,7 @@ var _REP = {
 
 function _fmtLbl(desde, hasta) {
   if (!desde && !hasta) return 'Todo el tiempo';
-  return (_fmtDate(desde) || 'inicio') + ' → ' + (_fmtDate(hasta) || 'hoy');
+  return (desde || 'inicio') + ' → ' + (hasta || 'hoy');
 }
 
 function setPreset(preset, el) {
@@ -836,7 +893,7 @@ function setPreset(preset, el) {
   if(el) el.className='chip cp';
   var hoy=new Date();
   var d=document.getElementById('rep-desde'), h=document.getElementById('rep-hasta');
-  var fmt2=function(dt){ var y=dt.getFullYear(),m=String(dt.getMonth()+1).padStart(2,'0'),d=String(dt.getDate()).padStart(2,'0'); return y+'-'+m+'-'+d; };
+  var fmt2=function(dt){ return dt.toISOString().substring(0,10); };
   if(preset==='todo'){ d.value=''; h.value=''; }
   else if(preset==='hoy'){ d.value=fmt2(hoy); h.value=fmt2(hoy); }
   else if(preset==='mes'){ d.value=fmt2(new Date(hoy.getFullYear(),hoy.getMonth(),1)); h.value=fmt2(hoy); }
@@ -1086,17 +1143,11 @@ function renderGrafico() {
       }
       /* Tope brillante */
       if(altura>3){ ctx.fillStyle=colorTop; ctx.fillRect(bx,byTop,barW,3); }
-      /* Valor — dentro de la barra si hay espacio, encima si es muy pequeña */
-      if(val>0){
+      /* Valor — negro, dentro de la barra, arriba */
+      if(val>0 && altura>22){
         var lv = val>=1000000?'$'+(val/1000000).toFixed(1)+'M':val>=1000?'$'+Math.round(val/1000)+'k':'$'+Math.round(val);
-        ctx.font='bold 11px -apple-system,sans-serif'; ctx.textAlign='center';
-        if(altura>22){
-          ctx.fillStyle=tc.valTxt;
-          ctx.fillText(lv, bx+barW/2, byTop+16);
-        } else {
-          ctx.fillStyle=tc.label;
-          ctx.fillText(lv, bx+barW/2, byTop-5);
-        }
+        ctx.fillStyle=tc.valTxt; ctx.font='bold 11px -apple-system,sans-serif'; ctx.textAlign='center';
+        ctx.fillText(lv, bx+barW/2, byTop+16);
       }
     }
 
@@ -1239,7 +1290,6 @@ function loadCostos(){
 
 /* ══ MODALES ══════════════════════════════════════════════════ */
 function abrirModalCliente(){
-  APP._editClienteId=null;
   document.getElementById('modal-cli-title').textContent='Nuevo cliente';
   ['mc-nombre','mc-rut','mc-tel','mc-ig','mc-email','mc-notas'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('modal-cliente').classList.add('open');
@@ -1298,25 +1348,16 @@ function guardarCliente(){
     var rutClean = rutVal.replace(/\./g,'').replace(/-/g,'').toUpperCase();
     if(!validarRut(rutClean)){ showToast('El RUT ingresado no es válido'); return; }
   }
-  var data={nombre:nombre,rut:rutVal,telefono:document.getElementById('mc-tel').value,instagram:document.getElementById('mc-ig').value,email:document.getElementById('mc-email').value,notas:document.getElementById('mc-notas').value};
-  if(APP._editClienteId){
-    var editId=APP._editClienteId;
-    DB.editarCliente(editId, data, function(ok,msg){
-      if(ok){ showToast('Cliente actualizado'); cerrarModal('modal-cliente'); APP._editClienteId=null; delete _lastLoad['clientes']; loadClientes(); }
-      else showToast('Error: '+(msg||'No se pudo actualizar'));
-    });
-  } else {
-    DB.crearCliente(data, function(ok,msg){
-      if(ok){ showToast('Cliente creado'); cerrarModal('modal-cliente'); delete _lastLoad['clientes']; loadClientes(); }
-      else showToast('Error: '+(msg||'No se pudo crear'));
-    });
-  }
+  DB.crearCliente({nombre:nombre,rut:rutVal,telefono:document.getElementById('mc-tel').value,instagram:document.getElementById('mc-ig').value,email:document.getElementById('mc-email').value,notas:document.getElementById('mc-notas').value}, function(ok,msg){
+    if(ok){ showToast('Cliente creado'); cerrarModal('modal-cliente'); delete _lastLoad['clientes']; loadClientes(); }
+    else showToast('Error: '+(msg||'No se pudo crear'));
+  });
 }
 
 function abrirModalPerfume(){
-  APP._editPerfumeId=null;
   document.getElementById('modal-perf-title').textContent='Nuevo perfume';
   ['mp-nombre','mp-marca','mp-ml','mp-costo','mp-p2','mp-p3','mp-p5','mp-p10','mp-pbotella'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  var uEl=document.getElementById('mp-unidades'); if(uEl) uEl.value='1';
   document.getElementById('mp-tipo').value='decants';
   onTipoPerfumeChange();
   document.getElementById('modal-perfume').classList.add('open');
@@ -1326,26 +1367,17 @@ function onTipoPerfumeChange(){
   var tipo=document.getElementById('mp-tipo').value;
   document.getElementById('mp-precios-decant').style.display=tipo==='botella'?'none':'block';
   document.getElementById('mp-precio-botella').style.display=tipo==='decants'?'none':'block';
+  /* Mostrar campo unidades solo para botella */
+  var uEl=document.getElementById('mp-unidades');
+  if(uEl) uEl.closest('.fr') && (uEl.closest('div').style.display = tipo==='botella'?'block':'block');
 }
 
-function abrirEditarPerfume(id){
-  var p=APP.perfumes.filter(function(x){return x.id===id;})[0];
-  if(!p){ showToast('Perfume no encontrado'); return; }
-  document.getElementById('modal-perf-title').textContent='Editar perfume';
-  document.getElementById('mp-nombre').value=p.nombre||'';
-  document.getElementById('mp-marca').value=p.marca||'';
-  document.getElementById('mp-ml').value=p.ml_disponibles||p.ml_totales||'';
-  document.getElementById('mp-costo').value=p.costo_total||'';
-  document.getElementById('mp-tipo').value=p.tipo_venta||'decants';
-  onTipoPerfumeChange();
-  var precios=p.precios||{};
-  var fmts=['2ml','3ml','5ml','10ml'];
-  var fids=['mp-p2','mp-p3','mp-p5','mp-p10'];
-  fmts.forEach(function(f,i){ var e=document.getElementById(fids[i]); if(e) e.value=precios[f]||''; });
-  var pbEl=document.getElementById('mp-pbotella');
-  if(pbEl) pbEl.value=p.precio_botella||'';
-  APP._editPerfumeId=id;
-  document.getElementById('modal-perfume').classList.add('open');
+function onTipoPerfumeEditChange(){
+  var tipo=document.getElementById('ep-tipo').value;
+  var decEl=document.getElementById('ep-precios-decant');
+  var botEl=document.getElementById('ep-precio-botella');
+  if(decEl) decEl.style.display=tipo==='botella'?'none':'block';
+  if(botEl) botEl.style.display=tipo==='decants'?'none':'block';
 }
 
 function guardarPerfume(){
@@ -1362,19 +1394,26 @@ function guardarPerfume(){
       if(v) precios[f]=v;
     });
   }
-  var data={nombre:nombre,marca:marca,ml_totales:ml,costo_total:parseInt(document.getElementById('mp-costo').value)||0,precios:precios,precio_botella:tipo!=='decants'?parseInt(document.getElementById('mp-pbotella').value)||0:0,tipo_venta:tipo};
-  if(APP._editPerfumeId){
-    var editId=APP._editPerfumeId;
-    DB.editarPerfume(editId, data, function(ok,msg){
-      if(ok){ showToast('Perfume actualizado'); cerrarModal('modal-perfume'); APP._editPerfumeId=null; delete _lastLoad['perfumes']; loadPerfumes(); loadPerfumesVenta(); }
-      else showToast('Error: '+(msg||'No se pudo actualizar'));
-    });
-  } else {
-    DB.crearPerfume(data, function(ok,msg){
-      if(ok){ showToast('Perfume creado'); cerrarModal('modal-perfume'); delete _lastLoad['perfumes']; loadPerfumes(); loadPerfumesVenta(); }
-      else showToast('Error: '+(msg||'No se pudo crear'));
-    });
+  var unidades=1;
+  if(tipo==='botella'||tipo==='parcial'){
+    unidades=parseInt(document.getElementById('mp-unidades').value)||1;
+    if(unidades<1) unidades=1;
   }
+  /* Para botellas: ml_disponibles_inicial = unidades × ml */
+  DB.crearPerfume({
+    nombre:nombre,
+    marca:marca,
+    ml_totales:ml,
+    costo_total:parseInt(document.getElementById('mp-costo').value)||0,
+    precios:precios,
+    precio_botella:tipo!=='decants'?parseInt(document.getElementById('mp-pbotella').value)||0:0,
+    tipo_venta:tipo,
+    unidades:unidades,
+    ml_disponibles_inicial: tipo==='decants' ? ml : ml*unidades
+  }, function(ok,msg){
+    if(ok){ showToast('Perfume creado ('+unidades+' unidad'+(unidades>1?'es':'')+')'); cerrarModal('modal-perfume'); delete _lastLoad['perfumes']; loadPerfumes(); loadPerfumesVenta(); }
+    else showToast('Error: '+(msg||'No se pudo crear'));
+  });
 }
 
 function abrirModalInsumo(){
