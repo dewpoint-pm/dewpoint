@@ -937,57 +937,103 @@ function renderInsumos(insumos){
   var cont=document.getElementById('lista-insumos'); if(!cont) return;
   if(insumos.length===0){ cont.innerHTML='<p style="color:var(--t3);padding:12px 0">No hay insumos registrados</p>'; return; }
   cont.innerHTML='';
+
+  /* Agrupar por categoría */
+  var cats={};
   insumos.forEach(function(ins){
-    var sin=ins.stock_actual<=0, bajo=!sin&&ins.stock_actual<20;
-    var bg=sin?'rgba(232,68,90,.15)':bajo?'rgba(240,192,96,.12)':'rgba(91,164,207,.12)';
-    var tc=sin?'var(--red)':bajo?'var(--gold)':'var(--p)';
-    var chip=sin?'<span class="chip cr">Sin stock</span>':bajo?'<span class="chip ca">Bajo</span>':'';
-    var costoUnit=parseFloat(ins.costo_unitario||0);
-    var costoTotal=Math.round(costoUnit*parseFloat(ins.stock_actual||0));
-    var sub=escHtml(ins.categoria||'\u2014')+(ins.formato_ml?' \u00b7 '+escHtml(ins.formato_ml):'')+' \u00b7 '+ins.stock_actual+' u.';
+    var cat=ins.categoria||'Otros';
+    if(!cats[cat]) cats[cat]=[];
+    cats[cat].push(ins);
+  });
 
-    var wrap=document.createElement('div');
-    wrap.style.cssText='padding:10px 0;border-bottom:1px solid var(--bdr2)';
+  Object.keys(cats).sort().forEach(function(cat){
+    /* Header categoría */
+    var hdr=document.createElement('div');
+    hdr.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:10px 0 6px;margin-top:4px';
+    hdr.innerHTML='<div style="font-size:var(--fs-sm);font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.6px">\ud83d\udce6 '+escHtml(cat)+'</div>'+
+      '<div style="font-size:var(--fs-sm);color:var(--t3)">'+cats[cat].length+' insumos</div>';
+    cont.appendChild(hdr);
 
-    /* Fila info */
-    var info=document.createElement('div');
-    info.style.cssText='display:flex;align-items:center;gap:10px';
-    var ri=document.createElement('div');
-    ri.className='ri'; ri.style.cssText='background:'+bg+';color:'+tc+';flex-shrink:0';
-    ri.textContent=ins.nombre.charAt(0).toUpperCase();
-    var txt=document.createElement('div');
-    txt.style.cssText='flex:1;min-width:0';
-    txt.innerHTML='<div class="rname">'+escHtml(ins.nombre)+'</div><div class="rsub">'+sub+'</div>';
-    var tot=document.createElement('div');
-    tot.style.cssText='text-align:right;flex-shrink:0';
-    tot.innerHTML='<div class="rv vg">'+fmt(costoUnit)+'/u.</div><div class="rv2">Total: '+fmt(costoTotal)+'</div>'+chip;
-    info.appendChild(ri); info.appendChild(txt); info.appendChild(tot);
+    cats[cat].forEach(function(ins){
+      var stock=parseFloat(ins.stock_actual||0);
+      var costoUnit=parseFloat(ins.costo_unitario||0);
+      var sin=stock<=0, bajo=!sin&&stock<20;
+      var barColor=sin?'var(--red)':bajo?'var(--gold)':'var(--grn)';
+      /* Barra de progreso: max referencia 100 u. */
+      var maxRef=Math.max(stock,100);
+      var pct=Math.min(100,(stock/maxRef)*100);
+      var chipHtml=sin?'<span class="chip cr" style="font-size:10px">Sin stock</span>':bajo?'<span class="chip ca" style="font-size:10px">Bajo</span>':'';
+      var fmtLabel=ins.formato_ml?escHtml(ins.formato_ml):'\u2014';
 
-    /* Botón re-stock */
-    var btns=document.createElement('div');
-    btns.style.cssText='display:flex;gap:6px;margin-top:8px;justify-content:flex-end';
-    var bRestock=document.createElement('button');
-    bRestock.style.cssText='border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;background:rgba(76,175,130,.15);border:1px solid rgba(76,175,130,.4);color:var(--grn)';
-    bRestock.textContent='\u2b06 Re-stock';
-    bRestock.addEventListener('click',function(){ abrirRestockInsumo(ins.id,ins.nombre,ins.stock_actual,costoUnit); });
-    btns.appendChild(bRestock);
+      var wrap=document.createElement('div');
+      wrap.style.cssText='padding:10px 12px;background:var(--bg-in);border-radius:10px;margin-bottom:8px';
 
-    wrap.appendChild(info); wrap.appendChild(btns);
-    cont.appendChild(wrap);
+      /* Fila nombre + precio */
+      var row1=document.createElement('div');
+      row1.style.cssText='display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px';
+      row1.innerHTML=
+        '<div style="min-width:0;flex:1">'+
+          '<div style="font-weight:700;font-size:var(--fs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escHtml(ins.nombre)+'</div>'+
+          '<div style="font-size:var(--fs-sm);color:var(--t3);margin-top:2px">'+fmtLabel+'</div>'+
+        '</div>'+
+        '<div style="text-align:right;flex-shrink:0;margin-left:12px">'+
+          '<div style="font-weight:700;color:var(--p);font-size:var(--fs)">'+fmt(costoUnit)+'/u.</div>'+
+          (costoUnit&&stock>0?'<div style="font-size:var(--fs-sm);color:var(--t3)">Total: '+fmt(Math.round(costoUnit*stock))+'</div>':'')+
+        '</div>';
+
+      /* Barra de stock */
+      var row2=document.createElement('div');
+      row2.style.cssText='margin-bottom:8px';
+      row2.innerHTML=
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'+
+          '<div style="font-size:var(--fs-sm);color:var(--t3)">Stock</div>'+
+          '<div style="display:flex;align-items:center;gap:6px">'+
+            '<span style="font-weight:700;font-size:var(--fs-sm);color:'+barColor+'">'+stock+' u.</span>'+
+            chipHtml+
+          '</div>'+
+        '</div>'+
+        '<div style="background:var(--bdr2);border-radius:4px;height:8px;overflow:hidden">'+
+          '<div style="width:'+pct+'%;height:100%;background:'+barColor+';border-radius:4px;transition:width .4s"></div>'+
+        '</div>';
+
+      /* Botones */
+      var row3=document.createElement('div');
+      row3.style.cssText='display:flex;gap:6px';
+
+      var bRestock=document.createElement('button');
+      bRestock.style.cssText='flex:1;border-radius:8px;padding:7px 8px;font-size:12px;font-weight:700;cursor:pointer;background:var(--p);border:none;color:#fff;display:flex;align-items:center;justify-content:center;gap:4px';
+      bRestock.innerHTML='\u2b06 + Stock';
+      bRestock.addEventListener('click',function(){ abrirRestockInsumo(ins.id,ins.nombre,stock,costoUnit); });
+
+      var bEdit=document.createElement('button');
+      bEdit.style.cssText='width:34px;height:34px;border-radius:8px;padding:0;font-size:14px;cursor:pointer;background:rgba(91,164,207,.15);border:1px solid rgba(91,164,207,.3);color:var(--p);display:flex;align-items:center;justify-content:center';
+      bEdit.textContent='\u270f';
+      bEdit.addEventListener('click',function(){ abrirEditarInsumo(ins); });
+
+      var bDel=document.createElement('button');
+      bDel.style.cssText='width:34px;height:34px;border-radius:8px;padding:0;font-size:14px;cursor:pointer;background:rgba(232,68,90,.08);border:1px solid rgba(232,68,90,.3);color:var(--red);display:flex;align-items:center;justify-content:center';
+      bDel.textContent='\ud83d\uddd1';
+      bDel.addEventListener('click',function(){ confirmarEliminarInsumo(ins.id,ins.nombre); });
+
+      row3.appendChild(bRestock); row3.appendChild(bEdit); row3.appendChild(bDel);
+      wrap.appendChild(row1); wrap.appendChild(row2); wrap.appendChild(row3);
+      cont.appendChild(wrap);
+    });
   });
 }
 
 /* ══ RE-STOCK INSUMO ══════════════════════════════════════════ */
 function abrirRestockInsumo(id, nombre, stockActual, costoUnit){
-  document.getElementById('rs-insumo-nombre').textContent=nombre;
-  document.getElementById('rs-stock-actual').textContent=stockActual+' u.';
+  var modal=document.getElementById('modal-restock-insumo');
+  document.getElementById('rs-insumo-nombre').textContent='Reponer stock \u2014 '+nombre;
+  document.getElementById('rs-stock-actual').textContent=stockActual+' unidades';
+  document.getElementById('rs-costo-unit-actual').textContent=fmt(costoUnit);
   document.getElementById('rs-cantidad').value='';
   document.getElementById('rs-costo-nuevo').value='';
   document.getElementById('rs-preview').textContent='';
-  /* guardar id en dataset del modal */
-  document.getElementById('modal-restock-insumo').dataset.insumoId=id;
-  document.getElementById('modal-restock-insumo').dataset.costoUnit=costoUnit;
-  document.getElementById('modal-restock-insumo').classList.add('open');
+  modal.dataset.insumoId=id;
+  modal.dataset.costoUnit=costoUnit||0;
+  modal.classList.add('open');
 }
 
 function calcRestockPreview(){
@@ -1019,6 +1065,63 @@ function guardarRestockInsumo(){
       delete _lastLoad['insumos'];
       loadInsumos();
     } else showToast('Error: '+(msg||'No se pudo reponer'));
+  });
+}
+
+function abrirEditarInsumo(ins){
+  var modal=document.getElementById('modal-editar-insumo');
+  if(!modal){ showToast('Modal no disponible'); return; }
+  document.getElementById('ei-id').value=ins.id;
+  document.getElementById('ei-nombre').value=ins.nombre||'';
+  var catEl=document.getElementById('ei-cat'); if(catEl) catEl.value=ins.categoria||'Frascos';
+  var fmtEl=document.getElementById('ei-formato');
+  var fmtRow=document.getElementById('ei-formato-row');
+  if(fmtEl) fmtEl.value=ins.formato_ml||'2ml';
+  if(fmtRow) fmtRow.style.display=(ins.categoria==='Frascos')?'block':'none';
+  document.getElementById('ei-stock').value=ins.stock_actual||0;
+  /* costo total aproximado = costo_unit * stock */
+  var costoUnit=parseFloat(ins.costo_unitario||0);
+  var stock=parseFloat(ins.stock_actual||0);
+  document.getElementById('ei-costo').value=costoUnit&&stock?Math.round(costoUnit*stock):'';
+  document.getElementById('ei-preview').textContent=costoUnit?('\u2192 Costo unitario actual: '+fmt(costoUnit)):'';
+  modal.classList.add('open');
+}
+
+function onCategoriaEditarInsumoChange(){
+  var cat=(document.getElementById('ei-cat')||{}).value||'';
+  var fmtRow=document.getElementById('ei-formato-row');
+  if(fmtRow) fmtRow.style.display=(cat==='Frascos')?'block':'none';
+}
+
+function calcCostoUnitEditar(){
+  var stock=parseFloat((document.getElementById('ei-stock')||{}).value)||0;
+  var total=parseFloat((document.getElementById('ei-costo')||{}).value||'').replace(/\./g,'')||0;
+  var prev=document.getElementById('ei-preview');
+  if(prev){ if(stock>0&&total>0) prev.textContent='\u2192 Costo unitario: '+fmt(Math.round(total/stock)); else prev.textContent=''; }
+}
+
+function guardarEditarInsumo(){
+  var id=parseInt((document.getElementById('ei-id')||{}).value||0);
+  if(!id){ showToast('Error: ID no encontrado'); return; }
+  var nombre=(document.getElementById('ei-nombre').value||'').trim();
+  if(!nombre){ showToast('El nombre es obligatorio'); return; }
+  var stock=parseFloat(document.getElementById('ei-stock').value)||0;
+  var costoTotal=parseFloat((document.getElementById('ei-costo').value||'').replace(/\./g,''))||0;
+  var costoUnit=stock>0&&costoTotal>0?costoTotal/stock:0;
+  var categoria=document.getElementById('ei-cat').value;
+  var fmtEl=document.getElementById('ei-formato');
+  var formato=(categoria==='Frascos'&&fmtEl)?fmtEl.value:'';
+  DB.editarInsumo(id,{nombre:nombre,categoria:categoria,stock_actual:stock,costo_unit:costoUnit,formato_ml:formato},function(ok,msg){
+    if(ok){ showToast('Insumo actualizado'); cerrarModal('modal-editar-insumo'); delete _lastLoad['insumos']; loadInsumos(); }
+    else showToast('Error: '+(msg||'No se pudo actualizar'));
+  });
+}
+
+function confirmarEliminarInsumo(id,nombre){
+  if(!confirm('\u00bfEliminar insumo: '+nombre+'?')) return;
+  DB.eliminarInsumo(id,function(ok){
+    if(ok){ showToast('Insumo eliminado'); delete _lastLoad['insumos']; loadInsumos(); }
+    else showToast('No se pudo eliminar');
   });
 }
 
