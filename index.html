@@ -703,15 +703,11 @@ body.light .sw-row{border-bottom-color:rgba(0,0,0,.08)}
   </div>
 </div>
 
-<script src="js/db.js"></script>
-<script src="js/app.js"></script>
-
 <!-- MODAL RE-STOCK INSUMO -->
 <div class="modal-overlay" id="modal-restock-insumo">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title" id="rs-insumo-nombre">Reponer stock</div>
-    <!-- Stats actuales -->
     <div class="fr" style="gap:var(--gap);margin-bottom:var(--gap)">
       <div style="background:var(--bg-in);border-radius:10px;padding:12px">
         <div style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:4px">Stock actual</div>
@@ -737,7 +733,6 @@ body.light .sw-row{border-bottom-color:rgba(0,0,0,.08)}
     <button class="btn bd" onclick="cerrarModal('modal-restock-insumo')">Cancelar</button>
   </div>
 </div>
-
 
 <!-- MODAL EDITAR INSUMO -->
 <div class="modal-overlay" id="modal-editar-insumo">
@@ -783,5 +778,45 @@ body.light .sw-row{border-bottom-color:rgba(0,0,0,.08)}
     <button class="btn bd" onclick="cerrarModal('modal-editar-insumo')">Cancelar</button>
   </div>
 </div>
+
+<!-- MODAL REPONER BOTELLAS -->
+<div class="modal-overlay" id="modal-reponer-botella">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="rb-perfume-nombre">Reponer stock — Botella</div>
+    
+    <div class="fr" style="gap:var(--gap);margin-bottom:var(--gap)">
+      <div style="background:var(--bg-in);border-radius:10px;padding:12px">
+        <div style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:4px">Unidades actuales</div>
+        <div style="font-weight:800;font-size:var(--fs-lg);color:var(--p)" id="rb-unidades-actuales">—</div>
+      </div>
+      <div style="background:var(--bg-in);border-radius:10px;padding:12px">
+        <div style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:4px">Contenido/botella</div>
+        <div style="font-weight:800;font-size:var(--fs-lg);color:var(--gold)" id="rb-ml-bot">—</div>
+      </div>
+    </div>
+    
+    <div class="fr" style="gap:var(--gap)">
+      <div>
+        <label class="fl">Unidades a reponer *</label>
+        <input class="fi" id="rb-unidades-reponer" type="number" placeholder="Ej: 3" min="1" inputmode="numeric" oninput="calcReponerBotella()" style="margin-bottom:0"/>
+      </div>
+      <div>
+        <label class="fl">Costo total de compra ($)</label>
+        <input class="fi" id="rb-costo-total" type="number" placeholder="Ej: 45000" inputmode="numeric" oninput="calcReponerBotella()" style="margin-bottom:0"/>
+      </div>
+    </div>
+    
+    <div id="rb-preview" style="font-size:var(--fs-sm);font-weight:700;margin-top:8px;margin-bottom:var(--gap);min-height:20px;color:var(--grn)"></div>
+    
+    <input type="hidden" id="rb-perfume-id"/>
+    
+    <button class="btn bp" onclick="guardarReponerBotella()">Reponer</button>
+    <button class="btn bd" onclick="cerrarModal('modal-reponer-botella')">Cancelar</button>
+  </div>
+</div>
+
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
