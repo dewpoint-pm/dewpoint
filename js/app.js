@@ -615,6 +615,18 @@ function renderPerfumes(perfumes){
     bDel.addEventListener('click',function(){ confirmarEliminarPerfume(p.id,p.nombre); });
     btns.appendChild(bEdit); btns.appendChild(bDel);
     wrap.appendChild(info); wrap.appendChild(btns);
+    
+    if(p.tipo_venta==='botella'){
+      var botonesReponer=document.createElement('div');
+      botonesReponer.style.cssText='display:flex;gap:6px;margin-top:8px';
+      var bReponer=document.createElement('button');
+      bReponer.style.cssText='flex:1;border-radius:8px;padding:7px 8px;font-size:12px;font-weight:700;cursor:pointer;background:var(--p);border:none;color:#fff';
+      bReponer.textContent='+ Reponer';
+      bReponer.addEventListener('click',function(){ abrirReponerBotella(p); });
+      botonesReponer.appendChild(bReponer);
+      wrap.appendChild(botonesReponer);
+    }
+    
     cont.appendChild(wrap);
   });
 }
@@ -691,6 +703,64 @@ function confirmarEliminarPerfume(id,nombre){
   DB.eliminarPerfume(id,function(ok){
     if(ok){ showToast('Perfume eliminado'); delete _lastLoad['perfumes']; loadPerfumes(); loadPerfumesVenta(); }
     else showToast('No se pudo eliminar');
+  });
+}
+
+/* ══ REPONER BOTELLAS ═════════════════════════════════════════ */
+function abrirReponerBotella(perfume){
+  var modal=document.getElementById('modal-reponer-botella');
+  if(!modal){
+    showToast('Modal no disponible');
+    return;
+  }
+  document.getElementById('rb-perfume-nombre').textContent=perfume.nombre+' — '+perfume.marca;
+  document.getElementById('rb-perfume-id').value=perfume.id;
+  var unidadesActuales=perfume.ml_totales>0?Math.max(1,Math.round(perfume.ml_disponibles/perfume.ml_totales)):0;
+  document.getElementById('rb-unidades-actuales').textContent=unidadesActuales+' botellas';
+  document.getElementById('rb-ml-bot').textContent=Math.round(perfume.ml_totales)+' ml/botella';
+  document.getElementById('rb-unidades-reponer').value='';
+  document.getElementById('rb-costo-total').value='';
+  document.getElementById('rb-preview').textContent='';
+  modal.classList.add('open');
+}
+
+function calcReponerBotella(){
+  var unidades=parseInt(document.getElementById('rb-unidades-reponer').value)||0;
+  var costoTotal=parseInt((document.getElementById('rb-costo-total').value||'').replace(/\./g,''))||0;
+  var prev=document.getElementById('rb-preview');
+  if(unidades>0){
+    var costoPorBotella=costoTotal>0?Math.round(costoTotal/unidades):0;
+    prev.textContent='→ +'+unidades+' botellas · $'+costoPorBotella.toLocaleString('es-CL')+'/botella';
+    prev.style.color='var(--grn)';
+  } else {
+    prev.textContent='';
+  }
+}
+
+function guardarReponerBotella(){
+  var perfumeId=parseInt(document.getElementById('rb-perfume-id').value||0);
+  var unidades=parseInt(document.getElementById('rb-unidades-reponer').value)||0;
+  if(!perfumeId||unidades<=0){
+    showToast('Ingresa una cantidad válida');
+    return;
+  }
+  var costoTotal=parseInt((document.getElementById('rb-costo-total').value||'').replace(/\./g,''))||0;
+  
+  var p=APP.perfumes.filter(function(x){return x.id===perfumeId;})[0];
+  if(!p){showToast('Perfume no encontrado');return;}
+  
+  var ml_nuevos=p.ml_totales*unidades;
+  
+  DB.reponerStock(perfumeId, ml_nuevos, costoTotal, function(ok,msg,mlDisp){
+    if(ok){
+      showToast('Stock reponido (+'+unidades+' botellas)');
+      cerrarModal('modal-reponer-botella');
+      delete _lastLoad['perfumes'];
+      loadPerfumes();
+      loadPerfumesVenta();
+    } else {
+      showToast('Error: '+(msg||'No se pudo reponer'));
+    }
   });
 }
 
@@ -938,7 +1008,6 @@ function renderInsumos(insumos){
   if(insumos.length===0){ cont.innerHTML='<p style="color:var(--t3);padding:12px 0">No hay insumos registrados</p>'; return; }
   cont.innerHTML='';
 
-  /* Agrupar por categoría */
   var cats={};
   insumos.forEach(function(ins){
     var cat=ins.categoria||'Otros';
@@ -947,7 +1016,6 @@ function renderInsumos(insumos){
   });
 
   Object.keys(cats).sort().forEach(function(cat){
-    /* Header categoría */
     var hdr=document.createElement('div');
     hdr.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:10px 0 6px;margin-top:4px';
     hdr.innerHTML='<div style="font-size:var(--fs-sm);font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.6px">\ud83d\udce6 '+escHtml(cat)+'</div>'+
@@ -959,7 +1027,6 @@ function renderInsumos(insumos){
       var costoUnit=parseFloat(ins.costo_unitario||0);
       var sin=stock<=0, bajo=!sin&&stock<20;
       var barColor=sin?'var(--red)':bajo?'var(--gold)':'var(--grn)';
-      /* Barra de progreso: max referencia 100 u. */
       var maxRef=Math.max(stock,100);
       var pct=Math.min(100,(stock/maxRef)*100);
       var chipHtml=sin?'<span class="chip cr" style="font-size:10px">Sin stock</span>':bajo?'<span class="chip ca" style="font-size:10px">Bajo</span>':'';
@@ -968,7 +1035,6 @@ function renderInsumos(insumos){
       var wrap=document.createElement('div');
       wrap.style.cssText='padding:10px 12px;background:var(--bg-in);border-radius:10px;margin-bottom:8px';
 
-      /* Fila nombre + precio */
       var row1=document.createElement('div');
       row1.style.cssText='display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px';
       row1.innerHTML=
@@ -981,7 +1047,6 @@ function renderInsumos(insumos){
           (costoUnit&&stock>0?'<div style="font-size:var(--fs-sm);color:var(--t3)">Total: '+fmt(Math.round(costoUnit*stock))+'</div>':'')+
         '</div>';
 
-      /* Barra de stock */
       var row2=document.createElement('div');
       row2.style.cssText='margin-bottom:8px';
       row2.innerHTML=
@@ -996,7 +1061,6 @@ function renderInsumos(insumos){
           '<div style="width:'+pct+'%;height:100%;background:'+barColor+';border-radius:4px;transition:width .4s"></div>'+
         '</div>';
 
-      /* Botones */
       var row3=document.createElement('div');
       row3.style.cssText='display:flex;gap:6px';
 
@@ -1022,7 +1086,6 @@ function renderInsumos(insumos){
   });
 }
 
-/* ══ RE-STOCK INSUMO ══════════════════════════════════════════ */
 function abrirRestockInsumo(id, nombre, stockActual, costoUnit){
   var modal=document.getElementById('modal-restock-insumo');
   document.getElementById('rs-insumo-nombre').textContent='Reponer stock \u2014 '+nombre;
@@ -1057,7 +1120,6 @@ function guardarRestockInsumo(){
   if(!id||cantidad<=0){ showToast('Ingresa una cantidad v\u00e1lida'); return; }
   var costoNuevo=parseFloat((document.getElementById('rs-costo-nuevo').value||'').replace(/\./g,''))||0;
   var costoUnit=costoNuevo>0?costoNuevo/cantidad:null;
-  /* costoUnit = costo por unidad (calculado arriba) */
   DB.reponerInsumo(id, cantidad, costoUnit||null, function(ok,msg){
     if(ok){
       showToast('Stock actualizado (+'+cantidad+' u.)');
@@ -1079,7 +1141,6 @@ function abrirEditarInsumo(ins){
   if(fmtEl) fmtEl.value=ins.formato_ml||'2ml';
   if(fmtRow) fmtRow.style.display=(ins.categoria==='Frascos')?'block':'none';
   document.getElementById('ei-stock').value=ins.stock_actual||0;
-  /* costo total aproximado = costo_unit * stock */
   var costoUnit=parseFloat(ins.costo_unitario||0);
   var stock=parseFloat(ins.stock_actual||0);
   document.getElementById('ei-costo').value=costoUnit&&stock?Math.round(costoUnit*stock):'';
