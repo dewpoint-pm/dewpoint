@@ -556,12 +556,11 @@ def crear_insumo():
     d = request.get_json(silent=True) or {}
     try:
         resultado = db.crear_insumo(
-            nombre       = d.get("nombre", ""),
-            categoria    = d.get("categoria", ""),
-            stock_actual = float(d.get("stock_actual", 0)),
-            costo_unit   = float(d.get("costo_unit", 0)),
-            unidad       = d.get("unidad", "unidad"),
-            notas        = d.get("notas", ""),
+            nombre         = d.get("nombre", ""),
+            categoria      = d.get("categoria", ""),
+            stock_actual   = float(d.get("stock_actual", 0)),
+            costo_unitario = float(d.get("costo_unit", 0)),
+            formato_ml     = d.get("formato_ml", ""),
         )
         if not resultado:
             return err("Error al crear insumo")
@@ -577,17 +576,16 @@ def editar_insumo(insumo_id):
         return error
     d = request.get_json(silent=True) or {}
     try:
-        ok_result, msg = db.editar_insumo(
-            insumo_id    = insumo_id,
-            nombre       = d.get("nombre", ""),
-            categoria    = d.get("categoria", ""),
-            stock_actual = float(d.get("stock_actual", 0)),
-            costo_unit   = float(d.get("costo_unit", 0)),
-            unidad       = d.get("unidad", "unidad"),
-            notas        = d.get("notas", ""),
+        resultado = db.editar_insumo(
+            insumo_id      = insumo_id,
+            nombre         = d.get("nombre", ""),
+            categoria      = d.get("categoria", ""),
+            stock_actual   = float(d.get("stock_actual", 0)),
+            costo_unitario = float(d.get("costo_unit", 0)),
+            formato_ml     = d.get("formato_ml", ""),
         )
-        if not ok_result:
-            return err(msg or "Error al editar")
+        if resultado is None:
+            return err("Error al editar insumo")
         return ok()
     except Exception as e:
         return err(str(e))
@@ -615,9 +613,9 @@ def reponer_insumo(insumo_id):
     d = request.get_json(silent=True) or {}
     try:
         db.reponer_insumo(
-            insumo_id = insumo_id,
-            cantidad  = float(d.get("cantidad", 0)),
-            costo     = float(d.get("costo", 0)),
+            insumo_id  = insumo_id,
+            cantidad   = float(d.get("cantidad", 0)),
+            costo_nuevo = float(d.get("costo", 0)) or None,
         )
         return ok()
     except Exception as e:
