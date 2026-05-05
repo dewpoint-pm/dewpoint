@@ -770,7 +770,7 @@ function confirmarEliminarPerfume(id, nombre){
 function filtrarHistorial(estado,el){
   APP._histEstado=estado;
   document.querySelectorAll('#page-historial .chips-row .chip').forEach(function(c){c.className='chip cn';});
-  var clsMap={'Todos':'cp','Pagado':'cg','Pendiente':'cw','Parcial':'cr'};
+  var clsMap={'Todos':'cp','Pagado':'cg','Pendiente':'cw'};
   if(el) el.className='chip '+(clsMap[estado]||'cp');
   loadHistorial();
 }
@@ -779,11 +779,11 @@ function renderHistorial(ventas){
   var cont=document.getElementById('lista-historial'); if(!cont) return;
   var filtradas=ventas.filter(function(v){ return APP._histEstado==='Todos'||v.estado_pago===APP._histEstado; });
   if(filtradas.length===0){ cont.innerHTML='<p style="color:var(--t3);padding:12px 0">No se encontraron ventas</p>'; return; }
-  var col={'Pagado':['rgba(76,175,130,.12)','var(--grn)','cg'],'Pendiente':['rgba(200,146,58,.12)','var(--warn)','cw'],'Parcial':['rgba(232,68,90,.12)','var(--red)','cr']};
+  var col={'Pagado':['rgba(76,175,130,.12)','var(--grn)','cg'],'Pendiente':['rgba(200,146,58,.12)','var(--warn)','cw']};
   cont.innerHTML=filtradas.slice(0,50).map(function(v){
     var c=col[v.estado_pago]||['rgba(91,164,207,.12)','var(--p)','cp'];
     var fecha=v.fecha?v.fecha.substring(0,10):'\u2014';
-    var esPendiente=v.estado_pago==='Pendiente'||v.estado_pago==='Parcial';
+    var esPendiente=v.estado_pago==='Pendiente';
     var btnPagar=esPendiente
       ?'<button onclick="event.stopPropagation();accionMarcarPagado('+v.id+')" style="margin-top:4px;border:none;background:var(--grn);color:#fff;font-size:var(--fs-sm);font-weight:700;padding:4px 10px;border-radius:8px;cursor:pointer;display:block">\u2713 Marcar pagado</button>'
       :'';
