@@ -710,21 +710,78 @@ body.light .sw-row{border-bottom-color:rgba(0,0,0,.08)}
 <div class="modal-overlay" id="modal-restock-insumo">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title"> + Stock </div>
-    <div style="background:var(--bg-in);border-radius:10px;padding:12px 14px;margin-bottom:var(--gap)">
-      <div style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:4px">Insumo</div>
-      <div style="font-weight:700;font-size:var(--fs)" id="rs-insumo-nombre">—</div>
-      <div style="font-size:var(--fs-sm);color:var(--t3);margin-top:4px">Stock actual: <span id="rs-stock-actual" style="color:var(--p);font-weight:700">—</span></div>
+    <div class="modal-title" id="rs-insumo-nombre">Reponer stock</div>
+    <!-- Stats actuales -->
+    <div class="fr" style="gap:var(--gap);margin-bottom:var(--gap)">
+      <div style="background:var(--bg-in);border-radius:10px;padding:12px">
+        <div style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:4px">Stock actual</div>
+        <div style="font-weight:800;font-size:var(--fs-lg);color:var(--p)" id="rs-stock-actual">—</div>
+      </div>
+      <div style="background:var(--bg-in);border-radius:10px;padding:12px">
+        <div style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:4px">Costo unitario actual</div>
+        <div style="font-weight:800;font-size:var(--fs-lg);color:var(--gold)" id="rs-costo-unit-actual">—</div>
+      </div>
     </div>
-    <label class="fl">Cantidad a agregar *</label>
-    <input class="fi" id="rs-cantidad" type="number" placeholder="Ej: 50" min="1" inputmode="numeric" oninput="calcRestockPreview()"/>
-    <label class="fl">Costo total de la compra ($) <span style="color:var(--t3);font-weight:400">(opcional)</span></label>
-    <input class="fi" id="rs-costo-nuevo" type="number" placeholder="Ej: 15000" inputmode="numeric" oninput="calcRestockPreview()"/>
-    <div id="rs-preview" style="font-size:var(--fs-sm);font-weight:700;margin-top:-8px;margin-bottom:var(--gap);min-height:18px"></div>
-    <button class="btn bp" onclick="guardarRestockInsumo()">Confirmar re-stock</button>
+    <div class="fr" style="gap:var(--gap)">
+      <div>
+        <label class="fl">Cantidad a reponer *</label>
+        <input class="fi" id="rs-cantidad" type="number" placeholder="Ej: 100" min="1" inputmode="numeric" oninput="calcRestockPreview()" style="margin-bottom:0"/>
+      </div>
+      <div>
+        <label class="fl">Costo total de la compra ($)</label>
+        <input class="fi" id="rs-costo-nuevo" type="number" placeholder="Ej: 35000" inputmode="numeric" oninput="calcRestockPreview()" style="margin-bottom:0"/>
+      </div>
+    </div>
+    <div id="rs-preview" style="font-size:var(--fs-sm);font-weight:700;margin-top:8px;margin-bottom:var(--gap);min-height:20px;color:var(--grn)"></div>
+    <button class="btn bp" onclick="guardarRestockInsumo()">Reponer</button>
     <button class="btn bd" onclick="cerrarModal('modal-restock-insumo')">Cancelar</button>
   </div>
 </div>
 
+
+<!-- MODAL EDITAR INSUMO -->
+<div class="modal-overlay" id="modal-editar-insumo">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Editar insumo</div>
+    <input type="hidden" id="ei-id"/>
+    <label class="fl">Nombre *</label>
+    <input class="fi" id="ei-nombre" placeholder="Nombre del insumo"/>
+    <div class="fr">
+      <div>
+        <label class="fl">Categoría</label>
+        <select class="fi" id="ei-cat" onchange="onCategoriaEditarInsumoChange()">
+          <option value="Frascos">Frascos</option>
+          <option value="Bolsas de packaging">Bolsas de packaging</option>
+          <option value="Otros">Otros</option>
+        </select>
+      </div>
+      <div id="ei-formato-row">
+        <label class="fl">Tamaño / Formato</label>
+        <select class="fi" id="ei-formato">
+          <option value="2ml">2ml</option>
+          <option value="3ml">3ml</option>
+          <option value="5ml">5ml</option>
+          <option value="10ml">10ml</option>
+        </select>
+      </div>
+    </div>
+    <div class="fr">
+      <div>
+        <label class="fl">Stock inicial</label>
+        <input class="fi" id="ei-stock" type="number" placeholder="0" inputmode="numeric" oninput="calcCostoUnitEditar()" style="margin-bottom:4px"/>
+        <p style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:var(--gap)">0 si aún no tienes stock.</p>
+      </div>
+      <div>
+        <label class="fl">Costo total de compra ($)</label>
+        <input class="fi" id="ei-costo" type="number" placeholder="Ej: 8750" inputmode="numeric" oninput="calcCostoUnitEditar()" style="margin-bottom:4px"/>
+        <p style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:var(--gap)">Se divide por stock = costo unit.</p>
+      </div>
+    </div>
+    <div id="ei-preview" style="font-size:var(--fs-sm);font-weight:700;color:var(--gold);margin-top:-8px;margin-bottom:var(--gap);min-height:18px"></div>
+    <button class="btn bp" onclick="guardarEditarInsumo()">Guardar</button>
+    <button class="btn bd" onclick="cerrarModal('modal-editar-insumo')">Cancelar</button>
+  </div>
+</div>
 </body>
 </html>
