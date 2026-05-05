@@ -1102,14 +1102,20 @@ function renderInsumos(insumos){
   var cont=document.getElementById('lista-insumos'); if(!cont) return;
   if(insumos.length===0){cont.innerHTML='<p style="color:var(--t3);padding:12px 0">No hay insumos registrados</p>';return;}
   cont.innerHTML=insumos.map(function(ins){
-    var sin=ins.stock_actual<=0, bajo=!sin&&ins.stock_actual<10;
+    var sin=ins.stock_actual<=0, bajo=!sin&&ins.stock_actual<20;
     var bg=sin?'rgba(232,68,90,.15)':bajo?'rgba(240,192,96,.12)':'rgba(91,164,207,.12)';
     var tc=sin?'var(--red)':bajo?'var(--gold)':'var(--p)';
     var chip=sin?'<span class="chip cr">Sin stock</span>':bajo?'<span class="chip ca">Bajo</span>':'';
+    var costoUnit=parseFloat(ins.costo_unitario||0);
+    var costoTotal=Math.round(costoUnit*parseFloat(ins.stock_actual||0));
+    var sub=escHtml(ins.categoria||'\u2014')+(ins.formato_ml?' \u00b7 '+escHtml(ins.formato_ml):'')+' \u00b7 '+ins.stock_actual+' u.';
     return '<div class="lr">'+
       '<div class="lr-l"><div class="ri" style="background:'+bg+';color:'+tc+'">'+ins.nombre.charAt(0).toUpperCase()+'</div>'+
-      '<div><div class="rname">'+escHtml(ins.nombre)+'</div><div class="rsub">'+escHtml(ins.categoria||'\u2014')+' \u00b7 '+ins.stock_actual+' '+escHtml(ins.unidad||'')+'</div></div></div>'+
-      '<div class="lr-r"><div class="rv vg">'+fmt(ins.costo_unit||0)+'</div>'+chip+'</div></div>';
+      '<div><div class="rname">'+escHtml(ins.nombre)+'</div><div class="rsub">'+sub+'</div></div></div>'+
+      '<div class="lr-r">'+
+      '<div class="rv vg">'+fmt(costoUnit)+'/u.</div>'+
+      '<div class="rv2">Total: '+fmt(costoTotal)+'</div>'+
+      chip+'</div></div>';
   }).join('');
 }
 
@@ -1332,14 +1338,40 @@ function guardarPerfume(){
 }
 
 function abrirModalInsumo(){
-  ['mi-nombre','mi-stock','mi-costo','mi-notas'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  ['mi-nombre','mi-stock','mi-costo'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  var catEl=document.getElementById('mi-cat'); if(catEl) catEl.value='Frascos';
+  var prevEl=document.getElementById('mi-preview-costo'); if(prevEl) prevEl.textContent='';
+  var fmtRow=document.getElementById('mi-formato-row'); if(fmtRow) fmtRow.style.display='block';
   document.getElementById('modal-insumo').classList.add('open');
+}
+
+function onCategoriaInsumoChange(){
+  var cat=document.getElementById('mi-cat').value;
+  var fmtRow=document.getElementById('mi-formato-row');
+  if(fmtRow) fmtRow.style.display=(cat==='Frascos')?'block':'none';
+}
+
+function calcCostoUnitInsumo(){
+  var stock=parseFloat(document.getElementById('mi-stock').value)||0;
+  var totalStr=(document.getElementById('mi-costo').value||'').replace(/\./g,'');
+  var total=parseFloat(totalStr)||0;
+  var prev=document.getElementById('mi-preview-costo');
+  if(prev){
+    if(stock>0&&total>0){ prev.textContent='\u2192 Costo unitario: '+fmt(Math.round(total/stock))+' por unidad'; }
+    else { prev.textContent=''; }
+  }
 }
 
 function guardarInsumo(){
   var nombre=document.getElementById('mi-nombre').value.trim();
   if(!nombre){showToast('El nombre es obligatorio');return;}
-  DB.crearInsumo({nombre:nombre,categoria:document.getElementById('mi-cat').value,stock_actual:parseFloat(document.getElementById('mi-stock').value)||0,costo_unit:parseFloat(document.getElementById('mi-costo').value)||0,unidad:document.getElementById('mi-unidad').value,notas:document.getElementById('mi-notas').value},function(ok,msg){
+  var stock=parseFloat(document.getElementById('mi-stock').value)||0;
+  var costoTotal=parseFloat((document.getElementById('mi-costo').value||'').replace(/\./g,''))||0;
+  var costoUnit=stock>0?costoTotal/stock:0;
+  var categoria=document.getElementById('mi-cat').value;
+  var fmtEl=document.getElementById('mi-formato');
+  var formato=(categoria==='Frascos'&&fmtEl)?fmtEl.value:'';
+  DB.crearInsumo({nombre:nombre,categoria:categoria,stock_actual:stock,costo_unit:costoUnit,formato_ml:formato},function(ok,msg){
     if(ok){showToast('Insumo creado');cerrarModal('modal-insumo');delete _lastLoad['insumos'];loadInsumos();}
     else showToast('Error: '+(msg||'No se pudo crear'));
   });
