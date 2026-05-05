@@ -745,32 +745,38 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title">Nuevo insumo</div>
-    <label class="fl">Nombre *</label><input class="fi" id="mi-nombre" placeholder="Nombre del insumo"/>
+    <label class="fl">Nombre *</label>
+    <input class="fi" id="mi-nombre" placeholder="Ej: Frasco 3ml"/>
     <label class="fl">Categoría</label>
-    <select class="fi" id="mi-cat">
-      <option>Frascos</option>
-      <option>Packaging</option>
-      <option>Embalaje</option>
-      <option>Branding</option>
-      <option>Otro</option>
+    <select class="fi" id="mi-cat" onchange="onCategoriaInsumoChange()">
+      <option value="Frascos">Frascos</option>
+      <option value="Bolsas de packaging">Bolsas de packaging</option>
+      <option value="Otros">Otros</option>
     </select>
-    <div class="fr">
-      <div><label class="fl">Stock actual</label><input class="fi" id="mi-stock" type="number" placeholder="0" inputmode="numeric"/></div>
-      <div><label class="fl">Costo unitario ($)</label><input class="fi" id="mi-costo" type="number" placeholder="0" inputmode="numeric"/></div>
+    <div id="mi-formato-row">
+      <label class="fl">Tamaño / Formato</label>
+      <select class="fi" id="mi-formato">
+        <option value="2ml">2ml</option>
+        <option value="3ml">3ml</option>
+        <option value="5ml">5ml</option>
+        <option value="10ml">10ml</option>
+      </select>
     </div>
-    <label class="fl">Unidad de medida</label>
-    <select class="fi" id="mi-unidad">
-      <option value="unidad">Unidad</option>
-      <option value="caja">Caja</option>
-      <option value="rollo">Rollo</option>
-      <option value="kg">Kg</option>
-    </select>
-    <label class="fl">Notas</label><input class="fi" id="mi-notas" placeholder="Notas..."/>
+    <div class="fr">
+      <div>
+        <label class="fl">Stock inicial</label>
+        <input class="fi" id="mi-stock" type="number" placeholder="0" inputmode="numeric" oninput="calcCostoUnitInsumo()"/>
+      </div>
+      <div>
+        <label class="fl">Costo total de compra ($)</label>
+        <input class="fi" id="mi-costo" type="number" placeholder="0" inputmode="numeric" oninput="calcCostoUnitInsumo()"/>
+      </div>
+    </div>
+    <div id="mi-preview-costo" style="font-size:var(--fs-sm);color:var(--gold);font-weight:600;margin-bottom:var(--gap)"></div>
     <button class="btn bp" onclick="guardarInsumo()">Guardar insumo</button>
     <button class="btn bd" onclick="cerrarModal('modal-insumo')">Cancelar</button>
   </div>
 </div>
-
 <div class="modal-overlay" id="modal-detalle-venta">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
