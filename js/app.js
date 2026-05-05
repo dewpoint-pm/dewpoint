@@ -176,16 +176,19 @@ function selCliente(id,nombre){
 }
 
 function selClienteAnonimo(){
-  APP.clienteSel=null;
-  APP.clienteAnonimo=true;
-  var emptyMsg=document.getElementById('empty-cli-msg');
-  var anonBadge=document.getElementById('anon-badge');
-  var lbl=document.getElementById('lbl-cliente');
-  if(emptyMsg) emptyMsg.style.display='none';
-  if(anonBadge) anonBadge.style.display='flex';
-  if(lbl) lbl.style.display='none';
-  document.getElementById('btn-quitar-cli').style.display='inline-block';
-  ocultarCliRes();
+  DB.getOrCreateAnonimo(function(anonimo){
+    if(!anonimo){ showToast('Error al cargar cliente an\u00f3nimo'); return; }
+    APP.clienteSel=anonimo;
+    APP.clienteAnonimo=true;
+    var emptyMsg=document.getElementById('empty-cli-msg');
+    var anonBadge=document.getElementById('anon-badge');
+    var lbl=document.getElementById('lbl-cliente');
+    if(emptyMsg) emptyMsg.style.display='none';
+    if(anonBadge) anonBadge.style.display='flex';
+    if(lbl) lbl.style.display='none';
+    document.getElementById('btn-quitar-cli').style.display='inline-block';
+    ocultarCliRes();
+  });
 }
 
 function quitarCliente(){
