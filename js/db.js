@@ -58,7 +58,7 @@ var DB = (function(){
 
   function onSessionExpired(fn) { _onExpired = fn; }
 
-  /* ── STATS — Fixed: acepta (desde, hasta, tipo, cb) con backward-compat ── */
+  /* ── STATS ── */
   function getStats(desde, hasta, tipo, cb) {
     if (typeof desde === 'function') {
       cb = desde; desde = null; hasta = null; tipo = null;
@@ -153,8 +153,12 @@ var DB = (function(){
   function eliminarInsumo(id, cb) {
     _fetch('/api/insumos/' + id, { method: 'DELETE' }, function(err, d) { cb(!err && d && d.ok); });
   }
-  function reponerInsumo(id, cant, costo, cb) {
-    _fetch('/api/insumos/' + id + '/reponer', { method: 'POST', body: { cantidad: cant, costo: costo } }, function(err, d) { if (cb) cb(!err && d && d.ok); });
+  function reponerInsumo(id, cant, costoUnit, cb) {
+    /* costoUnit = costo por unidad. API espera costo total de la compra */
+    var costoTotal = (costoUnit && cant) ? costoUnit * cant : 0;
+    _fetch('/api/insumos/' + id + '/reponer', { method: 'POST', body: { cantidad: cant, costo: costoTotal } }, function(err, d) {
+      if (cb) cb(!err && d && d.ok, d ? d.error : 'Error');
+    });
   }
 
   /* ── REPORTES ── */
