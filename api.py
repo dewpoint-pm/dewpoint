@@ -350,6 +350,19 @@ def get_clientes():
         return err(str(e), 503)
 
 
+@app.route("/api/clientes/anonimo", methods=["POST"])
+def get_or_create_anonimo():
+    """Retorna el cliente anónimo fijo (o lo crea si no existe). Sincroniza con la app de PC."""
+    sesion, error = _requerir_sesion()
+    if error:
+        return error
+    try:
+        cliente = db.get_or_create_anonimo()
+        return ok({"cliente": cliente})
+    except Exception as e:
+        return err(str(e), 503)
+
+
 @app.route("/api/clientes/<int:cliente_id>")
 def get_cliente(cliente_id):
     sesion, error = _requerir_sesion()
