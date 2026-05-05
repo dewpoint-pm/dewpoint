@@ -1002,7 +1002,7 @@ function renderInsumos(insumos){
 
       var bRestock=document.createElement('button');
       bRestock.style.cssText='flex:1;border-radius:8px;padding:7px 8px;font-size:12px;font-weight:700;cursor:pointer;background:var(--p);border:none;color:#fff;display:flex;align-items:center;justify-content:center;gap:4px';
-      bRestock.innerHTML='\u2b06 + Stock';
+      bRestock.innerHTML='+ Stock';
       bRestock.addEventListener('click',function(){ abrirRestockInsumo(ins.id,ins.nombre,stock,costoUnit); });
 
       var bEdit=document.createElement('button');
