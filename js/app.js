@@ -176,9 +176,17 @@ function selCliente(id,nombre){
 }
 
 function selClienteAnonimo(){
-  DB.getOrCreateAnonimo(function(anonimo){
-    if(!anonimo){ showToast('Error al cargar cliente an\u00f3nimo'); return; }
-    APP.clienteSel=anonimo;
+  fetch('/api/clientes/anonimo', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + (localStorage.getItem('dp_tk') || '')
+    }
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(!d.ok || !d.cliente){ showToast('Error al cargar cliente an\u00f3nimo'); return; }
+    APP.clienteSel=d.cliente;
     APP.clienteAnonimo=true;
     var emptyMsg=document.getElementById('empty-cli-msg');
     var anonBadge=document.getElementById('anon-badge');
@@ -188,7 +196,8 @@ function selClienteAnonimo(){
     if(lbl) lbl.style.display='none';
     document.getElementById('btn-quitar-cli').style.display='inline-block';
     ocultarCliRes();
-  });
+  })
+  .catch(function(){ showToast('Error al cargar cliente an\u00f3nimo'); });
 }
 
 function quitarCliente(){
