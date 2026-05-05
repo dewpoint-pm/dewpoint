@@ -26,7 +26,6 @@
   --pad:clamp(12px,4vw,20px);
   --gap:clamp(8px,2.5vw,12px);
 }
-/* MODO CLARO */
 body.light{
   --bg:#F0F2F5;--bg2:#FFFFFF;--bg3:#FFFFFF;--bg4:#E8EBF0;--bg-in:#F8F9FB;
   --p:#3A82B5;--p2:#3A3A8A;--pglow:#5BA4CF;
@@ -36,8 +35,6 @@ body.light{
 }
 html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:var(--fs);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 #app{display:flex;flex-direction:column;width:100%;min-height:100vh;min-height:-webkit-fill-available;max-width:520px;margin:0 auto;background:var(--bg);position:relative}
-
-/* TOPBAR */
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:12px var(--pad);padding-top:calc(12px + env(safe-area-inset-top,0px));background:var(--bg2);border-bottom:1px solid var(--bdr2);flex-shrink:0;min-height:52px}
 .tb-logo{display:flex;align-items:center;gap:10px}
 .logo-dot{width:32px;height:32px;border-radius:50%;background:var(--p2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
@@ -46,38 +43,25 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 .tb-right{display:flex;align-items:center;gap:10px}
 .badge-n{background:var(--red);color:#fff;border-radius:10px;font-size:var(--fs-sm);font-weight:700;padding:2px 7px}
 .avatar{width:32px;height:32px;border-radius:50%;background:var(--p2);border:1.5px solid var(--p);display:flex;align-items:center;justify-content:center;font-size:var(--fs-sm);font-weight:700;color:var(--p)}
-
-/* CONTENT */
 .content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding-bottom:calc(var(--nav) + env(safe-area-inset-bottom,0px) + 8px);scrollbar-width:none}
 .content::-webkit-scrollbar{display:none}
 .page{display:none;padding:var(--pad)}
 .page.active{display:block}
-
-/* NAV */
 .nav{width:100%;height:calc(var(--nav) + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);background:var(--bg2);border-top:1px solid var(--bdr2);display:flex;align-items:center;justify-content:space-around;flex-shrink:0}
 .ni{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;cursor:pointer;border-radius:10px;flex:1;min-width:0;user-select:none}
 .ni svg{width:20px;height:20px;display:block}
 .ni span{font-size:clamp(8px,2.3vw,10px);color:var(--t3);font-weight:500;white-space:nowrap}
 .ni.active{background:rgba(91,164,207,0.12)}
 .ni.active span{color:var(--p)}
-
-/* PAGE HEADER */
 .ph{margin-bottom:var(--pad)}
 .ph h2{font-size:var(--fs-xl);font-weight:700;font-family:Georgia,serif}
 .ph p{font-size:var(--fs-sm);color:var(--t3);margin-top:3px}
-
-/* CARDS */
 .card{background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r);padding:var(--pad);margin-bottom:var(--gap)}
 .ct{font-size:var(--fs-sm);font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--p);margin-bottom:var(--gap)}
-
-/* STAT GRID */
 .sg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap);margin-bottom:var(--pad)}
 .sc{background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;min-height:72px}
-.sc-lbl{font-size:var(--fs-sm);color:var(--t3);margin-bottom:6px;font-weight:500;letter-spacing:0.2px}
+.sc-lbl{font-size:var(--fs-sm);color:var(--t3);margin-bottom:6px;font-weight:500}
 .sc-val{font-size:clamp(16px,5vw,22px);font-weight:800;font-family:Georgia,serif;letter-spacing:-0.5px;line-height:1}
-.sc-sub{font-size:var(--fs-sm);color:var(--t3);margin-top:4px}
-
-/* ROWS */
 .lr{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .lr:last-child{border-bottom:none}
 .lr-l{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
@@ -87,8 +71,6 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 .lr-r{text-align:right;flex-shrink:0;margin-left:8px}
 .rv{font-size:var(--fs);font-weight:700;font-family:Georgia,serif}
 .rv2{font-size:var(--fs-sm);color:var(--t3)}
-
-/* CHIPS */
 .chip{display:inline-block;padding:3px 9px;border-radius:20px;font-size:var(--fs-sm);font-weight:600;white-space:nowrap}
 .cp{background:rgba(91,164,207,.15);color:var(--p)}
 .cg{background:rgba(76,175,130,.12);color:var(--grn)}
@@ -97,19 +79,14 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 .cn{background:rgba(255,255,255,.07);color:var(--t3)}
 .cw{background:rgba(200,146,58,.12);color:var(--warn)}
 .chips-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:var(--gap)}
-
-/* COLORS */
+body.light .cn{background:rgba(0,0,0,.07);color:var(--t3)}
 .vp{color:var(--p)}.vg{color:var(--grn)}.va{color:var(--gold)}.vr{color:var(--red)}.vw{color:var(--warn)}.vt{color:var(--t3)}
-
-/* BUTTONS */
 .btn{border:none;cursor:pointer;border-radius:10px;font-weight:700;font-size:var(--fs);padding:12px var(--pad);width:100%;display:block;text-align:center;-webkit-appearance:none;transition:opacity .15s,transform .1s;margin-bottom:var(--gap);font-family:inherit}
 .btn:active{transform:scale(.97);opacity:.85}
 .bp{background:var(--p);color:#fff}
 .bs{background:rgba(91,164,207,.12);color:var(--p);border:1px solid var(--p)}
 .bd{background:rgba(232,68,90,.1);color:var(--red);border:1px solid rgba(232,68,90,.3)}
 .btn-sm{padding:7px 12px;font-size:var(--fs-sm);width:auto;display:inline-block;margin-bottom:0}
-
-/* FORMS */
 .fl{font-size:var(--fs-sm);color:var(--t3);margin-bottom:4px;font-weight:600;display:block}
 .fi{width:100%;background:var(--bg-in);border:1px solid var(--bdr2);border-radius:10px;padding:11px 13px;font-size:var(--fs);color:var(--t);outline:none;margin-bottom:var(--gap);-webkit-appearance:none;font-family:inherit}
 .fi:focus{border-color:var(--p)}
@@ -121,13 +98,9 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 .srch input::placeholder{color:var(--t3)}
 .srch input:focus{border-color:var(--p)}
 .srch-ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--t3);pointer-events:none}
-
-/* TOTAL BAR */
 .tb-total{background:rgba(91,164,207,.1);border:1px solid var(--p);border-radius:var(--r);padding:12px var(--pad);display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--gap)}
 .tbl{font-size:var(--fs-sm);color:var(--t3)}
 .tbv{font-size:clamp(18px,5.5vw,24px);font-weight:800;color:var(--p);font-family:Georgia,serif}
-
-/* QTY */
 .ci{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .ci:last-child{border-bottom:none}
 .cin{font-size:var(--fs);font-weight:600}
@@ -136,54 +109,33 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 .qc{display:flex;align-items:center;gap:8px}
 .qb{width:27px;height:27px;border-radius:8px;background:rgba(91,164,207,.15);border:none;color:var(--p);font-size:17px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .qn{font-size:var(--fs);font-weight:700;min-width:18px;text-align:center}
-
-/* SEGMENTED */
 .seg-row{display:flex;gap:6px;background:var(--bg-in);border-radius:10px;padding:3px;margin-bottom:var(--gap)}
 .seg-btn{flex:1;padding:8px;border:none;background:transparent;color:var(--t3);font-size:var(--fs-sm);font-weight:600;border-radius:8px;cursor:pointer;transition:all .2s;font-family:inherit}
 .seg-btn.on{background:var(--p);color:#fff}
-
-/* SWITCH */
 .sw-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .sw-row:last-child{border-bottom:none}
 .sw-row h4{font-size:var(--fs);font-weight:500}
 .sw-row p{font-size:var(--fs-sm);color:var(--t3)}
 .tog{position:relative;width:46px;height:26px;flex-shrink:0}
-.tog input{opacity:0;width:0;height:0}
-.sl{position:absolute;inset:0;background:rgba(255,255,255,.14);border-radius:13px;cursor:pointer;transition:.28s}
-.sl:before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.28s}
-.tog input:checked+.sl{background:var(--p)}
+.tog input{opacity:0;width:0;height:0;position:absolute}
+.sl{position:absolute;inset:0;background:rgba(140,140,160,.35);border-radius:13px;cursor:pointer;transition:.28s;border:1.5px solid rgba(140,140,160,.25)}
+.sl:before{content:'';position:absolute;width:20px;height:20px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.28s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.tog input:checked+.sl{background:var(--p);border-color:var(--p)}
 .tog input:checked+.sl:before{transform:translateX(20px)}
-
-/* MINI CHART */
-.mc{display:flex;align-items:flex-end;gap:4px;height:54px;margin:var(--gap) 0 4px}
-.bar{flex:1;border-radius:4px 4px 0 0;background:rgba(91,164,207,.2);min-width:0;transition:height .4s}
-.bar.on{background:var(--p)}
-.cl{display:flex;justify-content:space-between}
-.clb{font-size:var(--fs-sm);color:var(--t3);flex:1;text-align:center}
-
-/* AVATAR */
+body.light .sl{background:rgba(100,110,130,.25);border-color:rgba(100,110,130,.3)}
+body.light .tog input:checked+.sl{background:var(--p);border-color:var(--p)}
 .av{border-radius:50%;background:rgba(91,164,207,.15);border:1.5px solid var(--p);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--p);flex-shrink:0}
 .av-gold{background:rgba(240,192,96,.12);color:var(--gold);border-color:var(--gold)}
 .av-red{background:rgba(232,68,90,.1);color:var(--red);border-color:var(--red)}
-
-/* SPINNER */
 .spinner{width:30px;height:30px;border:3px solid rgba(91,164,207,.2);border-top-color:var(--p);border-radius:50%;animation:spin .7s linear infinite;margin:24px auto}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-/* TOAST */
 #toast{cursor:pointer;position:fixed;bottom:calc(var(--nav) + env(safe-area-inset-bottom,0px) + 16px);left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg4);color:var(--t);border:1px solid var(--bdr2);padding:10px 20px;border-radius:20px;font-size:var(--fs-sm);font-weight:600;white-space:nowrap;z-index:9999;transition:transform .4s cubic-bezier(.175,.885,.32,1.275),opacity .3s ease;pointer-events:auto;max-width:90vw;text-align:center;opacity:0;box-shadow:0 4px 20px rgba(0,0,0,.3)}
 #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
-
-/* OFFLINE */
 #offline-banner{display:none;background:var(--red);color:#fff;font-size:var(--fs-sm);font-weight:700;text-align:center;padding:6px}
 #offline-banner.show{display:block}
-
-/* MORE MENU */
 #more-menu{display:none;position:absolute;bottom:calc(var(--nav) + env(safe-area-inset-bottom,0px) + 8px);right:var(--pad);background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r);padding:6px;z-index:200;min-width:170px}
 .mm-item{padding:11px 14px;cursor:pointer;border-radius:8px;font-size:var(--fs);color:var(--t)}
 .mm-item:active{background:var(--bg4)}
-
-/* LOGIN */
 #login-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);z-index:300;min-height:100vh;min-height:-webkit-fill-available}
 .login-card{background:var(--bg3);border:1px solid var(--bdr2);border-radius:18px;padding:clamp(24px,7vw,40px) clamp(20px,6vw,36px);width:100%;max-width:360px}
 .login-logo{width:72px;height:72px;border-radius:50%;background:var(--p2);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff;margin:0 auto 14px}
@@ -191,21 +143,18 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
 .login-sub{font-size:var(--fs-sm);color:var(--pglow);text-align:center;margin:4px 0 20px}
 .login-div{height:2px;background:var(--p);border-radius:1px;margin-bottom:20px}
 .err{color:var(--red);font-size:var(--fs-sm);margin-top:6px;display:none}
-
-/* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;display:none;align-items:flex-end;justify-content:center}
 .modal-overlay.open{display:flex}
 .modal-sheet{background:var(--bg3);border-radius:20px 20px 0 0;padding:var(--pad);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .modal-handle{width:40px;height:4px;background:var(--bdr2);border-radius:2px;margin:0 auto 16px}
 .modal-title{font-size:var(--fs-lg);font-weight:700;font-family:Georgia,serif;margin-bottom:var(--pad)}
-
-/* SECTION LABEL */
 .sec-lbl{font-size:var(--fs-sm);font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.6px;margin:12px 0 6px;display:flex;align-items:center;gap:8px}
 .sec-lbl::after{content:'';flex:1;height:1px;background:var(--p);opacity:.3}
-
 #install-btn{display:none!important;pointer-events:none!important}
-/* SECTION DIVIDER */
 .divider{height:1px;background:var(--bdr2);margin:var(--gap) 0}
+body.light .lr{border-bottom-color:rgba(0,0,0,.07)}
+body.light .ci{border-bottom-color:rgba(0,0,0,.07)}
+body.light .sw-row{border-bottom-color:rgba(0,0,0,.08)}
 </style>
 </head>
 <body>
@@ -243,28 +192,18 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
   </div>
 </header>
 
-<!-- CONTENT -->
 <main class="content">
 
-<!-- ════ NUEVA VENTA ════ -->
+<!-- VENTA -->
 <section class="page active" id="page-venta">
   <div class="ph"><h2>Nueva Venta</h2><p>Registra una venta rápida</p></div>
-
-  <!-- Cliente -->
   <div class="card">
     <div class="ct">Cliente</div>
-
-    <!-- Estado vacío -->
     <div id="empty-cli-msg" style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:8px;padding:4px 0">Sin cliente seleccionado</div>
-
-    <!-- Badge anónimo -->
     <div id="anon-badge" style="display:none;align-items:center;gap:6px;background:rgba(140,140,160,.12);border:1px dashed rgba(140,140,160,.3);border-radius:8px;padding:6px 12px;font-size:var(--fs-sm);color:var(--t3);margin-bottom:8px">
       👤 <span>Venta anónima — sin cliente registrado</span>
     </div>
-
-    <!-- Cliente seleccionado -->
     <div id="lbl-cliente" style="font-size:var(--fs-sm);color:var(--t);margin-bottom:8px;display:none;font-weight:600"></div>
-
     <div class="srch" style="margin-bottom:8px">
       <span class="srch-ic">🔍</span>
       <input type="search" id="e-cli" placeholder="Buscar por nombre o RUT..." autocomplete="off"/>
@@ -276,20 +215,14 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
       <button class="btn bd btn-sm" id="btn-quitar-cli" onclick="quitarCliente()" style="display:none">✕ Quitar</button>
     </div>
   </div>
-
-  <!-- Modo decant/botella -->
-  <div class="seg-row" style="margin-bottom:var(--gap)">
+  <div class="seg-row">
     <button class="seg-btn on" id="seg-decant" onclick="setModo('decant')">Decant</button>
     <button class="seg-btn" id="seg-botella" onclick="setModo('botella')">Botella completa</button>
   </div>
-
-  <!-- Agregar producto -->
   <div class="card">
     <div class="ct" id="lbl-modo-titulo">Agregar Decant</div>
     <label class="fl">Perfume</label>
-    <select class="fi" id="sel-perfume" onchange="onPerfumeSel()">
-      <option value="">Cargando perfumes...</option>
-    </select>
+    <select class="fi" id="sel-perfume" onchange="onPerfumeSel()"><option value="">Cargando perfumes...</option></select>
     <div id="fila-formato">
       <div class="fr">
         <div>
@@ -327,14 +260,10 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
       </div>
     </div>
   </div>
-
-  <!-- Carrito -->
   <div class="card">
     <div class="ct" id="ct-carrito">Carrito (0 items)</div>
     <div id="carrito-items"><p style="color:var(--t3);font-size:var(--fs-sm)">Carrito vacío</p></div>
   </div>
-
-  <!-- Pago -->
   <div class="card">
     <div class="ct">Pago y entrega</div>
     <div class="fr">
@@ -368,11 +297,11 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
     <select class="fi" id="sel-entrega">
       <option>Retiro en tienda</option>
       <option>Despacho a domicilio</option>
+      <option>Punto acordado</option>
     </select>
     <label class="fl">Notas</label>
     <input class="fi" id="inp-notas" type="text" placeholder="Notas adicionales..."/>
   </div>
-
   <div class="tb-total" style="flex-direction:column;align-items:stretch;gap:6px">
     <div style="display:flex;align-items:center;justify-content:space-between">
       <div><div class="tbl">Total a pagar</div><div class="tbv" id="total-venta">$0</div></div>
@@ -386,7 +315,7 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
   <button class="btn bd" onclick="limpiarCarrito()">Limpiar carrito</button>
 </section>
 
-<!-- ════ CLIENTES ════ -->
+<!-- CLIENTES -->
 <section class="page" id="page-clientes">
   <div class="ph"><h2>Clientes</h2><p>Gestión de clientes</p></div>
   <div class="sg">
@@ -398,7 +327,7 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
   <button class="btn bp" onclick="abrirModalCliente()">+ Nuevo cliente</button>
 </section>
 
-<!-- ════ PERFUMES ════ -->
+<!-- PERFUMES -->
 <section class="page" id="page-perfumes">
   <div class="ph"><h2>Perfumes</h2><p>Inventario de decants y botellas</p></div>
   <div class="sg">
@@ -417,7 +346,7 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
   <button class="btn bp" onclick="abrirModalPerfume()">+ Nuevo perfume</button>
 </section>
 
-<!-- ════ HISTORIAL ════ -->
+<!-- HISTORIAL -->
 <section class="page" id="page-historial">
   <div class="ph"><h2>Historial</h2><p>Ventas registradas</p></div>
   <div class="chips-row">
@@ -430,18 +359,16 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
   <div class="card" id="lista-historial"><div class="spinner"></div></div>
 </section>
 
-<!-- ════ REPORTES ════ -->
+<!-- REPORTES -->
 <section class="page" id="page-reportes">
   <div class="ph"><h2>Reportes</h2><p>Resumen del negocio</p></div>
-
-  <!-- FILTRO INDICADORES -->
   <div class="card">
     <div class="ct">Filtro indicadores</div>
     <div class="chips-row" id="preset-chips">
-      <span class="chip cp"  onclick="setPreset('todo',this)">Todo</span>
-      <span class="chip cn"  onclick="setPreset('hoy',this)">Hoy</span>
-      <span class="chip cn"  onclick="setPreset('mes',this)">Este mes</span>
-      <span class="chip cn"  onclick="setPreset('anio',this)">Este año</span>
+      <span class="chip cp" onclick="setPreset('todo',this)">Todo</span>
+      <span class="chip cn" onclick="setPreset('hoy',this)">Hoy</span>
+      <span class="chip cn" onclick="setPreset('mes',this)">Este mes</span>
+      <span class="chip cn" onclick="setPreset('anio',this)">Este año</span>
     </div>
     <div class="fr">
       <div><label class="fl">Desde</label><input class="fi" type="date" id="rep-desde" onchange="loadReportes()"/></div>
@@ -454,65 +381,43 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
     </div>
     <div id="lbl-ind-periodo" style="font-size:var(--fs-sm);color:var(--p);font-weight:600">📅 Indicadores: Todo el tiempo</div>
   </div>
-
-  <!-- STAT CARDS — fila 1 -->
   <div class="sg">
     <div class="sc"><div class="sc-lbl">Ventas totales</div><div class="sc-val va" id="r-ventas">—</div></div>
     <div class="sc"><div class="sc-lbl">Órdenes</div><div class="sc-val vp" id="r-ordenes">—</div></div>
     <div class="sc"><div class="sc-lbl">Ticket promedio</div><div class="sc-val vp" id="r-ticket">—</div></div>
     <div class="sc"><div class="sc-lbl">Perfumes activos</div><div class="sc-val vg" id="r-perfumes">—</div></div>
   </div>
-  <!-- fila 2 -->
   <div class="sg">
     <div class="sc"><div class="sc-lbl">Utilidad neta</div><div class="sc-val vg" id="r-utilidad">—</div></div>
     <div class="sc"><div class="sc-lbl">Costo perfumes</div><div class="sc-val vt" id="r-costo-perf">—</div></div>
     <div class="sc"><div class="sc-lbl">Costo insumos</div><div class="sc-val vw" id="r-costo-ins">—</div></div>
     <div class="sc"><div class="sc-lbl">Margen promedio</div><div class="sc-val vg" id="r-margen">—</div></div>
   </div>
-  <!-- fila 3 -->
   <div class="sg">
     <div class="sc"><div class="sc-lbl">Por cobrar</div><div class="sc-val va" id="r-cobrar">—</div></div>
     <div class="sc"><div class="sc-lbl">Val. inv. insumos</div><div class="sc-val va" id="r-inv-ins">—</div></div>
     <div class="sc"><div class="sc-lbl">Insumos bajo stock</div><div class="sc-val vr" id="r-ins-bajo">—</div></div>
     <div class="sc"><div class="sc-lbl">Total insumos</div><div class="sc-val vp" id="r-ins-total">—</div></div>
   </div>
-
-  <!-- TOP PERFUMES + TOP CLIENTES -->
-  <div class="card">
-    <div class="ct">Top Perfumes</div>
-    <div id="top-perfumes"><div class="spinner"></div></div>
-  </div>
-  <div class="card">
-    <div class="ct">Top Clientes</div>
-    <div id="top-clientes"><div class="spinner"></div></div>
-  </div>
-
-  <!-- GRÁFICO CON SU PROPIO FILTRO -->
+  <div class="card"><div class="ct">Top Perfumes</div><div id="top-perfumes"><div class="spinner"></div></div></div>
+  <div class="card"><div class="ct">Top Clientes</div><div id="top-clientes"><div class="spinner"></div></div></div>
   <div class="card">
     <div class="ct">Evolución temporal</div>
-
-    <!-- Agrupación -->
     <div class="chips-row" id="agrup-chips" style="margin-bottom:6px">
       <span class="chip cn" onclick="setAgrup('dia',this)">Por día</span>
       <span class="chip cp" onclick="setAgrup('mes',this)">Por mes</span>
       <span class="chip cn" onclick="setAgrup('anio',this)">Por año</span>
     </div>
-
-    <!-- Serie -->
     <div class="chips-row" id="serie-chips" style="margin-bottom:6px">
       <span class="chip cp" onclick="setSerie('ambos',this)">Ambos</span>
       <span class="chip cn" onclick="setSerie('ventas',this)">Solo ventas</span>
       <span class="chip cn" onclick="setSerie('costos',this)">Solo costos</span>
     </div>
-
-    <!-- Categoría gráfico -->
     <div class="chips-row" id="cat-graf-chips" style="margin-bottom:6px">
       <span class="chip cp" onclick="setGrafCat('todos',this)">Todos</span>
       <span class="chip cn" onclick="setGrafCat('decants',this)">Decants</span>
       <span class="chip cn" onclick="setGrafCat('botella',this)">Botella completa</span>
     </div>
-
-    <!-- Filtro de fechas propio del gráfico -->
     <div style="background:var(--bg-in);border-radius:10px;padding:10px 12px;margin-bottom:8px">
       <div style="font-size:var(--fs-sm);color:var(--t3);font-weight:600;margin-bottom:6px">Período del gráfico</div>
       <div class="fr" style="margin-bottom:0">
@@ -520,21 +425,15 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
         <div><label class="fl">Hasta</label><input class="fi" type="date" id="graf-hasta" onchange="renderGrafico()" style="margin-bottom:0"/></div>
       </div>
     </div>
-
     <div id="lbl-graf-periodo" style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:8px">📈 Gráfico [Todos]: Todo el tiempo</div>
-
-    <!-- Canvas del gráfico -->
     <div id="graf-canvas-wrap" style="width:100%;overflow-x:auto;border-radius:8px;overflow:hidden">
       <canvas id="graf-canvas" style="display:block;width:100%;min-height:200px"></canvas>
     </div>
-    <!-- Leyenda debajo -->
     <div id="graf-legend" style="display:flex;gap:16px;margin-top:10px;justify-content:center;font-size:var(--fs-sm);color:var(--t2)"></div>
-
   </div>
 </section>
 
-
-<!-- ════ INSUMOS ════ -->
+<!-- INSUMOS -->
 <section class="page" id="page-insumos">
   <div class="ph"><h2>Insumos</h2><p>Packaging y materiales</p></div>
   <div class="sg">
@@ -548,7 +447,7 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
   <button class="btn bp" onclick="abrirModalInsumo()">+ Nuevo insumo</button>
 </section>
 
-<!-- ════ COSTOS ════ -->
+<!-- COSTOS -->
 <section class="page" id="page-costos">
   <div class="ph"><h2>Costos</h2><p>Análisis de costos por perfume</p></div>
   <div class="chips-row">
@@ -568,16 +467,9 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
     <div class="ct">Rentabilidad por perfume</div>
     <div id="lista-costos-perfumes"><div class="spinner"></div></div>
   </div>
-  <div class="card">
-    <div class="ct">Exportar datos</div>
-    <div style="display:flex;gap:var(--gap)">
-      <button class="btn bs btn-sm" onclick="showToast('Función disponible en escritorio')">Excel ventas</button>
-      <button class="btn bs btn-sm" onclick="showToast('Función disponible en escritorio')">Excel clientes</button>
-    </div>
-  </div>
 </section>
 
-<!-- ════ CONFIGURACIÓN ════ -->
+<!-- CONFIGURACIÓN -->
 <section class="page" id="page-config">
   <div class="ph"><h2>Configuración</h2><p>Preferencias del sistema</p></div>
   <div class="card">
@@ -587,9 +479,6 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
     <div class="sec-lbl">Operaciones</div>
     <div class="sw-row"><div><h4>Confirmar antes de guardar</h4><p>Pide confirmación al registrar ventas</p></div><label class="tog"><input type="checkbox" id="sw-confirm" checked onchange="DB.saveSetting('confirm_save',this.checked)"><span class="sl"></span></label></div>
     <div class="sw-row"><div><h4>Limpiar carrito tras venta</h4><p>Resetea el carrito automáticamente</p></div><label class="tog"><input type="checkbox" id="sw-auto-clear" checked onchange="DB.saveSetting('auto_clear',this.checked)"><span class="sl"></span></label></div>
-    <div class="sec-lbl">Notificaciones</div>
-    <div class="sw-row"><div><h4>Alertas de stock bajo</h4><p>Avisa cuando un perfume tiene &lt;20% de ml</p></div><label class="tog"><input type="checkbox" id="sw-stock-alert" checked onchange="DB.saveSetting('stock_alert',this.checked)"><span class="sl"></span></label></div>
-    <div class="sw-row"><div><h4>Alerta de ventas pendientes</h4><p>Avisa si hay ventas sin cobrar</p></div><label class="tog"><input type="checkbox" id="sw-pending-alert" checked onchange="DB.saveSetting('pending_alert',this.checked)"><span class="sl"></span></label></div>
   </div>
   <div class="card">
     <div class="ct">Stock</div>
@@ -605,7 +494,6 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
   </div>
   <div class="card">
     <div class="ct">Sesión</div>
-    <div class="sec-lbl">Sesión activa</div>
     <div style="margin-bottom:var(--gap)">
       <div style="font-size:var(--fs);font-weight:700" id="cfg-user">—</div>
       <div style="font-size:var(--fs-sm);color:var(--t3)">Dew Point Technology Solutions</div>
@@ -614,7 +502,7 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
   </div>
   <div class="card" id="card-instalar" style="display:none">
     <div class="ct">Instalar app</div>
-    <p style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:var(--gap)">Instala Dew Point POS en tu pantalla de inicio para usarla sin abrir el navegador.</p>
+    <p style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:var(--gap)">Instala Dew Point POS en tu pantalla de inicio.</p>
     <button class="btn bp" onclick="installPWA()">Instalar en este dispositivo</button>
   </div>
 </section>
@@ -645,7 +533,6 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
   </div>
 </nav>
 
-<!-- MORE MENU -->
 <div id="more-menu">
   <div class="mm-item" onclick="navigate('historial');closeMore()">📋 Historial</div>
   <div class="mm-item" onclick="navigate('insumos');closeMore()">📦 Insumos</div>
@@ -653,12 +540,10 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
   <div class="mm-item" onclick="navigate('config');closeMore()">⚙ Configuración</div>
 </div>
 
-</div><!-- /app -->
-
+</div>
 <div id="toast"></div>
 
-
-<!-- MODALS -->
+<!-- MODAL CLIENTE -->
 <div class="modal-overlay" id="modal-cliente">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
@@ -676,58 +561,52 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
   </div>
 </div>
 
+<!-- MODAL PERFUME (nuevo + editar) -->
 <div class="modal-overlay" id="modal-perfume">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title" id="modal-perf-title">Nuevo perfume</div>
-
-    <!-- SECCIÓN DECANT -->
-    <div id="mp-sec-decant">
-      <div class="fr">
-        <div><label class="fl">Nombre *</label><input class="fi" id="mp-nombre" placeholder="Ej: Sauvage" style="margin-bottom:0"/></div>
-        <div><label class="fl">Marca *</label><input class="fi" id="mp-marca" placeholder="Ej: Dior" style="margin-bottom:0"/></div>
-      </div>
-      <div style="height:var(--gap)"></div>
-      <div class="fr">
-        <div><label class="fl">ml totales *</label><input class="fi" id="mp-ml" type="number" placeholder="100" inputmode="numeric" style="margin-bottom:0"/></div>
-        <div><label class="fl">Costo total IVA ($)</label><input class="fi" id="mp-costo" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0"/></div>
-      </div>
-      <div style="height:var(--gap)"></div>
-
-      <!-- Precios decant -->
-      <div id="mp-precios-decant">
-        <div class="ct">Precios de venta por formato</div>
-        <div class="fr">
-          <div><label class="fl">2ml ($)</label><input class="fi" id="mp-p2" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0"/></div>
-          <div><label class="fl">3ml ($)</label><input class="fi" id="mp-p3" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0"/></div>
-        </div>
-        <div style="height:var(--gap)"></div>
-        <div class="fr">
-          <div><label class="fl">5ml ($)</label><input class="fi" id="mp-p5" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0"/></div>
-          <div><label class="fl">10ml ($)</label><input class="fi" id="mp-p10" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0"/></div>
-        </div>
-        <div style="height:var(--gap)"></div>
-      </div>
-
-      <!-- Sección botella -->
-      <div id="mp-precio-botella" style="display:none">
-        <div class="fr">
-          <div><label class="fl">ml por botella *</label><input class="fi" id="mp-ml-bot" type="number" placeholder="100" inputmode="numeric" style="margin-bottom:0" oninput="document.getElementById('mp-ml').value=this.value"/></div>
-          <div><label class="fl">Costo por botella ($)</label><input class="fi" id="mp-costo-bot" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0" oninput="document.getElementById('mp-costo').value=this.value"/></div>
-        </div>
-        <div style="height:var(--gap)"></div>
-        <label class="fl">Unidades en stock *</label>
-        <input class="fi" id="mp-unidades" type="number" placeholder="1" min="1" inputmode="numeric"/>
-        <p style="font-size:var(--fs-sm);color:var(--t3);margin-top:-8px;margin-bottom:var(--gap)">Cantidad de botellas físicas que ingresas al stock.</p>
-        <label class="fl">Precio venta botella completa ($)</label>
-        <input class="fi" id="mp-pbotella" type="number" placeholder="0" inputmode="numeric"/>
-      </div>
+    <div class="fr">
+      <div><label class="fl">Nombre *</label><input class="fi" id="mp-nombre" placeholder="Ej: Sauvage" style="margin-bottom:0"/></div>
+      <div><label class="fl">Marca *</label><input class="fi" id="mp-marca" placeholder="Ej: Dior" style="margin-bottom:0"/></div>
     </div>
-
-    <!-- Tipo de venta chips -->
+    <div style="height:var(--gap)"></div>
+    <div class="fr">
+      <div><label class="fl">ml totales *</label><input class="fi" id="mp-ml" type="number" placeholder="100" inputmode="numeric" style="margin-bottom:0"/></div>
+      <div><label class="fl">Costo total IVA ($)</label><input class="fi" id="mp-costo" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0"/></div>
+    </div>
+    <div style="height:var(--gap)"></div>
+    <!-- Precios decant -->
+    <div id="mp-precios-decant">
+      <div class="ct">Precios de venta por formato</div>
+      <div class="fr">
+        <div><label class="fl">2ml ($)</label><input class="fi" id="mp-p2" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0"/></div>
+        <div><label class="fl">3ml ($)</label><input class="fi" id="mp-p3" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0"/></div>
+      </div>
+      <div style="height:var(--gap)"></div>
+      <div class="fr">
+        <div><label class="fl">5ml ($)</label><input class="fi" id="mp-p5" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0"/></div>
+        <div><label class="fl">10ml ($)</label><input class="fi" id="mp-p10" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0"/></div>
+      </div>
+      <div style="height:var(--gap)"></div>
+    </div>
+    <!-- Sección botella -->
+    <div id="mp-precio-botella" style="display:none">
+      <div class="fr">
+        <div><label class="fl">ml por botella *</label><input class="fi" id="mp-ml-bot" type="number" placeholder="100" inputmode="numeric" style="margin-bottom:0" oninput="document.getElementById('mp-ml').value=this.value"/></div>
+        <div><label class="fl">Costo por botella ($)</label><input class="fi" id="mp-costo-bot" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0" oninput="document.getElementById('mp-costo').value=this.value"/></div>
+      </div>
+      <div style="height:var(--gap)"></div>
+      <label class="fl">Unidades en stock *</label>
+      <input class="fi" id="mp-unidades" type="number" placeholder="1" min="1" inputmode="numeric"/>
+      <p style="font-size:var(--fs-sm);color:var(--t3);margin-top:-8px;margin-bottom:var(--gap)">Cantidad de botellas físicas que ingresas al stock.</p>
+      <label class="fl">Precio venta botella completa ($)</label>
+      <input class="fi" id="mp-pbotella" type="number" placeholder="0" inputmode="numeric"/>
+    </div>
+    <!-- Selector tipo -->
     <div class="sec-lbl">Clasificación de venta</div>
     <div class="fr" style="gap:8px;margin-bottom:var(--gap)">
-      <button id="mp-btn-decant" onclick="setTipoPerfume('decants',this)" style="border-radius:10px;padding:10px 8px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;border:2px solid var(--bdr2);background:var(--bg-in);color:var(--t3);transition:all .2s;text-align:center">
+      <button id="mp-btn-decant" onclick="setTipoPerfume('decants',this)" style="border-radius:10px;padding:10px 8px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;border:2px solid var(--p);background:var(--p);color:#fff;transition:all .2s;text-align:center">
         🧪 Solo Decants<br><span style="font-weight:400;font-size:10px">Venta solo por formatos<br>(2ml, 3ml, 5ml, 10ml)</span>
       </button>
       <button id="mp-btn-botella" onclick="setTipoPerfume('botella',this)" style="border-radius:10px;padding:10px 8px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;border:2px solid var(--bdr2);background:var(--bg-in);color:var(--t3);transition:all .2s;text-align:center">
@@ -735,70 +614,19 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
       </button>
     </div>
     <input type="hidden" id="mp-tipo" value="decants"/>
-
-    <button class="btn bp" onclick="guardarPerfume()" style="margin-top:8px">Guardar perfume</button>
+    <button class="btn bp" onclick="guardarPerfume()">Guardar perfume</button>
     <button class="btn bd" onclick="cerrarModal('modal-perfume')">Cancelar</button>
   </div>
 </div>
 
-<div class="modal-overlay" id="modal-insumo">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Nuevo insumo</div>
-    <label class="fl">Nombre *</label>
-    <input class="fi" id="mi-nombre" placeholder="Ej: Frasco 3ml"/>
-    <label class="fl">Categoría</label>
-    <select class="fi" id="mi-cat" onchange="onCategoriaInsumoChange()">
-      <option value="Frascos">Frascos</option>
-      <option value="Bolsas de packaging">Bolsas de packaging</option>
-      <option value="Otros">Otros</option>
-    </select>
-    <div id="mi-formato-row">
-      <label class="fl">Tamaño / Formato</label>
-      <select class="fi" id="mi-formato">
-        <option value="2ml">2ml</option>
-        <option value="3ml">3ml</option>
-        <option value="5ml">5ml</option>
-        <option value="10ml">10ml</option>
-      </select>
-    </div>
-    <div class="fr">
-      <div>
-        <label class="fl">Stock inicial</label>
-        <input class="fi" id="mi-stock" type="number" placeholder="0" inputmode="numeric" oninput="calcCostoUnitInsumo()"/>
-      </div>
-      <div>
-        <label class="fl">Costo total de compra ($)</label>
-        <input class="fi" id="mi-costo" type="number" placeholder="0" inputmode="numeric" oninput="calcCostoUnitInsumo()"/>
-      </div>
-    </div>
-    <div id="mi-preview-costo" style="font-size:var(--fs-sm);color:var(--gold);font-weight:600;margin-bottom:var(--gap)"></div>
-    <button class="btn bp" onclick="guardarInsumo()">Guardar insumo</button>
-    <button class="btn bd" onclick="cerrarModal('modal-insumo')">Cancelar</button>
-  </div>
-</div>
-<div class="modal-overlay" id="modal-detalle-venta">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Detalle de venta</div>
-    <div id="detalle-venta-content"><div class="spinner"></div></div>
-    <button class="btn bd" onclick="cerrarModal('modal-detalle-venta')">Cerrar</button>
-  </div>
-</div>
-
-<script src="js/db.js"></script>
-<script src="js/app.js"></script>
-
-<!-- ════ MODAL EDITAR PERFUME ════ -->
+<!-- MODAL EDITAR PERFUME -->
 <div class="modal-overlay" id="modal-editar-perfume">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title">Editar perfume</div>
     <input type="hidden" id="ep-id"/>
-    <label class="fl">Nombre *</label>
-    <input class="fi" id="ep-nombre" placeholder="Nombre del perfume"/>
-    <label class="fl">Marca *</label>
-    <input class="fi" id="ep-marca" placeholder="Marca"/>
+    <label class="fl">Nombre *</label><input class="fi" id="ep-nombre" placeholder="Nombre del perfume"/>
+    <label class="fl">Marca *</label><input class="fi" id="ep-marca" placeholder="Marca"/>
     <div class="fr">
       <div><label class="fl">ml totales</label><input class="fi" id="ep-ml" type="number" placeholder="100" inputmode="numeric"/></div>
       <div>
@@ -824,20 +652,79 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--t);font-fa
     </div>
     <div id="ep-precio-botella" style="display:none">
       <div class="fr">
-        <div>
-          <label class="fl">Precio botella ($)</label>
-          <input class="fi" id="ep-pbotella" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0"/>
-        </div>
-        <div>
-          <label class="fl">Unidades en stock</label>
-          <input class="fi" id="ep-unidades" type="number" placeholder="1" min="1" inputmode="numeric" style="margin-bottom:0"/>
-        </div>
+        <div><label class="fl">Precio botella ($)</label><input class="fi" id="ep-pbotella" type="number" placeholder="0" inputmode="numeric" style="margin-bottom:0"/></div>
+        <div><label class="fl">Unidades en stock</label><input class="fi" id="ep-unidades" type="number" placeholder="1" min="1" inputmode="numeric" style="margin-bottom:0"/></div>
       </div>
-      <p style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:var(--gap)">💡 Stock total = unidades × ml por botella.</p>
+      <p style="font-size:var(--fs-sm);color:var(--t3);margin-top:6px;margin-bottom:var(--gap)">Stock total = unidades × ml por botella.</p>
     </div>
     <button class="btn bp" onclick="guardarEditarPerfume()">Guardar cambios</button>
     <button class="btn bd" onclick="cerrarModal('modal-editar-perfume')">Cancelar</button>
   </div>
 </div>
+
+<!-- MODAL INSUMO -->
+<div class="modal-overlay" id="modal-insumo">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Nuevo insumo</div>
+    <label class="fl">Nombre *</label><input class="fi" id="mi-nombre" placeholder="Nombre del insumo"/>
+    <label class="fl">Categoría</label>
+    <select class="fi" id="mi-cat">
+      <option>Frascos</option>
+      <option>Packaging</option>
+      <option>Embalaje</option>
+      <option>Branding</option>
+      <option>Otro</option>
+    </select>
+    <div class="fr">
+      <div><label class="fl">Stock actual</label><input class="fi" id="mi-stock" type="number" placeholder="0" inputmode="numeric"/></div>
+      <div><label class="fl">Costo unitario ($)</label><input class="fi" id="mi-costo" type="number" placeholder="0" inputmode="numeric"/></div>
+    </div>
+    <label class="fl">Unidad de medida</label>
+    <select class="fi" id="mi-unidad">
+      <option value="unidad">Unidad</option>
+      <option value="caja">Caja</option>
+      <option value="rollo">Rollo</option>
+      <option value="kg">Kg</option>
+    </select>
+    <label class="fl">Notas</label><input class="fi" id="mi-notas" placeholder="Notas..."/>
+    <button class="btn bp" onclick="guardarInsumo()">Guardar insumo</button>
+    <button class="btn bd" onclick="cerrarModal('modal-insumo')">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL DETALLE VENTA / CLIENTE -->
+<div class="modal-overlay" id="modal-detalle-venta">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Detalle de venta</div>
+    <div id="detalle-venta-content"><div class="spinner"></div></div>
+    <button class="btn bd" onclick="cerrarModal('modal-detalle-venta')">Cerrar</button>
+  </div>
+</div>
+
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
+
+<!-- MODAL RE-STOCK INSUMO -->
+<div class="modal-overlay" id="modal-restock-insumo">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⬆ Re-stock insumo</div>
+    <div style="background:var(--bg-in);border-radius:10px;padding:12px 14px;margin-bottom:var(--gap)">
+      <div style="font-size:var(--fs-sm);color:var(--t3);margin-bottom:4px">Insumo</div>
+      <div style="font-weight:700;font-size:var(--fs)" id="rs-insumo-nombre">—</div>
+      <div style="font-size:var(--fs-sm);color:var(--t3);margin-top:4px">Stock actual: <span id="rs-stock-actual" style="color:var(--p);font-weight:700">—</span></div>
+    </div>
+    <label class="fl">Cantidad a agregar *</label>
+    <input class="fi" id="rs-cantidad" type="number" placeholder="Ej: 50" min="1" inputmode="numeric" oninput="calcRestockPreview()"/>
+    <label class="fl">Costo total de la compra ($) <span style="color:var(--t3);font-weight:400">(opcional)</span></label>
+    <input class="fi" id="rs-costo-nuevo" type="number" placeholder="Ej: 15000" inputmode="numeric" oninput="calcRestockPreview()"/>
+    <div id="rs-preview" style="font-size:var(--fs-sm);font-weight:700;margin-top:-8px;margin-bottom:var(--gap);min-height:18px"></div>
+    <button class="btn bp" onclick="guardarRestockInsumo()">Confirmar re-stock</button>
+    <button class="btn bd" onclick="cerrarModal('modal-restock-insumo')">Cancelar</button>
+  </div>
+</div>
+
 </body>
 </html>
